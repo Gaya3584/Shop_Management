@@ -8,8 +8,6 @@ function SignUp() {
         <div className="holographic-card">
           <form className="signupForm">
             <h1 id="heading">Register/Sign Up</h1>
-            <p>Welcome To Shopsy! Register now</p>
-
             <label>Shop Owner Name:</label>
             <input type="text" placeholder="Enter your full name: Example: John Doe" />
 
