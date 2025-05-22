@@ -1,0 +1,160 @@
+/* Container to center form */
+.signupContainer {
+  position: relative;
+  display: flex;
+  justify-content:center;/* Moves the form to the right */
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Blurred background image layer */
+.signupContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url(../assets/background.jpeg) no-repeat center center fixed;
+  background-size: cover;
+  filter: blur(8px);
+  z-index: -1;
+  transform: scale(1.05); /* to avoid blur edges */
+}
+#centerText {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #000;
+}
+/* Form styling */
+.signupForm {
+  background-color: #fff;
+  border-radius: 12px;
+  justify-content:center;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 6px 16px rgba(252, 251, 251, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  z-index: 2;
+  background-color:#fff;
+}
+
+/* Welcome text */
+.signupForm p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin: auto;
+  color: #333;
+}
+
+/* Label styling */
+.signupForm label {
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Input and select */
+.signupForm input,
+.signupForm select {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Focus effects */
+.signupForm input:focus,
+.signupForm select:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* Submit button */
+.signupForm button[type="submit"] {
+  margin-top: 1.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.signupForm button[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+/* Login link */
+#toLogin {
+  margin-top: 1rem;
+  display: block;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+#toLogin a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+#toLogin a:hover {
+  text-decoration: underline;
+}
+
+.holographic-card {
+  width: 100%;
+  max-width: 500px;
+  background:#fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+  padding: 2rem;
+  transition: all 0.5s ease;
+  box-shadow: 0 0 10px #fff;
+}
+
+.holographic-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background-color:#fff;
+  transform: rotate(-45deg);
+  transition: all 0.5s ease;
+  opacity: 0;
+  z-index: 1;
+}
+
+.holographic-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 30px #fff;
+}
+
+.holographic-card:hover::before {
+  opacity: 1;
+  transform: rotate(-45deg) translateY(100%);
+}
+
+/**/
