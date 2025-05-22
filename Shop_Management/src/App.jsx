@@ -1,16 +1,17 @@
-import './App.css'
-import SignUp from './components/SignUp'
-import React from 'react'
-import Log from './components/login'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SignUp from '../src/components/SignUp';
+import Login from '../src/components/login';
 
 function App() {
-
   return (
-    <>
-      <Log />
-      <SignUp /> 
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Login />} /> {/* fallback route */}
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;

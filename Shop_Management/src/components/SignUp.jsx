@@ -1,4 +1,5 @@
 import './SignUp.css';
+import { Link } from 'react-router-dom';
 
 function SignUp() {
   return (
@@ -37,7 +38,7 @@ function SignUp() {
             <button type="submit">Submit</button>
 
             <label id="toLogin">
-              Already have an account? Go to <a href="/login">Login</a>
+              Already have an account? Go to <Link to ="/login">Login</Link>
             </label>
           </form>
         </div>
