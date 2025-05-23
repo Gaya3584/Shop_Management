@@ -1,11 +1,13 @@
 import './SignUp.css';
 import { Link } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 
 function SignUp() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
-    name: '',
+    ownerName:'',
     shopName: '',
     shopType: '',
     email: '',
@@ -15,6 +17,10 @@ function SignUp() {
   });
 
   const [errors, setErrors] = useState({});
+   const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,59 +30,127 @@ function SignUp() {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if(!formData.ownerName.trim()) newErrors.ownerName='Owner Name required';
     if (!formData.shopName.trim()) newErrors.shopName = 'Shop Name is required';
     if (!formData.shopType) newErrors.shopType = 'Please select shop type';
     if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Valid email required';
     if (!formData.phone || !/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Enter a valid 10-digit phone number';
-    if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    setSubmitError('');
+    setSubmitSuccess('');
+
     if (!validate()) return;
-    // Proceed with signup logic
+
+    try{
+        setIsLoading(true);
+        const response = await fetch('http://localhost:5000/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+          ownerName:formData.ownerName,
+          shopName: formData.shopName,
+          shopType: formData.shopType,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        })
+      });
+
+      const result = await response.json();
+      console.log('Server response:', result);
+
+      if(!response.ok){
+        throw new Error(result.message || "SignUp Failed!");
+      }
+
+      setSubmitSuccess('SignUp successful! Forwarding to login to login again...');
+      setFormData({
+        ownerName: '',
+        shopName: '',
+        shopType: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: ''
+      });
+      navigate('/', { state: { successMessage: 'Registered successfully! Now login.' } });
+
+    }catch(error){
+      setSubmitError(error.message);
+    }finally{
+      setIsLoading(false);
+    }
     console.log('Signup success', formData);
-  };
+  },[formData]);
 
   return (
     <div className="signupContainer">
       <div className="rightPane">
         <div className="holographic-card">
-          <form className="signupForm">
+          <form className="signupForm" onSubmit={handleSubmit}>
             <h1 id="heading">Register/Sign Up</h1>
+            {submitError && <p style={{color:"red"}}>{submitError}</p>}
+            {submitSuccess && <p style={{color:"green"}}>{submitSuccess}</p>}
+
+
             <label>Shop Owner Name:</label>
-            <input type="text" placeholder="Enter your full name: Example: John Doe" />
+            <input type="text" placeholder="Enter your full name: Example: John Doe" name="ownerName" value={formData.ownerName} onChange={handleChange}/>
+            {errors.ownerName && <p style={{color:"orange"}}>{errors.ownerName}</p>}
 
             <label>Shop Name:</label>
-            <input type="text" placeholder="Enter your shop name: Example: Aishwarya Bakery" />
+            <input type="text" placeholder="Enter your shop name: Example: Aishwarya Bakery" name="shopName" value={formData.shopName} onChange={handleChange}/>
+             {errors.shopName && <p style={{color:"orange"}}>{errors.shopName}</p>}
 
             <label>Shop Type:</label>
-            <select id="shopType" name="shopType">
-              <option value="">--Select Whole-Sale/Retail--</option>
+            <select id="shopType" name="shopType" value={formData.shopType} onChange={handleChange}>
+              <option value="" disabled>--Select Whole-Sale/Retail--</option>
               <option value="Whole-Sale">Whole-Sale</option>
               <option value="Retail">Retail</option>
             </select>
+            {errors.shopType && <p style={{color:"orange"}}>{errors.shopType}</p>}
 
             <label>Email:</label>
-            <input type="email" placeholder="Eg: useremail@something.com" />
+            <input type="email" placeholder="Eg: useremail@something.com" name="email" value={formData.email} onChange={handleChange}/>
+             {errors.email && <p style={{color:"orange"}}>{errors.email}</p>}
 
             <label>Phone Number:</label>
-            <input type="tel" placeholder="10 digit number Eg:8086370637" pattern="[0-9]{10}" />
+            <input type="tel" placeholder="10 digit number Eg:8086370637" pattern="[0-9]{10}" name='phone' value={formData.phone} onChange={handleChange}/>
+             {errors.phone && <p style={{color:"orange"}}>{errors.phone}</p>}
 
             <label>Set Password:</label>
-            <input type="password" placeholder="Enter a strong password that you can remember" />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password"
+              />
+              <span
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', top: '50%', right: '10px', transform: 'translateY(-50%)', cursor: 'pointer' }}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </span>
+            </div>
+             {errors.password && <p style={{color:"orange"}}>{errors.password}</p>}
+
 
             <label>Confirm Password:</label>
-            <input type="password" placeholder="Retype previous password to confirm" />
+            <input type="password" placeholder="Retype previous password to confirm" name='confirmPassword'value={formData.confirmPassword} onChange={handleChange}/>
+             {errors.confirmPassword && <p style={{color:"orange"}}>{errors.confirmPassword}</p>}
 
-            <button type="submit">Submit</button>
+
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? 'Registering...' : 'Submit'}
+            </button>
 
             <label id="toLogin">
-              Already have an account? Go to <Link to ="/login">Login</Link>
+              Already have an account? Go to <Link to ="/">Login</Link>
             </label>
           </form>
         </div>

@@ -1,12 +1,19 @@
 import React, { useState, useCallback } from 'react';
 import bg from '../assets/bgshop.png';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import '../components/login.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+
+
+
 
 export default function Login() {
+    const location = useLocation();
+    const successMessage = location.state?.successMessage || '';
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        username: '',
+        email: '',
         password: '',
         remember: false
     });
@@ -44,11 +51,11 @@ export default function Login() {
         try {
             const newErrors = {};
 
-            // Username validation
-            if (!formData.username || formData.username.trim().length === 0) {
-                newErrors.username = 'Username is required';
-            } else if (formData.username.trim().length < 3) {
-                newErrors.username = 'Username must be at least 3 characters long';
+            // email validation
+            if (!formData.email || formData.email.trim().length === 0) {
+                newErrors.email = 'email is required';
+            } else if (formData.email.trim().length < 3) {
+                newErrors.email = 'email must be at least 3 characters long';
             }
 
             // Password validation
@@ -82,13 +89,13 @@ export default function Login() {
 
             // Simulate API call - replace with your actual login logic
             const loginData = {
-                username: formData.username.trim(),
+                email: formData.email.trim(),
                 password: formData.password,
                 remember: formData.remember
             };
 
             // Example API call (replace with your actual implementation)
-            const response = await fetch('/api/login', {
+            const response = await fetch('http://localhost:5000//api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,6 +112,7 @@ export default function Login() {
             
             // Handle successful login
             console.log('Login successful:', result);
+            navigate('/dashboard');
             
             // Store token if provided
             if (result.token) {
@@ -125,7 +133,7 @@ export default function Login() {
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
                 setSubmitError('Network error. Please check your connection and try again.');
             } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-                setSubmitError('Invalid username or password. Please try again.');
+                setSubmitError('Invalid email or password. Please try again.');
             } else if (error.message.includes('429')) {
                 setSubmitError('Too many login attempts. Please try again later.');
             } else {
@@ -161,7 +169,7 @@ export default function Login() {
                     <h1 className='login-title'>Sign In to Your Account</h1>
                     <hr />
                 </div>
-                
+                {successMessage && <h2>{successMessage}</h2>}
                 <form className='login-form' onSubmit={handleSubmit} noValidate>
                     {submitError && (
                         <div className='error-message' style={{ 
@@ -177,22 +185,22 @@ export default function Login() {
                     )}
 
                     <div className='input-group'>
-                        <label htmlFor='username' className='input-label'>Username</label>
+                        <label htmlFor='email' className='input-label'>Email</label>
                         <input 
                             type='text' 
-                            id='username' 
-                            name='username'
-                            className={`input-field ${errors.username ? 'error' : ''}`}
-                            placeholder='Enter your username' 
-                            value={formData.username}
+                            id='email' 
+                            name='email'
+                            className={`input-field ${errors.email ? 'error' : ''}`}
+                            placeholder='Enter your Email' 
+                            value={formData.email}
                             onChange={handleInputChange}
                             disabled={isLoading}
-                            autoComplete="username"
+                            autoComplete="email"
                             required 
                         />
-                        {errors.username && (
+                        {errors.email && (
                             <span className='field-error' style={{ color: '#e74c3c', fontSize: '14px' }}>
-                                {errors.username}
+                                {errors.email}
                             </span>
                         )}
                     </div>
