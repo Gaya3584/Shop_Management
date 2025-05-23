@@ -2,10 +2,13 @@
 .signupContainer {
   position: relative;
   display: flex;
-  justify-content:center;/* Moves the form to the right */
+  justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  overflow: hidden;
+  
+  overflow-y:hidden;
+  overflow-x: hidden;
+  padding: 2rem 1rem;
+  margin-top: -50px;
 }
 
 /* Blurred background image layer */
@@ -16,121 +19,38 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: url(../assets/background.jpeg) no-repeat center center fixed;
+  background: url(../assets/bgshop.png) no-repeat center center fixed;
   background-size: cover;
   filter: blur(8px);
   z-index: -1;
   transform: scale(1.05); /* to avoid blur edges */
 }
-#centerText {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  color: #000;
-}
-/* Form styling */
-.signupForm {
-  background-color: #fff;
-  border-radius: 12px;
-  justify-content:center;
+
+/* Right pane container */
+.rightPane {
+  display: flex;
+  justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 6px 16px rgba(252, 251, 251, 0.1);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  position: relative;
-  z-index: 2;
-  background-color:#fff;
+  max-width: 500px;
 }
 
-/* Welcome text */
-.signupForm p {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: center;
-  margin: auto;
-  color: #333;
-}
-
-/* Label styling */
-.signupForm label {
-  display: block;
-  margin-top: 1rem;
-  margin-bottom: 0.3rem;
-  font-weight: 600;
-  color: #333;
-}
-
-/* Input and select */
-.signupForm input,
-.signupForm select {
-  width: 100%;
-  padding: 0.6rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-/* Focus effects */
-.signupForm input:focus,
-.signupForm select:focus {
-  border-color: #007bff;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-
-/* Submit button */
-.signupForm button[type="submit"] {
-  margin-top: 1.5rem;
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.signupForm button[type="submit"]:hover {
-  background-color: #0056b3;
-}
-
-/* Login link */
-#toLogin {
-  margin-top: 1rem;
-  display: block;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-#toLogin a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-#toLogin a:hover {
-  text-decoration: underline;
-}
-
+/* Holographic card container */
 .holographic-card {
   width: 100%;
-  max-width: 500px;
-  background:#fff;
+  max-width: 450px;
+  background: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   overflow: hidden;
-  border-radius: 15px;
-  padding: 2rem;
+  border-radius: 12px;
+  padding: 1.5rem;
   transition: all 0.5s ease;
-  box-shadow: 0 0 10px #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  margin: 1rem 0;
+  
 }
 
 .holographic-card::before {
@@ -140,7 +60,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background-color:#fff;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   transform: rotate(-45deg);
   transition: all 0.5s ease;
   opacity: 0;
@@ -148,8 +68,8 @@
 }
 
 .holographic-card:hover {
-  transform: scale(1.03);
-  box-shadow: 0 0 30px #fff;
+  transform: scale(1.02);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
 }
 
 .holographic-card:hover::before {
@@ -157,4 +77,149 @@
   transform: rotate(-45deg) translateY(100%);
 }
 
-/**/
+/* Form styling */
+.signupForm {
+  width: 100%;
+  max-width: 350px;
+  position: relative;
+  z-index: 2;
+  --font-primary: "Poetsen One", system-ui, -apple-system, sans-serif;
+}
+
+/* Heading styling */
+#heading {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #333;
+  text-align: center;
+}
+
+/* Label styling */
+.signupForm label {
+  display: block;
+  margin-top: 0.8rem;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.85rem;
+}
+
+/* Input and select styling */
+.signupForm input,
+.signupForm select {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 0.9rem;
+  border: 2px solid #e1e1e1;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  background-color: #fafafa;
+}
+
+/* Focus effects */
+.signupForm input:focus,
+.signupForm select:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  background-color: #fff;
+}
+
+/* Placeholder styling */
+.signupForm input::placeholder {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* Submit button */
+.signupForm button[type="submit"] {
+  margin-top: 1.2rem;
+  width: 100%;
+  padding: 0.7rem;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.signupForm button[type="submit"]:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.signupForm button[type="submit"]:active {
+  transform: translateY(0);
+}
+
+/* Login link */
+#toLogin {
+  margin-top: 1rem;
+  display: block;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: normal;
+}
+
+#toLogin a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+#toLogin a:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+/* Error message styling */
+.error-message {
+  color: #dc3545;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .signupContainer {
+    padding: 0.5rem;
+  }
+  
+  .holographic-card {
+    padding: 1.5rem;
+  }
+  
+  #heading {
+    font-size: 1.5rem;
+  }
+  
+  .signupForm input,
+  .signupForm select {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .holographic-card {
+    padding: 1rem;
+  }
+  
+  #heading {
+    font-size: 1.3rem;
+  }
+  
+  .signupForm input::placeholder {
+    font-size: 0.8rem;
+  }
+}
