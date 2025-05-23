@@ -11,7 +11,7 @@ users = db.users
 @auth_bp.route('/api/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    required_fields = ['name', 'shopName', 'shopType', 'email', 'phone', 'password']
+    required_fields = ['name','ownerName', 'shopName', 'shopType', 'email', 'phone', 'password']
 
     if not all(field in data and data[field] for field in required_fields):
         return jsonify({'message': 'All fields are required'}), 400
