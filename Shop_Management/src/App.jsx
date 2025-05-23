@@ -4,18 +4,18 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Log from './components/login'
 import Dash from './components/dash'
-import Footer from './components/footer'
+import Disc from './components/discover'
 
 function App() {
   return (
     <Router>
-      <div className='main'>
-        <Routes>
-          <Route path="/" element={<><Log /><Footer /></>} />
-          <Route path="/signup" element={<><SignUp /><Footer /></>} />
-          <Route path="/dash" element={<><Dash /><Footer /></>} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<Log />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/dash" element={<Dash />} />
+        <Route path="/disc" element={<Disc />} />
+
+      </Routes>
     </Router>
   );
 }
