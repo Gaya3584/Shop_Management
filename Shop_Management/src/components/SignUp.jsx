@@ -76,7 +76,7 @@ function SignUp() {
             <button type="submit">Submit</button>
 
             <label id="toLogin">
-              Already have an account? Go to <Link to ="/login">Login</Link>
+              Already have an account? Go to <Link to ="/">Login</Link>
             </label>
           </form>
         </div>
