@@ -5,13 +5,13 @@ from pymongo import MongoClient
 from config import MONGO_URI
 
 client = MongoClient(MONGO_URI)
-db = client.shopdb
+db = client.shopsy
 users = db.users
 
 @auth_bp.route('/api/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    required_fields = ['name','ownerName', 'shopName', 'shopType', 'email', 'phone', 'password']
+    required_fields = ['ownerName', 'shopName', 'shopType', 'email', 'phone', 'password']
 
     if not all(field in data and data[field] for field in required_fields):
         return jsonify({'message': 'All fields are required'}), 400
@@ -20,13 +20,16 @@ def signup():
         return jsonify({'message': 'Email already registered'}), 409
 
     user_data = {
-        'name': data['name'],
+        'ownerName': data['ownerName'],
         'shopName': data['shopName'],
         'shopType': data['shopType'],
         'email': data['email'],
         'phone': data['phone'],
         'password': hash_password(data['password'])
     }
+    print("Received signup data:", data)
+
+    print("Final user_data being saved:", user_data)
 
     users.insert_one(user_data)
     return jsonify({'message': 'User registered successfully'}), 201
@@ -34,7 +37,7 @@ def signup():
 @auth_bp.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user = users.find_one({'email': data['username']})
+    user = users.find_one({'email': data['email']})
 
     if not user or not verify_password(data['password'], user['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
