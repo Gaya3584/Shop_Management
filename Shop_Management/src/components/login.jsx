@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import bg from '../assets/bgshop.png';
+import { Link } from 'react-router-dom';
 import '../components/login.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -262,10 +263,7 @@ export default function Login() {
                     </div>
 
                     <div className='input-group'>
-                        <p className='login-footer'>
-                            Don't have an account? 
-                            <a href='/register' className='register-link'> Register here</a>
-                        </p>
+                        <p className='login-footer'> Don't have an account? <Link to="/signup"> Register here</Link></p>
                     </div>
                 </form>
             </div>

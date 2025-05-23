@@ -1,3 +1,4 @@
+
 import './App.css'
 import SignUp from './components/SignUp'
 import React from 'react'
@@ -5,9 +6,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Log from './components/login'
 import Dash from './components/dash'
 
-function App() {
 
+function App() {
   return (
+
     <>
       <Log />
       <SignUp /> 
@@ -19,6 +21,7 @@ function App() {
     </Router>
     </>
   )
+
 }
 
-export default App
+export default App;
