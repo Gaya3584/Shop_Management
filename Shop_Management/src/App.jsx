@@ -1,17 +1,27 @@
+
+import './App.css'
+import SignUp from './components/SignUp'
+import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import SignUp from '../src/components/SignUp';
-import Login from '../src/components/login';
+import Log from './components/login'
+import Dash from './components/dash'
+
 
 function App() {
   return (
-    <Router>
+
+    <>
+      <Log />
+      <SignUp /> 
+      <Router>
       <Routes>
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Login />} /> {/* fallback route */}
+        <Route path="/" element={<Log />} /> {/* optional */}
+        <Route path="/dashboard" element={<Dash />} />
       </Routes>
     </Router>
-  );
+    </>
+  )
+
 }
 
 export default App;
