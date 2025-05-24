@@ -421,7 +421,7 @@ body {
 
 .forgot-password-link:hover,
 .register-link:hover {
-  color: var(--secondary-color);
+  color: #000;
 }
 
 /* Footer */

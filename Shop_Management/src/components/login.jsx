@@ -21,6 +21,8 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [submitError, setSubmitError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const token = localStorage.getItem('user_token');
+// Use this token to fetch user-specific data from backend
 
 
     // Input change handler with error handling
@@ -75,74 +77,102 @@ export default function Login() {
     }, [formData]);
 
     // Form submission handler
-    const handleSubmit = useCallback(async (e) => {
-        e.preventDefault();
-        
-        try {
-            setIsLoading(true);
-            setSubmitError('');
+// In your login.jsx, update the handleSubmit function around line 85-95:
 
-            // Validate form
-            if (!validateForm()) {
-                return;
-            }
+const handleSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    
+    try {
+        setIsLoading(true);
+        setSubmitError('');
 
-            // Simulate API call - replace with your actual login logic
-            const loginData = {
-                email: formData.email.trim(),
-                password: formData.password,
-                remember: formData.remember
-            };
-
-            // Example API call (replace with your actual implementation)
-            const response = await fetch('http://localhost:5000//api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(loginData),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `Login failed: ${response.status}`);
-            }
-
-            const result = await response.json();
-            
-            // Handle successful login
-            console.log('Login successful:', result);
-            navigate('/dashboard');
-            
-            // Store token if provided
-            if (result.token) {
-                if (formData.remember) {
-                    localStorage.setItem('authToken', result.token);
-                } else {
-                    sessionStorage.setItem('authToken', result.token);
-                }
-            }
-
-            // Redirect or update app state
-            // window.location.href = '/dashboard'; // or use React Router
-            
-        } catch (error) {
-            console.error('Login error:', error);
-            
-            // Handle different types of errors
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                setSubmitError('Network error. Please check your connection and try again.');
-            } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-                setSubmitError('Invalid email or password. Please try again.');
-            } else if (error.message.includes('429')) {
-                setSubmitError('Too many login attempts. Please try again later.');
-            } else {
-                setSubmitError(error.message || 'An unexpected error occurred. Please try again.');
-            }
-        } finally {
-            setIsLoading(false);
+        // Validate form
+        if (!validateForm()) {
+            return;
         }
-    }, [formData, validateForm]);
+
+        // Simulate API call - replace with your actual login logic
+        const loginData = {
+            email: formData.email.trim(),
+            password: formData.password,
+            remember: formData.remember
+        };
+
+        // Example API call (replace with your actual implementation)
+        const response = await fetch('http://localhost:5000/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(loginData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Login failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Debug: Log the response to see what you're getting
+        console.log('API Response:', result);
+        
+        // Handle successful login
+        
+        // Store token if provided
+        if (result.user_token) {
+            if (formData.remember) {
+                localStorage.setItem('user_token', data.user_token);
+
+            } else {
+                localStorage.setItem('user_token', data.user_token);
+
+            }
+        }
+
+        // Check what fields are available in the response
+        const userId = result.userId || result.id || result.user?.id || result.user?.userId;
+        
+        if (!userId) {
+            console.error('No userId found in response:', result);
+            // You can either use the email as an identifier or show an error
+            // Option 1: Use email as identifier
+            const userIdentifier = result.user?.email || formData.email.trim();
+            navigate(`/dash/}`, {
+  state: { successMessage: 'Login successful!' }
+});
+
+            
+            // Option 2: Show error (uncomment below and comment above if preferred)
+            // setSubmitError('Login successful but user ID not found. Please contact support.');
+            // return;
+        } else {
+            console.log('Login successful:', result);
+            navigate('/dash', { 
+    state: { 
+        successMessage: 'Login successful!',
+        userEmail: formData.email.trim()
+    } 
+});
+        }
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        
+        // Handle different types of errors
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            setSubmitError('Network error. Please check your connection and try again.');
+        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+            setSubmitError('Invalid email or password. Please try again.');
+        } else if (error.message.includes('429')) {
+            setSubmitError('Too many login attempts. Please try again later.');
+        } else {
+            setSubmitError(error.message || 'An unexpected error occurred. Please try again.');
+        }
+    } finally {
+        setIsLoading(false);
+    }
+}, [formData, validateForm, navigate]);
 
     // Image error handler
     const handleImageError = useCallback((e) => {

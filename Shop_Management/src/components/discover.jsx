@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import './discover.css';
+import { useNavigate,useLocation } from 'react-router-dom';
 
 const DiscoverPage = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBusinessType, setSelectedBusinessType] = useState('all');
@@ -10,6 +12,8 @@ const DiscoverPage = () => {
 const [inquiryMessage, setInquiryMessage] = useState('');
 const [inquirySuccess, setInquirySuccess] = useState(false);
 const [selectedProduct, setSelectedProduct] = useState(null);
+const userToken = localStorage.getItem('user_token');
+const location = useLocation();
 
 
   // Sample data for products and sellers
@@ -151,29 +155,26 @@ const [selectedProduct, setSelectedProduct] = useState(null);
             />
           </div>
         </div>
-        <div className="back-button-container">
-  <button
-    className="back-button"
-    onClick={() => window.location.href = '/dash'}
+        <button 
+  className="back-button" 
+  onClick={() => navigate(`/dash/}`)}
+>
+  <svg
+    className="home-icon"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    <svg
-      className="home-icon"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ marginRight: '8px' }}
-    >
-      <path d="M3 9l9-7 9 7"></path>
-      <path d="M9 22V12h6v10"></path>
-    </svg>
-    Back to Dashboard
-  </button>
-</div>
+    <path d="m12 19-7-7 7-7"></path>
+    <path d="M19 12H5"></path>
+  </svg>
+  Back to Dashboard
+</button>
 
       </div>
 

@@ -3,6 +3,7 @@ from . import auth_bp
 from .utils import hash_password, verify_password
 from pymongo import MongoClient
 from config import MONGO_URI
+import uuid
 
 client = MongoClient(MONGO_URI)
 db = client.shopsy
@@ -18,12 +19,13 @@ def signup():
 
     if users.find_one({'email': data['email']}):
         return jsonify({'message': 'Email already registered'}), 409
-
+    user_token = str(uuid.uuid4())
     user_data = {
         'ownerName': data['ownerName'],
         'shopName': data['shopName'],
         'shopType': data['shopType'],
         'email': data['email'],
+        'user_token': data['user_token'],
         'phone': data['phone'],
         'password': hash_password(data['password'])
     }
@@ -32,7 +34,7 @@ def signup():
     print("Final user_data being saved:", user_data)
 
     users.insert_one(user_data)
-    return jsonify({'message': 'User registered successfully'}), 201
+    return jsonify({'message': 'User registered successfully','user_token':user_token}), 201
 
 @auth_bp.route('/api/login', methods=['POST'])
 def login():
@@ -43,3 +45,9 @@ def login():
         return jsonify({'message': 'Invalid credentials'}), 401
 
     return jsonify({'message': 'Login successful', 'token': 'demo-jwt-or-session'}), 200
+@auth_bp.route('/api/user/<token>', methods=['GET'])
+def get_user_by_token(token):
+    user = users.find_one({'user_token': token}, {'password': 0})  # exclude password
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    return jsonify(user), 200
