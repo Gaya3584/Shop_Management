@@ -6,6 +6,7 @@ import Log from './components/login'
 import Dash from './components/dash'
 import Disc from './components/discover'
 import Stock from './components/stock'
+import Pro from './components/profile'
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
         <Route path="/dash/:user_token" element={<Dash />} />
         <Route path="/disc/:user_token" element={<Disc />} />
         <Route path="/stock/:userToken" element={<Stock />} />
-
+        <Route path="/profile/:userToken" element={<Pro />} />
 
       </Routes>
     </Router>

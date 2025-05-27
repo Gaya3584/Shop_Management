@@ -55,6 +55,7 @@ def get_user_by_token(token):
     if not user:
         return jsonify({'message': 'User not found'}), 404
     return jsonify(user), 200
+
 @auth_bp.route('/api/stocks', methods=['POST'])
 def add_stock():
     try:

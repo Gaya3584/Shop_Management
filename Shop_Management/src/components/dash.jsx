@@ -11,8 +11,8 @@ const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const {userToken}=useParams();
-  const userEmail = location.state?.userEmail || 'Guest';
-  const userData = location.state?.userData;
+  const userEmail = location.state?.userEmail;
+  const userName = location.state?.userName;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const toggleSidebar = () => {
@@ -39,6 +39,9 @@ const Dashboard = () => {
   }
 };
 
+const handleProfileClick = () => {
+  navigate(`/profile/${currentUserToken}`);
+};
   return (
     <div className="dashboard-container">
       {/* Overlay for both mobile and desktop */}
@@ -64,20 +67,19 @@ const Dashboard = () => {
         </div>
 
         {/* Profile Section */}
-        <div className="profile-section">
-          <div className="profile-container">
-            <div className="profile-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </div>
-            <div className="profile-info">
-              <h3 className="username">{userEmail}</h3>
-              <p className="user-email">{userEmail}</p>
-            </div>
-          </div>
-        </div>
+        <div className="profile-section">           
+  <div className="profile-container">             
+    <div className="profile-icon" onClick={handleProfileClick}>               
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">                 
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>                 
+        <circle cx="12" cy="7" r="4"></circle>               
+      </svg>             
+    </div>             
+    <div className="profile-info">               
+      <h3 className="username">{userEmail}</h3>                            
+    </div>           
+  </div>         
+</div>
 
         {/* Navigation Menu */}
         <nav className="nav-menu">
