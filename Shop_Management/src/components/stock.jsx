@@ -218,7 +218,8 @@ const StockManagement = () => {
     };
 
     const filteredStocks = stocks.filter(stock => {
-        const matchesSearch = stock.name?.toLowerCase().includes(searchItem.toLowerCase());
+        const matchesSearch = stock.name?.toLowerCase().includes(searchItem.toLowerCase())||
+    stock.supplier?.toLowerCase().includes(searchItem.toLowerCase());;
         const matchesCategory = filterCategory ? stock.category === filterCategory : true;
         return matchesSearch && matchesCategory;
     });
