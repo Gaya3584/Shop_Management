@@ -1,9 +1,11 @@
 import './App.css'
 import SignUp from './components/SignUp'
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Log from './components/login'
 import Dash from './components/dash'
+{/*import Profile from './components/Profile'
+import Warehouse from './components/Warehouse'*/}
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
         <Route path="/" element={<Log />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/dash" element={<Dash />} />
+        {/*<Route path="/dash/profile" element={<Profile />} />
+        <Route path="/dash/warehouse" element={<Warehouse />} />*/}
       </Routes>
     </Router>
   );

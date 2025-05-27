@@ -3,10 +3,13 @@ from . import auth_bp
 from .utils import hash_password, verify_password
 from pymongo import MongoClient
 from config import MONGO_URI
+from datetime import datetime, timezone
+
 
 client = MongoClient(MONGO_URI)
 db = client.shopsy
 users = db.users
+shops=db.shops
 
 @auth_bp.route('/api/signup', methods=['POST'])
 def signup():
@@ -25,13 +28,28 @@ def signup():
         'shopType': data['shopType'],
         'email': data['email'],
         'phone': data['phone'],
-        'password': hash_password(data['password'])
+        'password': hash_password(data['password']),
+        "created_at": datetime.now(timezone.utc)
+    }
+    shop_data={
+        'ownerName': data['ownerName'],
+        'ownerEmail': data['email'],
+        'ownerPhone': data['phone'],
+        'shopName': data['shopName'],
+        'shopType': data['shopType'],
+        'shopDomain': None,
+        'email': data['email'],
+        'location': None,
+        'products': {},
+        'metadata': {},
+        'created_at': data['created_at']
     }
     print("Received signup data:", data)
 
     print("Final user_data being saved:", user_data)
 
     users.insert_one(user_data)
+    shops.insert_one()
     return jsonify({'message': 'User registered successfully'}), 201
 
 @auth_bp.route('/api/login', methods=['POST'])

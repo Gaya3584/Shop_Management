@@ -104,8 +104,7 @@ const Dashboard = () => {
         </header>
 
         {/* Main Content Area */}
-        <main className="content-area">
-          <div className="dashboard-grid">
+          <div className="content-area dashboard-grid">
             {/* Sample Cards */}
             <div className="dashboard-card">
               <h3 className="card-title">Stocks</h3>
@@ -127,7 +126,6 @@ const Dashboard = () => {
             
         
           </div>
-        </main>
       </div>
     </div>
   );
