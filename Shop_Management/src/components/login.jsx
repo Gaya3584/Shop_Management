@@ -79,6 +79,8 @@ export default function Login() {
     // Form submission handler
 // In your login.jsx, update the handleSubmit function around line 85-95:
 
+// Replace your handleSubmit function with this corrected version:
+
 const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     
@@ -91,14 +93,12 @@ const handleSubmit = useCallback(async (e) => {
             return;
         }
 
-        // Simulate API call - replace with your actual login logic
         const loginData = {
             email: formData.email.trim(),
             password: formData.password,
             remember: formData.remember
         };
 
-        // Example API call (replace with your actual implementation)
         const response = await fetch('http://localhost:5000/api/login', {
             method: 'POST',
             headers: {
@@ -113,47 +113,30 @@ const handleSubmit = useCallback(async (e) => {
         }
 
         const result = await response.json();
-        
-        // Debug: Log the response to see what you're getting
         console.log('API Response:', result);
         
         // Handle successful login
-        
-        // Store token if provided
         if (result.user_token) {
+            // Store token based on remember preference
             if (formData.remember) {
-                localStorage.setItem('user_token', data.user_token);
-
+                localStorage.setItem('user_token', result.user_token);
             } else {
-                localStorage.setItem('user_token', data.user_token);
-
+                sessionStorage.setItem('user_token', result.user_token);
             }
-        }
-
-        // Check what fields are available in the response
-        const userId = result.userId || result.id || result.user?.id || result.user?.userId;
-        
-        if (!userId) {
-            console.error('No userId found in response:', result);
-            // You can either use the email as an identifier or show an error
-            // Option 1: Use email as identifier
-            const userIdentifier = result.user?.email || formData.email.trim();
-            navigate(`/dash/}`, {
-  state: { successMessage: 'Login successful!' }
-});
-
             
-            // Option 2: Show error (uncomment below and comment above if preferred)
-            // setSubmitError('Login successful but user ID not found. Please contact support.');
-            // return;
+            console.log('Login successful, navigating to dashboard...');
+            
+            // Navigate to dashboard - THIS IS THE FIX!
+            navigate(`/dash/${result.user_token}`, {
+                state: { 
+                    successMessage: 'Login successful!',
+                    userEmail: formData.email.trim(),
+                    userToken: result.user_token
+                }
+            });
+            
         } else {
-            console.log('Login successful:', result);
-            navigate('/dash', { 
-    state: { 
-        successMessage: 'Login successful!',
-        userEmail: formData.email.trim()
-    } 
-});
+            setSubmitError('Login successful but token not received. Please try again.');
         }
         
     } catch (error) {
@@ -173,7 +156,6 @@ const handleSubmit = useCallback(async (e) => {
         setIsLoading(false);
     }
 }, [formData, validateForm, navigate]);
-
     // Image error handler
     const handleImageError = useCallback((e) => {
         try {

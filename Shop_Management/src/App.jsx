@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Log from './components/login'
 import Dash from './components/dash'
 import Disc from './components/discover'
+import Stock from './components/stock'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/dash/:user_token" element={<Dash />} />
         <Route path="/disc/:user_token" element={<Disc />} />
+        <Route path="/stock/:user_token" element={<Stock />} />
 
 
       </Routes>

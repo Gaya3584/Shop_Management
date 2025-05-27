@@ -174,7 +174,7 @@ const Dashboard = () => {
               <hr></hr>
               <p className="card-description">Manage your stocks</p>
               <div className="card-value stats-value">
-                <button>View My Stocks</button>
+                <button onClick={() => navigate(`/stock/}`)}>View My Stocks</button>
               </div>
             </div>
             

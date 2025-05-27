@@ -4,10 +4,13 @@ from .utils import hash_password, verify_password
 from pymongo import MongoClient
 from config import MONGO_URI
 import uuid
+from datetime import datetime
+from bson.objectid import ObjectId
 
 client = MongoClient(MONGO_URI)
 db = client.shopsy
 users = db.users
+stocks=db.stocks
 
 @auth_bp.route('/api/signup', methods=['POST'])
 def signup():
@@ -25,7 +28,7 @@ def signup():
         'shopName': data['shopName'],
         'shopType': data['shopType'],
         'email': data['email'],
-        'user_token': data['user_token'],
+        'user_token': user_token,
         'phone': data['phone'],
         'password': hash_password(data['password'])
     }
@@ -44,10 +47,125 @@ def login():
     if not user or not verify_password(data['password'], user['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    return jsonify({'message': 'Login successful', 'token': 'demo-jwt-or-session'}), 200
+    return jsonify({'message': 'Login successful', 'user_token': user['user_token']}), 200
+
 @auth_bp.route('/api/user/<token>', methods=['GET'])
 def get_user_by_token(token):
     user = users.find_one({'user_token': token}, {'password': 0})  # exclude password
     if not user:
         return jsonify({'message': 'User not found'}), 404
     return jsonify(user), 200
+@auth_bp.route('/api/stocks', methods=['POST'])
+def add_stock():
+    try:
+        data = request.get_json()
+        user_token = request.headers.get('Authorization')
+        if user_token and user_token.startswith('Bearer '):
+            user_token = user_token[7:]
+
+        if not user_token:
+            return jsonify({'message': 'Authorization token is required'}), 401
+
+        stock_data = {
+            'user_token': user_token,
+            'name': data['name'],
+            'category': data.get('category', ''),
+            'quantity': int(data['quantity']),
+            'price': float(data['price']),
+            'supplier': data.get('supplier', ''),
+            'location': data.get('location', ''),
+            'minThreshold': int(data.get('minThreshold', 0)),
+            'addedAt': datetime.utcnow(),
+            'updatedAt': datetime.utcnow()
+        }
+
+        result = stocks.insert_one(stock_data)
+        stock_data['_id'] = str(result.inserted_id)
+        stock_data['id'] = stock_data['_id']
+        return jsonify({'message': 'Stock added', 'stock': stock_data}), 201
+
+    except Exception as e:
+        return jsonify({'message': 'Error adding stock', 'error': str(e)}), 500
+
+
+def get_stock_stats():
+    try:
+        user_token = request.headers.get('Authorization')
+        if user_token and user_token.startswith('Bearer '):
+            user_token = user_token[7:]
+
+        user_stocks = list(stocks.find({'user_token': user_token}))
+
+        total_items = len(user_stocks)
+        total_value = sum(float(stock['price']) * int(stock['quantity']) for stock in user_stocks)
+        low_stock_items = len([stock for stock in user_stocks if int(stock['quantity']) <= int(stock.get('minThreshold', 0))])
+
+        return jsonify({
+            'totalItems': total_items,
+            'totalValue': total_value,
+            'lowStockItems': low_stock_items
+        }), 200
+    except Exception as e:
+        return jsonify({'message': f'Error fetching stats: {str(e)}'}), 500
+
+@auth_bp.route('/api/stocks/<stock_id>', methods=['PUT'])
+def update_stock(stock_id):
+    try:
+        data = request.get_json()
+        user_token = request.headers.get('Authorization')
+
+        if user_token and user_token.startswith('Bearer '):
+            user_token = user_token[7:]
+
+        if not user_token:
+            return jsonify({'message': 'Authorization token is required'}), 401
+
+        update_data = {
+            'name': data['name'],
+            'category': data.get('category', ''),
+            'quantity': int(data['quantity']),
+            'price': float(data['price']),
+            'supplier': data.get('supplier', ''),
+            'location': data.get('location', ''),
+            'minThreshold': int(data.get('minThreshold', 0)),
+            'updatedAt': datetime.utcnow()
+        }
+
+        result = stocks.update_one(
+            {'_id': ObjectId(stock_id), 'user_token': user_token},
+            {'$set': update_data}
+        )
+
+        if result.matched_count == 0:
+            return jsonify({'message': 'Stock not found or unauthorized'}), 404
+
+        updated_stock = stocks.find_one({'_id': ObjectId(stock_id)})
+        updated_stock['_id'] = str(updated_stock['_id'])
+        updated_stock['id'] = updated_stock['_id']
+
+        return jsonify({'message': 'Stock updated successfully', 'stock': updated_stock}), 200
+
+    except Exception as e:
+        return jsonify({'message': 'Error updating stock', 'error': str(e)}), 500
+
+@auth_bp.route('/api/stocks', methods=['GET'])
+def get_stocks():
+    try:
+        user_token = request.headers.get('Authorization')
+        if user_token and user_token.startswith('Bearer '):
+            user_token = user_token[7:]
+
+        if not user_token:
+            return jsonify({'message': 'Authorization token is required'}), 401
+
+        user_stocks = list(stocks.find({'user_token': user_token}))
+        for stock in user_stocks:
+            stock['_id'] = str(stock['_id'])
+
+        return jsonify({'stocks': user_stocks}), 200
+
+    except Exception as e:
+        return jsonify({'message': 'Error fetching stocks', 'error': str(e)}), 500
+@auth_bp.route('/api/stocks/stats', methods=['GET'])
+def stock_stats_route():
+    return get_stock_stats()
