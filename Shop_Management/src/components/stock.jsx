@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Save, X, Package, TrendingUp, AlertTriangle } from "lucide-react";
 import './stock.css';
 import { useNavigate } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 const StockManagement = () => {
     const [stocks, setStocks] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
     const [editingStock, setEditingStock] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+  const {userToken}=useParams();
 
     const [stats, setStats] = useState({
         totalItems: 0,
@@ -25,7 +27,9 @@ const StockManagement = () => {
     });
     const [searchItem, setSearchItem] = useState("");
     const [filterCategory, setFilterCategory] = useState("");
-
+ const currentUserToke = userToken || 
+                          location.state?.userToken || 
+                          localStorage.getItem('user_token');
     // Get user token from localStorage or context
     const getUserToken = () => {
         return localStorage.getItem('user_token') || sessionStorage.getItem('user_token');
@@ -255,14 +259,6 @@ const StockManagement = () => {
                                 <p className="text-gray-600">Manage your inventory efficiently</p>
                             </div>
                         </div>
-                        <button
-    onClick={() => navigate(`/dash/${result.user_token}`)} // ← Added closing ) and }
-    disabled={loading}
-    className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
->
-    {/* Add button content here */}
-    Go to Dashboard
-</button>
                             
                         <button
                             onClick={() => setIsAdding(true)}
@@ -272,6 +268,15 @@ const StockManagement = () => {
                             <Plus className="w-5 h-5" />
                             <span className="font-semibold">Add Stock</span>
                         </button>
+                        <button
+    onClick={() => navigate(`/dash/${currentUserToke}`)} // ← Added closing ) and }
+    disabled={loading}
+    className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+>
+    {/* Add button content here */}
+    Go to Dashboard
+</button>
+                        
                     </div>
 
                     {/* Stats Cards */}
