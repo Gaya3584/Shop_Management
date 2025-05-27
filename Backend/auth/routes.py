@@ -94,15 +94,18 @@ def get_stock_stats():
         if user_token and user_token.startswith('Bearer '):
             user_token = user_token[7:]
 
+        if not user_token:
+            return jsonify({'message': 'Authorization token is required'}), 401
+
         user_stocks = list(stocks.find({'user_token': user_token}))
 
         total_items = len(user_stocks)
-        total_value = sum(float(stock['price']) * int(stock['quantity']) for stock in user_stocks)
-        low_stock_items = len([stock for stock in user_stocks if int(stock['quantity']) <= int(stock.get('minThreshold', 0))])
+        total_value = sum(float(stock.get('price', 0)) * int(stock.get('quantity', 0)) for stock in user_stocks)
+        low_stock_items = len([stock for stock in user_stocks if int(stock.get('quantity', 0)) <= int(stock.get('minThreshold', 0))])
 
         return jsonify({
             'totalItems': total_items,
-            'totalValue': total_value,
+            'totalValue': round(total_value, 2),
             'lowStockItems': low_stock_items
         }), 200
     except Exception as e:
@@ -169,3 +172,22 @@ def get_stocks():
 @auth_bp.route('/api/stocks/stats', methods=['GET'])
 def stock_stats_route():
     return get_stock_stats()
+@auth_bp.route('/api/stocks/<stock_id>', methods=['DELETE'])
+def delete_stock(stock_id):
+    try:
+        user_token = request.headers.get('Authorization')
+        if user_token and user_token.startswith('Bearer '):
+            user_token = user_token[7:]
+
+        if not user_token:
+            return jsonify({'message': 'Authorization token is required'}), 401
+
+        result = stocks.delete_one({'_id': ObjectId(stock_id), 'user_token': user_token})
+        
+        if result.deleted_count == 0:
+            return jsonify({'message': 'Stock not found or unauthorized'}), 404
+
+        return jsonify({'message': 'Stock deleted successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'message': 'Error deleting stock', 'error': str(e)}), 500

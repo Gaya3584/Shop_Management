@@ -42,6 +42,7 @@ body {
 
 .rounded-2xl {
   border-radius: 1rem;
+  
 }
 
 .shadow-xl {
@@ -233,6 +234,7 @@ body {
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
+  color: #000;
 }
 
 .text-xl {

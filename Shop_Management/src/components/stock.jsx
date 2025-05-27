@@ -9,8 +9,8 @@ const StockManagement = () => {
     const [editingStock, setEditingStock] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-  const {userToken}=useParams();
-
+    const {userToken}=useParams();
+    const location = useLocation();
     const [stats, setStats] = useState({
         totalItems: 0,
         totalValue: 0,
@@ -32,7 +32,7 @@ const StockManagement = () => {
                           localStorage.getItem('user_token');
     // Get user token from localStorage or context
     const getUserToken = () => {
-        return localStorage.getItem('user_token') || sessionStorage.getItem('user_token');
+        return currentUserToke|| localStorage.getItem('user_token') || sessionStorage.getItem('user_token');
     };
 
     // API call helper function
@@ -77,24 +77,32 @@ const StockManagement = () => {
 
     // Fetch stock stats
     const fetchStats = async () => {
-        try {
-            const data = await apiCall('http://localhost:5000/api/stocks/stats', { method: 'GET' });
-            setStats(data);
-        } catch (error) {
-            console.error('Error fetching stats:', error);
+    try {
+        const data = await apiCall('http://localhost:5000/api/stocks/stats', { method: 'GET' });
+        console.log("✅ Received stats from API:", data);
+        if (data && typeof data === 'object') {
+            setStats({
+                totalItems: data.totalItems || 0,
+                totalValue: data.totalValue || 0,
+                lowStockItems: data.lowStockItems || 0
+            });
+        } else {
+            console.warn("⚠️ API returned unexpected data format:", data);
         }
+    } catch (error) {
+        console.error('❌ Error fetching stats:', error);
+    }
+};
+
+
+    useEffect(() => {
+    const loadAll = async () => {
+        await fetchStocks();  // setStocks will trigger re-render
+        await fetchStats();   // ensure stats come after stocks
     };
+    loadAll();
+}, []);
 
-    // Load data on component mount
-    useEffect(() => {
-        fetchStocks();
-        fetchStats();
-    }, []);
-
-    // Update stats when stocks change
-    useEffect(() => {
-        fetchStats();
-    }, [stocks]);
 
     const categories = [...new Set(stocks.map(stock => stock.category).filter(cat => cat))];
 
@@ -286,7 +294,7 @@ const StockManagement = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-green-100 text-sm">Total Items</p>
-                                    <p className="text-2xl font-bold">{stats.totalItems}</p>
+<p className="text-2xl font-bold">{stats.totalItems ?? 0}</p>
                                 </div>
                                 <Package className="w-8 h-8 text-green-200" />
                             </div>
@@ -295,7 +303,9 @@ const StockManagement = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-blue-100 text-sm">Total Value</p>
-                                    <p className="text-2xl font-bold">${stats.totalValue?.toLocaleString() || 0}</p>
+<p className="text-2xl font-bold">
+  ${Number(stats.totalValue || 0).toLocaleString()}
+</p>
                                 </div>
                                 <TrendingUp className="w-8 h-8 text-blue-200" />
                             </div>
@@ -304,7 +314,7 @@ const StockManagement = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-orange-100 text-sm">Low Stock</p>
-                                    <p className="text-2xl font-bold">{stats.lowStockItems}</p>
+<p className="text-2xl font-bold">{stats.lowStockItems ?? 0}</p>
                                 </div>
                                 <AlertTriangle className="w-8 h-8 text-orange-200" />
                             </div>
