@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import './dash.css';
 import stockIcon from '../assets/stock.png';
 import Lens from '../assets/lens.png';
@@ -10,8 +10,7 @@ import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const userToken = localStorage.getItem('user_token');
-
+  const {userToken}=useParams();
   const userEmail = location.state?.userEmail || 'Guest';
   const userData = location.state?.userData;
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,6 +18,11 @@ const Dashboard = () => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+  const currentUserToken = userToken || 
+                          location.state?.userToken || 
+                          localStorage.getItem('user_token');
+  
+
   const handleLogout = (e) => {
   e.preventDefault();
   
@@ -174,8 +178,7 @@ const Dashboard = () => {
               <hr></hr>
               <p className="card-description">Manage your stocks</p>
               <div className="card-value stats-value">
-                <button onClick={() => navigate(`/stock/}`)}>View My Stocks</button>
-              </div>
+<button onClick={() => navigate(`/stock/${currentUserToken}`)}>View My Stocks</button>              </div>
             </div>
             
             <div className="dashboard-card">

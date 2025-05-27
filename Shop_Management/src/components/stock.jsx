@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Save, X, Package, TrendingUp, AlertTriangle } from "lucide-react";
 import './stock.css';
-import { navigate } from "react-router-dom";
-
+import { useNavigate } from 'react-router-dom';
 const StockManagement = () => {
     const [stocks, setStocks] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
     const [editingStock, setEditingStock] = useState(null);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
     const [stats, setStats] = useState({
         totalItems: 0,
         totalValue: 0,

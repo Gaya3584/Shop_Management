@@ -15,7 +15,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/dash/:user_token" element={<Dash />} />
         <Route path="/disc/:user_token" element={<Disc />} />
-        <Route path="/stock/:user_token" element={<Stock />} />
+        <Route path="/stock/:userToken" element={<Stock />} />
 
 
       </Routes>
