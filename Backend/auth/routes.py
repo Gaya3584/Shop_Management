@@ -32,24 +32,24 @@ def signup():
         "created_at": datetime.now(timezone.utc)
     }
     shop_data={
-        'ownerName': data['ownerName'],
-        'ownerEmail': data['email'],
-        'ownerPhone': data['phone'],
-        'shopName': data['shopName'],
-        'shopType': data['shopType'],
+        'ownerName': user_data['ownerName'],
+        'ownerEmail': user_data['email'],
+        'ownerPhone': user_data['phone'],
+        'shopName': user_data['shopName'],
+        'shopType': user_data['shopType'],
         'shopDomain': None,
-        'email': data['email'],
+        'email': user_data['email'],
         'location': None,
         'products': {},
         'metadata': {},
-        'created_at': data['created_at']
+        'created_at': user_data['created_at']
     }
     print("Received signup data:", data)
 
     print("Final user_data being saved:", user_data)
 
     users.insert_one(user_data)
-    shops.insert_one()
+    shops.insert_one(shop_data)
     return jsonify({'message': 'User registered successfully'}), 201
 
 @auth_bp.route('/api/login', methods=['POST'])
