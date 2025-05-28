@@ -80,24 +80,37 @@ export default function Login() {
 
 // Replace your handleSubmit function with this corrected version:
 
+const [showResendOption, setShowResendOption] = useState(false);
+const [resendLoading, setResendLoading] = useState(false);
+
+const handleImageError = useCallback((e) => {
+    try {
+        console.warn('Background image failed to load');
+        e.target.style.display = 'none';
+    } catch (error) {
+        console.error('Error handling image error:', error);
+    }
+}, []);
+
 const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     
     try {
         setIsLoading(true);
         setSubmitError('');
-
+        setShowResendOption(false); // Reset resend option
+        
         // Validate form
         if (!validateForm()) {
             return;
         }
-
+        
         const loginData = {
             email: formData.email.trim(),
             password: formData.password,
             remember: formData.remember
         };
-
+        
         const response = await fetch('http://localhost:5000/api/login', {
             method: 'POST',
             headers: {
@@ -106,45 +119,47 @@ const handleSubmit = useCallback(async (e) => {
             body: JSON.stringify(loginData),
             credentials: 'include'
         });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `Login failed: ${response.status}`);
-        }
-
+        
         const result = await response.json();
         console.log('API Response:', result);
         
-        // Handle successful login
         if (response.ok) {
-  console.log('Login successful, navigating to dashboard...');
-  const emailToSend = formData.email.trim();
-  setFormData({
-       
-        email: '',
-        
-        password: '',
-        
-      });
-  navigate(`/dash`, {
-    state: { 
-      successMessage: 'Login successful!',
-      userEmail: emailToSend,
-    }
-  });
-} else {
-  setSubmitError('Login failed. Please try again.');
-}
-
+            // Login successful
+            console.log('Login successful, navigating to dashboard...');
+            const emailToSend = formData.email.trim();
+            
+            setFormData({
+                email: '',
+                password: '',
+                remember: false
+            });
+            
+            navigate(`/dash`, {
+                state: {
+                    successMessage: 'Login successful!',
+                    userEmail: emailToSend,
+                }
+            });
+            
+        } else {
+            // Handle different error scenarios
+            if (response.status === 403 && result.message === 'Email not verified') {
+                setSubmitError('Please verify your email before logging in. Check your inbox for the verification link.');
+                setShowResendOption(true); // Show resend option
+            } else if (response.status === 401) {
+                setSubmitError('Invalid email or password. Please try again.');
+            } else if (response.status === 404) {
+                setSubmitError('No account found with this email address.');
+            } else {
+                setSubmitError(result.message || 'Login failed. Please try again.');
+            }
+        }
         
     } catch (error) {
         console.error('Login error:', error);
         
-        // Handle different types of errors
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
             setSubmitError('Network error. Please check your connection and try again.');
-        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-            setSubmitError('Invalid email or password. Please try again.');
         } else if (error.message.includes('429')) {
             setSubmitError('Too many login attempts. Please try again later.');
         } else {
@@ -154,17 +169,53 @@ const handleSubmit = useCallback(async (e) => {
         setIsLoading(false);
     }
 }, [formData, validateForm, navigate]);
-    // Image error handler
-    const handleImageError = useCallback((e) => {
-        try {
-            console.warn('Background image failed to load');
-            e.target.style.display = 'none';
-        } catch (error) {
-            console.error('Error handling image error:', error);
-        }
-    }, []);
-    
 
+// Function to resend verification email
+const handleResendVerification = useCallback(async () => {
+    try {
+        setResendLoading(true);
+        
+        const response = await fetch('http://localhost:5000/api/verify-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: formData.email.trim() }),
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            setSubmitError('Verification email sent! Please check your inbox.');
+            setShowResendOption(false);
+        } else {
+            setSubmitError(result.message || 'Failed to resend verification email.');
+        }
+        
+    } catch (error) {
+        console.error('Resend verification error:', error);
+        setSubmitError('Failed to resend verification email. Please try again.');
+    } finally {
+        setResendLoading(false);
+    }
+}, [formData.email]);
+
+// JSX for the resend button (add this in your render method)
+const ResendVerificationButton = () => (
+    showResendOption && (
+        <div className="mt-2 text-center">
+            <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendLoading}
+                className="text-blue-600 hover:text-blue-800 text-sm underline disabled:opacity-50"
+            >
+                {resendLoading ? 'Sending...' : 'Resend verification email'}
+            </button>
+        </div>
+    )
+);
     return (
         <div className='login-container'>
             <img 
@@ -279,6 +330,7 @@ const handleSubmit = useCallback(async (e) => {
                             <span>{isLoading ? 'Signing In...' : 'Login'}</span>
                         </button>
                     </div>
+                    <button onClick={handleResendVerification} className="btn">Verify Email</button>
 
                     <div className='input-group'>
                         <p className='login-footer'> Don't have an account? <Link to="/signup"> Register here</Link></p>

@@ -1,45 +1,33 @@
 from flask import Flask
 from flask_cors import CORS
-from auth import auth_bp
-import config
+from config import SECRET_KEY, EMAIL_HOST, EMAIL_PASSWORD
+from auth import auth_bp, init_mail
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = config.SECRET_KEY
-
-CORS(app, supports_credentials=True)
- 
-app.register_blueprint(auth_bp)
-@app.route('/')
-def home():
-    return 'Welcome to the homepage!'
+def create_app():
+    app = Flask(__name__)
+    
+    # Configuration
+    app.config['SECRET_KEY'] = SECRET_KEY
+    app.config['EMAIL_HOST'] = EMAIL_HOST  # SMTP server for sending emails
+    app.config['EMAIL_PASSWORD'] = EMAIL_PASSWORD  # Password for the email account
+    
+    # Flask-Mail Configuration
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] =  EMAIL_HOST # Replace with your email
+    app.config['MAIL_PASSWORD'] = EMAIL_PASSWORD     # Replace with your app password
+    app.config['MAIL_DEFAULT_SENDER'] = 'shopsy-email@gmail.com'
+    
+    # Initialize extensions
+    init_mail(app)
+    CORS(app, supports_credentials=True)
+    
+    # Register blueprints
+    app.register_blueprint(auth_bp)
+    
+    return app
 
 if __name__ == '__main__':
+    app = create_app()
     app.run(debug=True)
-
-
-
-'''@app.route('/')
-def index():
-    return 'Hello World'
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0',debug=True)
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-
-app = Flask(__name__)
-CORS(app)  # allows React to connect
-
-@app.route('/')
-def home():
-    return "Welcome to Flask! This is Lakshmi"
-
-@app.route('/greet', methods=['POST'])
-def greet():
-    data = request.get_json()
-    name = data.get('name', 'stranger')
-    return jsonify(message=f"Hello, {name}!")
-
-if __name__ == '__main__':
-    app.run(debug=True)
-    '''
