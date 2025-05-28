@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from . import auth_bp
-from .utils import hash_password, verify_password
+from .utils import hash_password, verify_password,generate_token,decode_token
 from pymongo import MongoClient
 from config import MONGO_URI
 import uuid
@@ -22,22 +22,33 @@ def signup():
 
     if users.find_one({'email': data['email']}):
         return jsonify({'message': 'Email already registered'}), 409
-    user_token = str(uuid.uuid4())
+    #user_token = str(uuid.uuid4())
     user_data = {
         'ownerName': data['ownerName'],
         'shopName': data['shopName'],
         'shopType': data['shopType'],
         'email': data['email'],
-        'user_token': user_token,
+        'user_token': None,
         'phone': data['phone'],
         'password': hash_password(data['password'])
     }
     print("Received signup data:", data)
 
     print("Final user_data being saved:", user_data)
+    result=users.insert_one(user_data)
+    token = generate_token(result.inserted_id)
+    users.update_one({'_id': result.inserted_id}, {'$set': {'user_token': token}})
+   
+    response = jsonify({'message': 'Signup successful'})
+    response.set_cookie(
+        'token',
+        token,
+        httponly=True,       # JavaScript can't access it
+        secure=False,        # Set True in production (HTTPS)
+        samesite='Lax'       # Prevents CSRF on most sites
+    )
+    return response
 
-    users.insert_one(user_data)
-    return jsonify({'message': 'User registered successfully','user_token':user_token}), 201
 
 @auth_bp.route('/api/login', methods=['POST'])
 def login():
@@ -46,8 +57,16 @@ def login():
 
     if not user or not verify_password(data['password'], user['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
-
-    return jsonify({'message': 'Login successful', 'user_token': user['user_token']}), 200
+    token= generate_token(user['_id'])
+    response = jsonify({'message': 'Login successful'})
+    response.set_cookie(
+        'token',
+        token,
+        httponly=True,       # JavaScript can't access it
+        secure=False,        # Set True in production (HTTPS)
+        samesite='Lax'       # Prevents CSRF on most sites
+    )
+    return response
 
 @auth_bp.route('/api/user/<token>', methods=['GET'])
 def get_user_by_token(token):
@@ -59,16 +78,14 @@ def get_user_by_token(token):
 @auth_bp.route('/api/stocks', methods=['POST'])
 def add_stock():
     try:
-        data = request.get_json()
-        user_token = request.headers.get('Authorization')
-        if user_token and user_token.startswith('Bearer '):
-            user_token = user_token[7:]
-
-        if not user_token:
-            return jsonify({'message': 'Authorization token is required'}), 401
+        data = request.get_json() #extracts json body of request and stores it in a python dict data
+        user_token = request.cookies.get('token')
+        user_id= decode_token(user_token)
+        if not user_id:
+            return jsonify({'message': 'Invalid or expired token'}), 401
 
         stock_data = {
-            'user_token': user_token,
+            'user_token': user_id,
             'name': data['name'],
             'category': data.get('category', ''),
             'quantity': int(data['quantity']),
@@ -91,11 +108,9 @@ def add_stock():
 
 def get_stock_stats():
     try:
-        user_token = request.headers.get('Authorization')
-        if user_token and user_token.startswith('Bearer '):
-            user_token = user_token[7:]
-
-        if not user_token:
+        user_token = request.cookies.get('token')
+        user_id = decode_token(user_token)
+        if not user_id:
             return jsonify({'message': 'Authorization token is required'}), 401
 
         user_stocks = list(stocks.find({'user_token': user_token}))
@@ -116,12 +131,9 @@ def get_stock_stats():
 def update_stock(stock_id):
     try:
         data = request.get_json()
-        user_token = request.headers.get('Authorization')
-
-        if user_token and user_token.startswith('Bearer '):
-            user_token = user_token[7:]
-
-        if not user_token:
+        user_token = request.cookies.get('token')
+        user_id = decode_token(user_token)
+        if not user_id:
             return jsonify({'message': 'Authorization token is required'}), 401
 
         update_data = {
@@ -136,7 +148,7 @@ def update_stock(stock_id):
         }
 
         result = stocks.update_one(
-            {'_id': ObjectId(stock_id), 'user_token': user_token},
+            {'_id': ObjectId(stock_id), 'user_token': user_id},
             {'$set': update_data}
         )
 
@@ -155,14 +167,12 @@ def update_stock(stock_id):
 @auth_bp.route('/api/stocks', methods=['GET'])
 def get_stocks():
     try:
-        user_token = request.headers.get('Authorization')
-        if user_token and user_token.startswith('Bearer '):
-            user_token = user_token[7:]
-
-        if not user_token:
+        user_token = request.cookies.get('token')
+        user_id = decode_token(user_token)
+        if not user_id:
             return jsonify({'message': 'Authorization token is required'}), 401
 
-        user_stocks = list(stocks.find({'user_token': user_token}))
+        user_stocks = list(stocks.find({'user_token': user_id}))
         for stock in user_stocks:
             stock['_id'] = str(stock['_id'])
 
@@ -176,14 +186,12 @@ def stock_stats_route():
 @auth_bp.route('/api/stocks/<stock_id>', methods=['DELETE'])
 def delete_stock(stock_id):
     try:
-        user_token = request.headers.get('Authorization')
-        if user_token and user_token.startswith('Bearer '):
-            user_token = user_token[7:]
-
-        if not user_token:
+        user_token = request.cookies.get('token')
+        user_id = decode_token(user_token)
+        if not user_id:
             return jsonify({'message': 'Authorization token is required'}), 401
 
-        result = stocks.delete_one({'_id': ObjectId(stock_id), 'user_token': user_token})
+        result = stocks.delete_one({'_id': ObjectId(stock_id), 'user_token': user_id})
         
         if result.deleted_count == 0:
             return jsonify({'message': 'Stock not found or unauthorized'}), 404

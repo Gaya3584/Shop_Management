@@ -14,10 +14,10 @@ function App() {
       <Routes>
         <Route path="/" element={<Log />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/dash/:user_token" element={<Dash />} />
-        <Route path="/disc/:user_token" element={<Disc />} />
-        <Route path="/stock/:userToken" element={<Stock />} />
-        <Route path="/profile/:userToken" element={<Pro />} />
+        <Route path="/dash" element={<Dash />} />
+        <Route path="/disc" element={<Disc />} />
+        <Route path="/stock" element={<Stock />} />
+        <Route path="/profile" element={<Pro />} />
 
       </Routes>
     </Router>

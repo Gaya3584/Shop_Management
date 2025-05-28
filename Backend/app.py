@@ -6,7 +6,7 @@ import config
 app = Flask(__name__)
 app.config['SECRET_KEY'] = config.SECRET_KEY
 
-CORS(app)
+CORS(app, supports_credentials=True)
  
 app.register_blueprint(auth_bp)
 @app.route('/')

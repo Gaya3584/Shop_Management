@@ -21,7 +21,6 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [submitError, setSubmitError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const token = localStorage.getItem('user_token');
 // Use this token to fetch user-specific data from backend
 
 
@@ -105,6 +104,7 @@ const handleSubmit = useCallback(async (e) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(loginData),
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -116,28 +116,26 @@ const handleSubmit = useCallback(async (e) => {
         console.log('API Response:', result);
         
         // Handle successful login
-        if (result.user_token) {
-            // Store token based on remember preference
-            if (formData.remember) {
-                localStorage.setItem('user_token', result.user_token);
-            } else {
-                sessionStorage.setItem('user_token', result.user_token);
-            }
-            
-            console.log('Login successful, navigating to dashboard...');
-            
-            // Navigate to dashboard - THIS IS THE FIX!
-            navigate(`/dash/${result.user_token}`, {
-                state: { 
-                    successMessage: 'Login successful!',
-                    userEmail: formData.email.trim(),
-                    userToken: result.user_token
-                }
-            });
-            
-        } else {
-            setSubmitError('Login successful but token not received. Please try again.');
-        }
+        if (response.ok) {
+  console.log('Login successful, navigating to dashboard...');
+  const emailToSend = formData.email.trim();
+  setFormData({
+       
+        email: '',
+        
+        password: '',
+        
+      });
+  navigate(`/dash`, {
+    state: { 
+      successMessage: 'Login successful!',
+      userEmail: emailToSend,
+    }
+  });
+} else {
+  setSubmitError('Login failed. Please try again.');
+}
+
         
     } catch (error) {
         console.error('Login error:', error);
