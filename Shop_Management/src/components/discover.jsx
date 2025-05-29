@@ -1,6 +1,11 @@
 import React, { use, useState } from 'react';
 import './discover.css';
 import { useNavigate,useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import axios from 'axios'; // if not already imported
+
+
+
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
@@ -9,106 +14,39 @@ const DiscoverPage = () => {
   const [selectedBusinessType, setSelectedBusinessType] = useState('all');
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
-const [inquiryMessage, setInquiryMessage] = useState('');
-const [inquirySuccess, setInquirySuccess] = useState(false);
-const [selectedProduct, setSelectedProduct] = useState(null);
-const userToken = localStorage.getItem('user_token');
-const location = useLocation();
+  const [inquiryMessage, setInquiryMessage] = useState('');
+  const [inquirySuccess, setInquirySuccess] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const userToken = null;
+  const location = useLocation();
 
+  const [products, setProducts] = useState([]);
+  useEffect(() => {
+  axios.get('http://localhost:5000/api/stocks/public', { withCredentials: true })
+    .then(response => {
+      const rawStocks = response.data.stocks;
+      const formatted = rawStocks.map(stock => ({
+        id: stock._id,
+        name: stock.name,
+        price: stock.price,
+        minOrder: 1,
+        seller: stock.supplier || 'Unknown Seller',
+        sellerType: 'retailer', // or 'wholesaler' if you store it
+        location: stock.location || 'Unknown',
+        rating: 4.5,
+        reviews: 10,
+        image: 'https://via.placeholder.com/150',
+        category: stock.category || 'misc',
+        inStock: stock.quantity > 0,
+        discount: 0
+      }));
+      setProducts(formatted);
+    })
+    .catch(err => {
+      console.error("Failed to fetch stocks:", err);
+    });
+}, []);
 
-  // Sample data for products and sellers
-  const products = [
-    {
-      id: 1,
-      name: "Premium Coffee Beans",
-      price: 2500,
-      minOrder: 50,
-      seller: "Roastery Co.",
-      sellerType: "wholesaler",
-      location: "Mumbai, India",
-      rating: 4.8,
-      reviews: 124,
-      image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=300&fit=crop",
-      category: "food",
-      inStock: true,
-      discount: 15
-    },
-    {
-      id: 2,
-      name: "Handcrafted Leather Bags",
-      price: 1800,
-      minOrder: 10,
-      seller: "Artisan Crafts",
-      sellerType: "retailer",
-      location: "Jaipur, India",
-      rating: 4.6,
-      reviews: 89,
-      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=300&fit=crop",
-      category: "accessories",
-      inStock: true,
-      discount: 0
-    },
-    {
-      id: 3,
-      name: "Organic Cotton T-Shirts",
-      price: 450,
-      minOrder: 100,
-      seller: "Textile Hub",
-      sellerType: "wholesaler",
-      location: "Tirupur, India",
-      rating: 4.7,
-      reviews: 256,
-      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=300&fit=crop",
-      category: "clothing",
-      inStock: true,
-      discount: 20
-    },
-    {
-      id: 4,
-      name: "Smartphone Accessories Bundle",
-      price: 1200,
-      minOrder: 25,
-      seller: "Tech Solutions",
-      sellerType: "retailer",
-      location: "Bangalore, India",
-      rating: 4.5,
-      reviews: 78,
-      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop",
-      category: "electronics",
-      inStock: false,
-      discount: 10
-    },
-    {
-      id: 5,
-      name: "Ayurvedic Skincare Set",
-      price: 890,
-      minOrder: 30,
-      seller: "Herbal Essence",
-      sellerType: "wholesaler",
-      location: "Kerala, India",
-      rating: 4.9,
-      reviews: 145,
-      image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400&h=300&fit=crop",
-      category: "beauty",
-      inStock: true,
-      discount: 25
-    },
-    {
-      id: 6,
-      name: "Artisanal Wooden Furniture",
-      price: 15000,
-      minOrder: 5,
-      seller: "Craftsman Studio",
-      sellerType: "retailer",
-      location: "Mysore, India",
-      rating: 4.8,
-      reviews: 67,
-      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop",
-      category: "home",
-      inStock: true,
-      discount: 0
-    }
-  ];
 
   const categories = [
     { id: 'all', name: 'All Categories', icon: '🛍️' },
@@ -117,10 +55,11 @@ const location = useLocation();
     { id: 'electronics', name: 'Electronics', icon: '📱' },
     { id: 'beauty', name: 'Beauty & Care', icon: '💄' },
     { id: 'accessories', name: 'Accessories', icon: '👜' },
-    { id: 'home', name: 'Home & Furniture', icon: '🏠' }
+    { id: 'home', name: 'Home & Furniture', icon: '🏠' },
+    { id: 'misc', name: 'Miscellaneous', icon: '!' }
   ];
 
-  const filteredProducts = products.filter(product => {
+    const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.seller.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
@@ -157,7 +96,7 @@ const location = useLocation();
         </div>
         <button 
   className="back-button" 
-  onClick={() => navigate(`/dash/}`)}
+  onClick={() => navigate(`/dash`)}
 >
   <svg
     className="home-icon"

@@ -10,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const {userToken}=useParams();
   const userEmail = location.state?.userEmail;
   const userName = location.state?.userName;
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,29 +17,33 @@ const Dashboard = () => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  const currentUserToken = userToken || 
-                          location.state?.userToken || 
-                          localStorage.getItem('user_token');
+  const currentUserToken = null;
   
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
   e.preventDefault();
   
   if (window.confirm('Are you sure you want to logout?')) {
-    // Clear user data
-    localStorage.removeItem('user_token');
-    localStorage.removeItem('user_data');
-    
+    try{
+      // Clear user data
+    await fetch('http://localhost:5000/api/logout', {
+      method: 'POST',
+      credentials: 'include'
+    });
     // Close sidebar if it's open
     toggleSidebar();
     
     // Redirect to login
     navigate('/');
+    }catch (error) {
+      console.error('Logout failed:', error);
+      alert('Error logging out. Please try again.');
+    }
   }
 };
 
 const handleProfileClick = () => {
-  navigate(`/profile/${currentUserToken}`);
+  navigate(`/profile`);
 };
   return (
     <div className="dashboard-container">
@@ -180,7 +183,7 @@ const handleProfileClick = () => {
               <hr></hr>
               <p className="card-description">Manage your stocks</p>
               <div className="card-value stats-value">
-<button onClick={() => navigate(`/stock/${currentUserToken}`)}>View My Stocks</button>              </div>
+<button onClick={() => navigate(`/stock`)}>View My Stocks</button>              </div>
             </div>
             
             <div className="dashboard-card">
@@ -191,7 +194,7 @@ const handleProfileClick = () => {
               <hr></hr>
               <p className="card-description">Find your products from other stores</p>
               <div className="card-value activity-value">
-<button onClick={() => navigate(`/disc/}`)}>
+<button onClick={() => navigate(`/disc`)}>
       Discover Products
     </button>              </div>
             </div>

@@ -117,21 +117,18 @@ const handleSubmit = useCallback(async (e) => {
         
         // Handle successful login
         if (response.ok) {
-  console.log('Login successful, navigating to dashboard...');
-  const emailToSend = formData.email.trim();
-  setFormData({
-       
-        email: '',
-        
-        password: '',
-        
-      });
-  navigate(`/dash`, {
-    state: { 
-      successMessage: 'Login successful!',
-      userEmail: emailToSend,
-    }
-  });
+        console.log('Login successful, navigating to dashboard...');
+        const emailToSend = formData.email.trim();
+        setFormData({
+                email: '',
+                password: '',
+            });
+        navigate(`/dash`, {
+            state: { 
+            successMessage: 'Login successful!',
+            userEmail: emailToSend,
+            }
+        });
 } else {
   setSubmitError('Login failed. Please try again.');
 }

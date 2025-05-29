@@ -9,7 +9,6 @@ const StockManagement = () => {
     const [editingStock, setEditingStock] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const {userToken}=useParams();
     const location = useLocation();
     const [stats, setStats] = useState({
         totalItems: 0,
@@ -27,13 +26,18 @@ const StockManagement = () => {
     });
     const [searchItem, setSearchItem] = useState("");
     const [filterCategory, setFilterCategory] = useState("");
- const currentUserToke = userToken || 
-                          location.state?.userToken || 
-                          localStorage.getItem('user_token');
-    // Get user token from localStorage or context
+    const currentUserToke = null;
     const getUserToken = () => {
-        return currentUserToke|| localStorage.getItem('user_token') || sessionStorage.getItem('user_token');
+        return currentUserToke;
     };
+
+    const isFormValid = formData.name.trim() &&
+                    formData.quantity.trim() &&
+                    formData.price.trim() &&
+                    formData.category.trim() &&
+                    formData.supplier.trim() &&
+                    formData.location.trim() &&
+                    formData.minThreshold.trim();
 
     // API call helper function
     const apiCall = async (url, options = {}) => {
@@ -41,13 +45,14 @@ const StockManagement = () => {
         const defaultOptions = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': token ? `Bearer ${token}` : '',
                 ...options.headers
-            }
+            },
+            credentials:"include",
+            ...options
         };
 
         try {
-            const response = await fetch(url, { ...options, headers: defaultOptions.headers });
+            const response = await fetch(url,defaultOptions);
             const data = await response.json();
             
             if (!response.ok) {
@@ -144,7 +149,8 @@ const StockManagement = () => {
             alert('Stock added successfully!');
             resetForm();
             setIsAdding(false);
-            await fetchStocks(); // Refresh the list
+            await fetchStocks(); 
+            await fetchStats();// Refresh the list
         } catch (error) {
             console.error('Error adding stock:', error);
             alert('Error adding stock: ' + error.message);
@@ -192,7 +198,8 @@ const StockManagement = () => {
             alert('Stock updated successfully!');
             resetForm();
             setEditingStock(null);
-            await fetchStocks(); // Refresh the list
+            await fetchStocks(); 
+            await fetchStats();// Refresh the list
         } catch (error) {
             console.error('Error updating stock:', error);
             alert('Error updating stock: ' + error.message);
@@ -210,7 +217,8 @@ const StockManagement = () => {
             setLoading(true);
             await apiCall(`http://localhost:5000/api/stocks/${stockId}`, { method: 'DELETE' });
             alert('Stock deleted successfully!');
-            await fetchStocks(); // Refresh the list
+            await fetchStocks(); 
+            await fetchStats();// Refresh the list
         } catch (error) {
             console.error('Error deleting stock:', error);
             alert('Error deleting stock: ' + error.message);
@@ -278,7 +286,7 @@ const StockManagement = () => {
                             <span className="font-semibold">Add Stock</span>
                         </button>
                         <button
-    onClick={() => navigate(`/dash/${currentUserToke}`)} // ← Added closing ) and }
+    onClick={() => navigate(`/dash`)} // ← Added closing ) and }
     disabled={loading}
     className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
 >
@@ -413,10 +421,15 @@ const StockManagement = () => {
                         <div className="flex space-x-4 mt-6">
                             <button
                                 onClick={isAdding ? handleAdd : handleUpdate}
-                                disabled={loading}
-                                className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <Save className="w-4 h-4" />
+                                disabled={loading || !isFormValid}
+                                style={{
+                                '--tw-gradient-from': '#10b981',
+                                '--tw-gradient-to': '#059669',
+                                '--tw-gradient-stops': '#10b981, #059669'
+                                                            }}
+                                className="bg-gradient-to-r text-white px-6 py-3 rounded-xl"
+                                                            >
+                                
                                 <span>{isAdding ? 'Add' : 'Update'}</span>
                             </button>
                             <button

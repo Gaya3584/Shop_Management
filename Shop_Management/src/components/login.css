@@ -536,3 +536,17 @@ body {
     transform: none;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #f5f5f5;
+    --text-secondary: #cccccc;
+    --text-muted: #999999;
+    --background-overlay: rgba(20, 20, 20, 0.85);
+    --border-color: #444;
+    --border-focus: var(--primary-color);
+    --shadow-light: 0 2px 10px rgba(255, 255, 255, 0.05);
+    --shadow-medium: 0 8px 25px rgba(255, 255, 255, 0.08);
+    --shadow-heavy: 0 15px 35px rgba(255, 255, 255, 0.1);
+  }
+}
