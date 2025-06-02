@@ -5,6 +5,7 @@ from pymongo import MongoClient
 from config import MONGO_URI
 from datetime import datetime
 from bson.objectid import ObjectId
+from .uploads import save_uploaded_image
 
 
 client = MongoClient(MONGO_URI)
@@ -15,7 +16,9 @@ stocks=db.stocks
 @auth_bp.route('/api/stocks', methods=['POST'])
 def add_stock():
     try:
-        data = request.get_json() #extracts json body of request and stores it in a python dict data
+        data = request.form
+        image_file = request.files.get('image')#extracts json body of request and stores it in a python dict data
+        image_url = save_uploaded_image(image_file)
         user_token = request.cookies.get('token')
         user_id= decode_token(user_token)
         if not user_id:
@@ -28,9 +31,13 @@ def add_stock():
             'category': data.get('category', ''),
             'quantity': int(data['quantity']),
             'price': float(data['price']),
-            'supplier': data.get('supplier', ''),
-            'location': data.get('location', ''),
+            'supplier':"",
             'minThreshold': int(data.get('minThreshold', 0)),
+            'minOrder':data.get('minOrder',0),
+            'rating':0,
+            'reviews':0,
+            'image':image_url,
+            'discount':data.get('discount',0),
             'addedAt': datetime.utcnow(),
             'updatedAt': datetime.utcnow()
         }
@@ -68,7 +75,9 @@ def get_stock_stats():
 @auth_bp.route('/api/stocks/<stock_id>', methods=['PUT'])
 def update_stock(stock_id):
     try:
-        data = request.get_json()
+        data = request.form
+        image_file = request.files.get('image')
+        image_url = save_uploaded_image(image_file)
         user_token = request.cookies.get('token')
         user_id = decode_token(user_token)
         if not user_id:
@@ -80,9 +89,13 @@ def update_stock(stock_id):
             'category': data.get('category', ''),
             'quantity': int(data['quantity']),
             'price': float(data['price']),
-            'supplier': data.get('supplier', ''),
-            'location': data.get('location', ''),
+            'supplier':data.get('supplier',""),
             'minThreshold': int(data.get('minThreshold', 0)),
+            'minOrder':data.get('minOrder',0),
+            'rating':0,
+            'reviews':0,
+            'image':image_url,
+            'discount':data.get('discount',0),
             'updatedAt': datetime.utcnow()
         }
 
@@ -147,10 +160,27 @@ def delete_stock(stock_id):
     
 @auth_bp.route('/api/stocks/public', methods=['GET'])
 def get_all_public_stocks():
+    msg={}
     try:
         all_stocks = list(stocks.find({}))
+        all_users=list(users.find({}))
         for stock in all_stocks:
             stock['_id'] = str(stock['_id'])
-        return jsonify({'stocks': all_stocks}), 200
+        for user in all_users:
+            user['_id'] = str(user['_id'])
+        
+        user_dict = {user['_id']:{
+            'seller':user['shopName'],
+            'sellerType':user['shopType'],
+            'location':user['shopLocation']
+        } for user in all_users}
+
+        stock_and_users=[{
+            **stock,
+            'user_info':user_dict.get(stock['user_token'],{})
+            }
+            for stock in all_stocks
+        ]
+        return jsonify({'stocks': stock_and_users}), 200
     except Exception as e:
         return jsonify({'message': 'Error fetching public stocks', 'error': str(e)}), 500

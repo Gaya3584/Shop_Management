@@ -166,9 +166,10 @@ body {
   padding: 0.75rem;
   border-radius: var(--border-radius);
   color: black;
+  background:#fff;
   font-size: 1rem;
   appearance: none;
-  border-color: #fff
+  border-color: #eeeef0
 }
 
 
@@ -914,6 +915,7 @@ body {
   
   .product-card {
     background: rgba(31, 41, 55, 0.95);
+    color:#ffff;
   }
 }
 
@@ -1101,3 +1103,21 @@ body {
     transform: scale(1.05);
 }
 
+.edit-modal {
+  position: fixed; /* stays over the screen */
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); /* semi-transparent overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* on top of other UI */
+}
+
+.edit-modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+}
