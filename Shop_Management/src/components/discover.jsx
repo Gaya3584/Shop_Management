@@ -11,41 +11,47 @@ const DiscoverPage = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBusinessType, setSelectedBusinessType] = useState('all');
   const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [selectedBusinessType, setSelectedBusinessType] = useState('all');
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [inquirySuccess, setInquirySuccess] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const userToken = null;
-  const location = useLocation();
+  const [loading, setLoading] = useState(true);
 
   const [products, setProducts] = useState([]);
+  
+
+    const fetchProducts = () => {
+        setLoading(true);
+        axios.get('http://localhost:5000/api/stocks/public', { withCredentials: true })
+          .then(response => {
+            const rawStocks = response.data.stocks;
+            const formatted = rawStocks.map(stock => ({
+              id: stock._id,
+              name: stock.name,
+              price: stock.price,
+              minOrder: stock.minOrder,
+              seller: stock.user_info.seller || 'Unknown Seller',
+              sellerType: stock.user_info.sellerType,
+              location: stock.location || 'Unknown',
+              rating: stock.rating,
+              reviews: stock.reviews,
+              image: stock.image,
+              category: stock.category || 'misc',
+              inStock: stock.quantity > 0,
+              discount: stock.discount
+            }));
+            setProducts(formatted);
+          })
+          .catch(err => console.error("Failed to fetch stocks:", err))
+          .finally(() => setLoading(false));
+      };
+
   useEffect(() => {
-  axios.get('http://localhost:5000/api/stocks/public', { withCredentials: true })
-    .then(response => {
-      const rawStocks = response.data.stocks;
-      const formatted = rawStocks.map(stock => ({
-        id: stock._id,
-        name: stock.name,
-        price: stock.price,
-        minOrder: 1,
-        seller: stock.supplier || 'Unknown Seller',
-        sellerType: 'retailer', // or 'wholesaler' if you store it
-        location: stock.location || 'Unknown',
-        rating: 4.5,
-        reviews: 10,
-        image: 'https://via.placeholder.com/150',
-        category: stock.category || 'misc',
-        inStock: stock.quantity > 0,
-        discount: 0
-      }));
-      setProducts(formatted);
-    })
-    .catch(err => {
-      console.error("Failed to fetch stocks:", err);
-    });
-}, []);
+    fetchProducts();
+  }, []);
+
 
 
   const categories = [
@@ -149,14 +155,14 @@ const DiscoverPage = () => {
                 All Businesses
               </button>
               <button
-                onClick={() => setSelectedBusinessType('retailer')}
-                className={`business-btn ${selectedBusinessType === 'retailer' ? 'active' : ''}`}
+                onClick={() => setSelectedBusinessType('Retail')}
+                className={`business-btn ${selectedBusinessType === 'Retail' ? 'active' : ''}`}
               >
                 🏪 Retailers
               </button>
               <button
-                onClick={() => setSelectedBusinessType('wholesaler')}
-                className={`business-btn ${selectedBusinessType === 'wholesaler' ? 'active' : ''}`}
+                onClick={() => setSelectedBusinessType('Whole-Sale')}
+                className={`business-btn ${selectedBusinessType === 'Whole-Sale' ? 'active' : ''}`}
               >
                 🏭 Wholesalers
               </button>
@@ -165,12 +171,12 @@ const DiscoverPage = () => {
 
           
         </div>
-
+        
         {/* Products Grid */}
         <div className="products-section">
           <div className="products-header">
             <h2 className="section-title">
-              {filteredProducts.length} Products Found
+              {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
             </h2>
             <div className="sort-options">
               <select className="sort-select">
@@ -183,7 +189,15 @@ const DiscoverPage = () => {
             </div>
           </div>
 
-          <div className="products-grid">
+        {loading ? (
+    <div className="loading-indicator" ></div>
+  ) : filteredProducts.length === 0 ? (
+    <div className="no-results">
+      <div className="no-results-icon">🔍</div>
+      <h3>No products found</h3>
+      <p>Try adjusting your search or filter criteria</p>
+    </div>
+  ) : ( <div className="products-grid">
             {filteredProducts.map(product => (
               <div key={product.id} className="product-card">
                 {product.discount > 0 && (
@@ -193,11 +207,11 @@ const DiscoverPage = () => {
                 )}
                 
                 <div className="product-image-container">
-                  <img 
-                    src={product.image} 
+                  {product.image ? (<img 
+                    src={`http://localhost:5000${product.image}`}
                     alt={product.name}
-                    className="product-image"
-                  />
+                    className="product-image"/>):null
+                  }
                   {!product.inStock && (
                     <div className="out-of-stock-overlay">
                       <span>Out of Stock</span>
@@ -207,7 +221,6 @@ const DiscoverPage = () => {
 
                 <div className="product-info">
                   <h3 className="product-name">{product.name}</h3>
-                  
                   <div className="product-price">
                     <span className="current-price">₹{product.price.toLocaleString()}</span>
                     {product.discount > 0 && (
@@ -220,7 +233,7 @@ const DiscoverPage = () => {
                   <div className="seller-info">
                     <div className="seller-details">
                       <span className="seller-name">{product.seller}</span>
-                      <span className={`seller-type ${product.sellerType}`}>
+                      <span className={`seller-type name ${product.sellerType}`}>
                         {product.sellerType === 'retailer' ? '🏪' : '🏭'} {product.sellerType}
                       </span>
                     </div>
@@ -240,16 +253,15 @@ const DiscoverPage = () => {
 
                   <div className="product-actions">
                     <button
-  className="inquire-btn"
-  disabled={!product.inStock}
-  onClick={() => {
-    setSelectedProduct(product);
-    setShowInquiryModal(true);
-  }}
->
-  {product.inStock ? 'Send Inquiry' : 'Out of Stock'}
-</button>
-
+                className="inquire-btn"
+                disabled={!product.inStock}
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setShowInquiryModal(true);
+                }}
+                 >
+                    {product.inStock ? 'Send Inquiry' : 'Out of Stock'}
+                  </button>
                     <button className="wishlist-btn">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -259,15 +271,7 @@ const DiscoverPage = () => {
                 </div>
               </div>
             ))}
-          </div>
-
-          {filteredProducts.length === 0 && (
-            <div className="no-results">
-              <div className="no-results-icon">🔍</div>
-              <h3>No products found</h3>
-              <p>Try adjusting your search or filter criteria</p>
-            </div>
-          )}
+          </div>)}
         </div>
       </div>
       {showInquiryModal && (
@@ -298,13 +302,13 @@ const DiscoverPage = () => {
   </div>
 )}
 
-{inquirySuccess && (
-  <div className="inquiry-success">
-    Message has been sent! The seller will contact you as soon as possible.
-    <button onClick={() => setInquirySuccess(false)} className='clos-btn'>Close</button>
-  </div>
-)}
-
+    {inquirySuccess && (
+      <div className="inquiry-success">
+        Message has been sent! The seller will contact you as soon as possible.
+        <button onClick={() => setInquirySuccess(false)} className='clos-btn'>Close</button>
+      </div>
+    )}
+    
     </div>
   );
 };

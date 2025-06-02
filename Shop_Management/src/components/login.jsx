@@ -230,7 +230,7 @@ const ResendVerificationButton = () => (
                     <h1 className='login-title'>Sign In to Your Account</h1>
                     <hr />
                 </div>
-                {successMessage && <h2>{successMessage}</h2>}
+                {successMessage && <h2 className="successMessage">{successMessage}</h2>}
                 <form className='login-form' onSubmit={handleSubmit} noValidate>
                     {submitError && (
                         <div className='error-message' style={{ 

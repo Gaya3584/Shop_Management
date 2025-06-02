@@ -4,8 +4,8 @@ from config import SECRET_KEY, EMAIL_HOST, EMAIL_PASSWORD
 from auth import auth_bp, init_mail
 
 def create_app():
-    app = Flask(__name__)
-    
+    app = Flask(__name__, static_folder='static')
+
     # Configuration
     app.config['SECRET_KEY'] = SECRET_KEY
     app.config['EMAIL_HOST'] = EMAIL_HOST  # SMTP server for sending emails
