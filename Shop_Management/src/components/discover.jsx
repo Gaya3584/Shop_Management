@@ -34,7 +34,7 @@ const DiscoverPage = () => {
               minOrder: stock.minOrder,
               seller: stock.user_info.seller || 'Unknown Seller',
               sellerType: stock.user_info.sellerType,
-              location: stock.location || 'Unknown',
+              location: stock.user_info.location || 'Unknown',
               rating: stock.rating,
               reviews: stock.reviews,
               image: stock.image,
@@ -68,7 +68,7 @@ const DiscoverPage = () => {
     const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.seller.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || (product.category && product.category.toLowerCase() === selectedCategory.toLowerCase());
     const matchesBusinessType = selectedBusinessType === 'all' || product.sellerType === selectedBusinessType;
     const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
     

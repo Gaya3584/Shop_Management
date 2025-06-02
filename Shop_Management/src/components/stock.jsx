@@ -10,11 +10,8 @@ const StockManagement = () => {
     const [loading, setLoading] = useState(false);
     const [selectedImages, setSelectedImages] = React.useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
-    const [shopLoc, setShopLoc] = useState("" || '');
-    const [editing, setEditing] = useState(false);
 
     const navigate = useNavigate();
-    const location = useLocation();
     const [stats, setStats] = useState({
         totalItems: 0,
         totalValue: 0,
@@ -26,7 +23,6 @@ const StockManagement = () => {
         quantity: "",
         price: "",
         supplier: "",
-        location: "",
         minThreshold: "",
         image:"",
         minOrder:1,
@@ -141,17 +137,12 @@ const StockManagement = () => {
             quantity: "",
             price: "",
             supplier: "",
-            location: "",
             minThreshold: "",
             image:"",
             minOrder:1,
             discount:0
         });
     };
-
-    const handleLoc = async () =>{
-
-    }
 
     const handleAdd = async () => {
         if (!formData.name.trim()) {
@@ -201,7 +192,6 @@ const StockManagement = () => {
             category: stock.category || "",
             quantity: stock.quantity?.toString() || "",
             price: stock.price?.toString() || "",
-            location: stock.location || "",
             minThreshold: stock.minThreshold?.toString() || "",
             supplier: stock.supplier||"",
             image: stock.image||'',
@@ -227,7 +217,6 @@ const StockManagement = () => {
             formDataToSend.append('quantity', parseInt(formData.quantity) || 0);
             formDataToSend.append('price', parseFloat(formData.price) || 0);
             formDataToSend.append('supplier', JSON.stringify(formData.supplier || ""));
-            formDataToSend.append('location', formData.location);
             formDataToSend.append('minThreshold', parseInt(formData.minThreshold) || 0);
             formDataToSend.append('minOrder', parseInt(formData.minOrder) || 0);
             formDataToSend.append('discount', parseInt(formData.discount) || 0);
