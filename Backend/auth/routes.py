@@ -34,6 +34,7 @@ def signup():
         'ownerName': data['ownerName'],
         'shopName': data['shopName'],
         'shopType': data['shopType'],
+        'shopLocation':'',
         'email': data['email'],
         'user_token': None,
         'email_verified': False,
@@ -59,6 +60,7 @@ def signup():
         samesite='Lax'
     )
     return response
+
 @auth_bp.route('/api/verify-email', methods=['POST'])
 def resend_verification_email():
     data = request.get_json()
@@ -214,8 +216,6 @@ def delete_image():
     )
     return jsonify({'success': True, 'message': 'Image deleted successfully'}), 200
 
-
-
 #logout
 @auth_bp.route('/api/logout',methods=['POST'])
 def logout():
@@ -234,6 +234,18 @@ def get_user_by_token(token):
 from bson import ObjectId
 import traceback
 
+<<<<<<< HEAD
+@auth_bp.route('/api/user/me', methods=['GET'])
+def get_user_details():
+    token=request.cookies.get("token")
+    if not token:
+        return jsonify({'message':'No token found'}),401
+    user = decode_token(token)
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    return jsonify(user), 200
+
+=======
 @auth_bp.route('/api/edit_profile', methods=['PUT'])
 def edit_profile():
     try:
@@ -275,3 +287,4 @@ def edit_profile():
         return jsonify({'message': 'Internal Server Error'}), 500
 
 
+>>>>>>> gaya2
