@@ -2,6 +2,7 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta,timezone
 from config import *
+from bson.objectid import ObjectId
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -24,3 +25,11 @@ def decode_token(token):
         return None
     except jwt.InvalidTokenError:
         return None
+    
+# This function retrieves a user by their token from the users collection.
+def get_user_details(token,users):
+    user_id=decode_token(token)
+    if not user_id:
+        return None
+    user=users.find_one({'_id': ObjectId(user_id)},{'password': 0})  # Exclude password from the returned user data
+    return user
