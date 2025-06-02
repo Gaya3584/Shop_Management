@@ -207,7 +207,7 @@ const handleProfileClick = () => {
                 <hr></hr>
               <p className="card-description">View detailed reports</p>
               <div className="card-value tasks-value">
-                <button>Get Reports</button>
+                <button onClick={()=>navigate(`/analysis`)}>Get Reports</button>
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import Dash from './components/dash'
 import Disc from './components/discover'
 import Stock from './components/stock'
 import Pro from './components/profile'
+import Analysis from './components/analysis'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/disc" element={<Disc />} />
         <Route path="/stock" element={<Stock />} />
         <Route path="/profile" element={<Pro />} />
+        <Route path="/analysis" element={<Analysis />} />
 
       </Routes>
     </Router>
