@@ -1,13 +1,16 @@
 from flask import request, jsonify, redirect, current_app
 from . import auth_bp, mail  # Import mail from __init__.py
-from .utils import hash_password, verify_password, generate_token, decode_token
+from .utils import hash_password, verify_password, generate_token, decode_token,get_user_details
 from pymongo import MongoClient
 from config import MONGO_URI
-import uuid
 from datetime import datetime
 from bson.objectid import ObjectId
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
+import base64
+from flask import session
+from flask_cors import cross_origin
+
 
 client = MongoClient(MONGO_URI)
 db = client.shopsy
@@ -27,7 +30,7 @@ def signup():
     if users.find_one({'email': data['email']}):
         return jsonify({'message': 'Email already registered'}), 409
 
-    user_data = {
+    data = {
         'ownerName': data['ownerName'],
         'shopName': data['shopName'],
         'shopType': data['shopType'],
@@ -39,9 +42,9 @@ def signup():
     }
     
     print("Received signup data:", data)
-    print("Final user_data being saved:", user_data)
+    print("Final data being saved:", data)
     
-    result = users.insert_one(user_data)
+    result = users.insert_one(data)
     token = generate_token(result.inserted_id)
     users.update_one({'_id': result.inserted_id}, {'$set': {'user_token': token}})
     
@@ -132,7 +135,84 @@ def login():
         samesite='Lax'
     )
     return response
+    
+#profile 
+@auth_bp.route('/api/profile',methods=['GET'])
+def profile():
+    token=request.cookies.get('token') or  request.headers.get('Authorization','').replace('Bearer ','')
+    if not token:
+        return jsonify({'message':'Unauthorized'}),401
+    
+    user=get_user_details(token,users)
+    if not user:
+        return jsonify({'message':'User not found'}),404
+    
+    serialized_user = serialize_user_with_image(user)
+    return jsonify(serialized_user)
 
+#image 
+@auth_bp.route('/api/upload_img', methods=['POST'])
+def upload_image():
+    token = request.cookies.get('token') or request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        return jsonify({'message': 'Unauthorized'}), 401
+    user= get_user_details(token, users)
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    file = request.files.get('image')
+    if not file or file.filename == '':
+        return jsonify({'message': 'No file provided'}), 400
+    if not allowed_file(file.filename):
+        return jsonify({'message': 'File type not allowed'}), 400
+    content_type= file.content_type
+    encoded_image = base64.b64encode(file.read()).decode('utf-8')
+    users.update_one(
+        {'_id': ObjectId(user['_id'])},
+        {'$set': {'image': {'content_type': content_type, 'data': encoded_image}}}
+    )
+    return jsonify({'message': 'Image uploaded successfully'}), 200
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+def get_image(user):
+    if 'image' in user and user['image']:
+        image_data = user['image']
+        if isinstance(image_data, dict) and 'data' in image_data:
+            return {
+                'content_type': image_data.get('content_type', 'application/octet-stream'),
+                'data': image_data['data']
+            }
+    return None
+def serialize_user_with_image(user):
+    data={
+        'ownerName':user['ownerName'],
+        'shopName': user['shopName'],
+        'shopType': user['shopType'],
+        'email': user['email'],
+        'phone': user['phone'],
+        'email_verified': user['email_verified'],
+        '_id': str(user['_id']),
+    }
+    image = get_image(user)  # You can still call this
+    if image and 'data' in image and 'content_type' in image:
+        # Format the image properly for frontend <img src="...">
+        base64_string = image['data']
+        content_type = image['content_type']
+        data['image'] = f"data:{content_type};base64,{base64_string}"
+    return data
+@auth_bp.route('/api/delete_img', methods=['DELETE'])
+def delete_image():
+    token= request.cookies.get('token') or request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        return jsonify({'message': 'Unauthorized'}), 401
+    user = get_user_details(token, users)
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    users.update_one(
+        {'_id':ObjectId(user['_id'])},
+        {'$unset': {'image': ""}}
+    )
+    return jsonify({'success': True, 'message': 'Image deleted successfully'}), 200
 
 
 
@@ -151,136 +231,47 @@ def get_user_by_token(token):
         return jsonify({'message': 'User not found'}), 404
     return jsonify(user), 200
 
+from bson import ObjectId
+import traceback
 
-@auth_bp.route('/api/stocks', methods=['POST'])
-def add_stock():
+@auth_bp.route('/api/edit_profile', methods=['PUT'])
+def edit_profile():
     try:
+        token = request.cookies.get('token') or request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            return jsonify({'message': 'Unauthorized'}), 401
+
+        user = get_user_details(token, users)
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+
         data = request.get_json()
-        user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
-        if not user_id:
-            return jsonify({'message': 'Invalid or expired token'}), 401
+        if not data:
+            return jsonify({'message': 'No data provided'}), 400
 
-        stock_data = {
-            'user_token': user_id,
-            'name': data['name'],
-            'category': data.get('category', ''),
-            'quantity': int(data['quantity']),
-            'price': float(data['price']),
-            'supplier': data.get('supplier', ''),
-            'location': data.get('location', ''),
-            'minThreshold': int(data.get('minThreshold', 0)),
-            'addedAt': datetime.utcnow(),
-            'updatedAt': datetime.utcnow()
-        }
+        allowed_fields = ['ownerName', 'shopName', 'shopType', 'email', 'phone']
+        update_fields = {key: value for key, value in data.items() if value is not None and key in allowed_fields}
 
-        result = stocks.insert_one(stock_data)
-        stock_data['_id'] = str(result.inserted_id)
-        stock_data['id'] = stock_data['_id']
-        return jsonify({'message': 'Stock added', 'stock': stock_data}), 201
+        user_id = user['_id']
+        if not isinstance(user_id, ObjectId):
+            user_id = ObjectId(user_id)
 
-    except Exception as e:
-        return jsonify({'message': 'Error adding stock', 'error': str(e)}), 500
+        if 'email' in update_fields:
+            existing_user = users.find_one({'email': update_fields['email'], '_id': {'$ne': user_id}})
+            if existing_user:
+                return jsonify({'message': 'Email already registered'}), 409
 
+        users.update_one({'_id': user_id}, {'$set': update_fields})
 
-def get_stock_stats():
-    try:
-        user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
-        if not user_id:
-            return jsonify({'message': 'Authorization token is required'}), 401
+        updated_user = users.find_one({'_id': user_id}, {'password': 0})
+        if updated_user and '_id' in updated_user:
+            updated_user['_id'] = str(updated_user['_id'])
 
-        # Fixed: Use user_id instead of user_token for database query
-        user_stocks = list(stocks.find({'user_token': user_id}))
-
-        total_items = len(user_stocks)
-        total_value = sum(float(stock.get('price', 0)) * int(stock.get('quantity', 0)) for stock in user_stocks)
-        low_stock_items = len([stock for stock in user_stocks if int(stock.get('quantity', 0)) <= int(stock.get('minThreshold', 0))])
-
-        return jsonify({
-            'totalItems': total_items,
-            'totalValue': round(total_value, 2),
-            'lowStockItems': low_stock_items
-        }), 200
-    except Exception as e:
-        return jsonify({'message': f'Error fetching stats: {str(e)}'}), 500
-
-
-@auth_bp.route('/api/stocks/<stock_id>', methods=['PUT'])
-def update_stock(stock_id):
-    try:
-        data = request.get_json()
-        user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
-        if not user_id:
-            return jsonify({'message': 'Authorization token is required'}), 401
-
-        update_data = {
-            'name': data['name'],
-            'category': data.get('category', ''),
-            'quantity': int(data['quantity']),
-            'price': float(data['price']),
-            'supplier': data.get('supplier', ''),
-            'location': data.get('location', ''),
-            'minThreshold': int(data.get('minThreshold', 0)),
-            'updatedAt': datetime.utcnow()
-        }
-
-        result = stocks.update_one(
-            {'_id': ObjectId(stock_id), 'user_token': user_id},
-            {'$set': update_data}
-        )
-
-        if result.matched_count == 0:
-            return jsonify({'message': 'Stock not found or unauthorized'}), 404
-
-        updated_stock = stocks.find_one({'_id': ObjectId(stock_id)})
-        updated_stock['_id'] = str(updated_stock['_id'])
-        updated_stock['id'] = updated_stock['_id']
-
-        return jsonify({'message': 'Stock updated successfully', 'stock': updated_stock}), 200
+        return jsonify({'message': 'Updated successfully', 'user': updated_user}), 200
 
     except Exception as e:
-        return jsonify({'message': 'Error updating stock', 'error': str(e)}), 500
+        print("Error:", e)
+        traceback.print_exc()
+        return jsonify({'message': 'Internal Server Error'}), 500
 
 
-@auth_bp.route('/api/stocks', methods=['GET'])
-def get_stocks():
-    try:
-        user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
-        if not user_id:
-            return jsonify({'message': 'Authorization token is required'}), 401
-
-        user_stocks = list(stocks.find({'user_token': user_id}))
-        for stock in user_stocks:
-            stock['_id'] = str(stock['_id'])
-
-        return jsonify({'stocks': user_stocks}), 200
-
-    except Exception as e:
-        return jsonify({'message': 'Error fetching stocks', 'error': str(e)}), 500
-
-
-@auth_bp.route('/api/stocks/stats', methods=['GET'])
-def stock_stats_route():
-    return get_stock_stats()
-
-
-@auth_bp.route('/api/stocks/<stock_id>', methods=['DELETE'])
-def delete_stock(stock_id):
-    try:
-        user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
-        if not user_id:
-            return jsonify({'message': 'Authorization token is required'}), 401
-
-        result = stocks.delete_one({'_id': ObjectId(stock_id), 'user_token': user_id})
-        
-        if result.deleted_count == 0:
-            return jsonify({'message': 'Stock not found or unauthorized'}), 404
-
-        return jsonify({'message': 'Stock deleted successfully'}), 200
-
-    except Exception as e:
-        return jsonify({'message': 'Error deleting stock', 'error': str(e)}), 500
