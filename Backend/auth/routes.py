@@ -162,30 +162,3 @@ def get_user_details():
         return jsonify({'message': 'User not found'}), 404
     return jsonify(user), 200
 
-@auth_bp.route('/api/user/location',methods=['PATCH'])
-def change_location():
-    try:
-        user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
-
-        if not user_id:
-            return jsonify({'message': 'Unauthorized'}), 401
-
-        data = request.json
-        shop_loc = data.get('shopLocation')
-
-        if not shop_loc:
-            return jsonify({'message': 'shopLocation is required'}), 400
-
-        result = users.update_one(
-            {'_id': ObjectId(user_id)},
-            {'$set': {'shopLocation': shop_loc}}
-        )
-
-        if result.matched_count == 0:
-            return jsonify({'message': 'User not found'}), 404
-
-        return jsonify({'message': 'shopLocation updated successfully'}), 200
-
-    except Exception as e:
-        return jsonify({'message': 'Error updating shopLocation', 'error': str(e)}), 500
