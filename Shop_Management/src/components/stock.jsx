@@ -156,7 +156,6 @@ const StockManagement = () => {
             formDataToSend.append('category', formData.category);
             formDataToSend.append('quantity', parseInt(formData.quantity) || 0);
             formDataToSend.append('price', parseFloat(formData.price) || 0);
-            formDataToSend.append('supplier', JSON.stringify(formData.supplier || ""));
             formDataToSend.append('minThreshold', parseInt(formData.minThreshold) || 0);
             formDataToSend.append('minOrder', parseInt(formData.minOrder) || 0);
             formDataToSend.append('discount', parseInt(formData.discount) || 0);

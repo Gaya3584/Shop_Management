@@ -1,6 +1,6 @@
 from flask import request, jsonify, redirect, current_app
 from . import auth_bp, mail  # Import mail from __init__.py
-from .utils import hash_password, verify_password, generate_token, decode_token,get_user_details
+from .utils import hash_password, verify_password, generate_token,get_user_details
 from pymongo import MongoClient
 from config import MONGO_URI
 from datetime import datetime
@@ -234,18 +234,7 @@ def get_user_by_token(token):
 from bson import ObjectId
 import traceback
 
-<<<<<<< HEAD
-@auth_bp.route('/api/user/me', methods=['GET'])
-def get_user_details():
-    token=request.cookies.get("token")
-    if not token:
-        return jsonify({'message':'No token found'}),401
-    user = decode_token(token)
-    if not user:
-        return jsonify({'message': 'User not found'}), 404
-    return jsonify(user), 200
 
-=======
 @auth_bp.route('/api/edit_profile', methods=['PUT'])
 def edit_profile():
     try:
@@ -286,5 +275,3 @@ def edit_profile():
         traceback.print_exc()
         return jsonify({'message': 'Internal Server Error'}), 500
 
-
->>>>>>> gaya2

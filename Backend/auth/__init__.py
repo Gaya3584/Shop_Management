@@ -10,3 +10,4 @@ def init_mail(app):
 
 from . import routes  # Registers routes
 from . import stocks
+from . import order
