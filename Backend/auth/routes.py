@@ -275,3 +275,30 @@ def edit_profile():
         traceback.print_exc()
         return jsonify({'message': 'Internal Server Error'}), 500
 
+@auth_bp.route('/api/change_password', methods=['PUT'])
+def update_password():
+    try:
+        token = request.cookies.get('token') or request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            return jsonify({'message': 'Unauthorized'}), 401
+
+        user = get_user_details(token, users)
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+
+        data = request.get_json()
+        if not data or 'oldPassword' not in data or 'newPassword' not in data:
+            return jsonify({'message': 'Old and new passwords are required'}), 400
+
+        if not verify_password(data['oldPassword'], user['password']):
+            return jsonify({'message': 'Old password is incorrect'}), 401
+
+        new_hashed_password = hash_password(data['newPassword'])
+        users.update_one({'_id': ObjectId(user['_id'])}, {'$set': {'password': new_hashed_password}})
+
+        return jsonify({'message': 'Password updated successfully'}), 200
+
+    except Exception as e:
+        print("Error:", e)
+        traceback.print_exc()
+        return jsonify({'message': 'Internal Server Error'}), 500

@@ -217,23 +217,23 @@ const ResendVerificationButton = () => (
     )
 );
     return (
-        <div className='login-container'>
+        <div className='login-containerx'>
             <img 
                 src={bg} 
                 alt='Background' 
-                className='background-image'
+                className='background-imagex'
                 onError={handleImageError}
                 loading="lazy"
             />
-            <div className='login-box'>
-                <div className='login-header'>
-                    <h1 className='login-title'>Sign In to Your Account</h1>
+            <div className='login-boxx'>
+                <div className='login-headerx'>
+                    <h1 className='login-titlex'>Sign In to Your Account</h1>
                     <hr />
                 </div>
-                {successMessage && <h2 className="successMessage">{successMessage}</h2>}
-                <form className='login-form' onSubmit={handleSubmit} noValidate>
+                {successMessage && <h2 className="successMessagex">{successMessage}</h2>}
+                <form className='login-formx' onSubmit={handleSubmit} noValidate>
                     {submitError && (
-                        <div className='error-message' style={{ 
+                        <div className='error-messagex' style={{ 
                             color: '#e74c3c', 
                             backgroundColor: '#fdf2f2', 
                             padding: '10px', 
@@ -245,13 +245,13 @@ const ResendVerificationButton = () => (
                         </div>
                     )}
 
-                    <div className='input-group'>
-                        <label htmlFor='email' className='input-label'>Email</label>
+                    <div className='input-groupx'>
+                        <label htmlFor='email' className='input-labelx'>Email</label>
                         <input 
                             type='text' 
                             id='email' 
                             name='email'
-                            className={`input-field ${errors.email ? 'error' : ''}`}
+                            className={`input-fieldx ${errors.email ? 'errorx' : ''}`}
                             placeholder='Enter your Email' 
                             value={formData.email}
                             onChange={handleInputChange}
@@ -260,20 +260,20 @@ const ResendVerificationButton = () => (
                             required 
                         />
                         {errors.email && (
-                            <span className='field-error' style={{ color: '#e74c3c', fontSize: '14px' }}>
+                            <span className='field-errorx' style={{ color: '#e74c3c', fontSize: '14px' }}>
                                 {errors.email}
                             </span>
                         )}
                     </div>
 
-                    <div className='input-group'>
-                        <label htmlFor='password' className='input-label'>Password</label>
+                    <div className='input-groupx'>
+                        <label htmlFor='password' className='input-labelx'>Password</label>
                         <div style={{ position: 'relative' }}>
     <input 
         type={showPassword ? 'text' : 'password'}
         id='password' 
         name='password'
-        className={`input-field ${errors.password ? 'error' : ''}`}
+        className={`input-fieldx ${errors.password ? 'errorx' : ''}`}
         placeholder='Enter your password' 
         value={formData.password}
         onChange={handleInputChange}
@@ -297,43 +297,43 @@ const ResendVerificationButton = () => (
 </div>
 
                         {errors.password && (
-                            <span className='field-error' style={{ color: '#e74c3c', fontSize: '14px' }}>
+                            <span className='field-errorx' style={{ color: '#e74c3c', fontSize: '14px' }}>
                                 {errors.password}
                             </span>
                         )}
                     </div>
 
-                    <div className='checkbox-group'>
-                        <label htmlFor='remember' className='remember-label'>
+                    <div className='checkbox-groupx'>
+                        <label htmlFor='remember' className='remember-labelx'>
                             <input 
                                 type='checkbox' 
                                 id='remember' 
                                 name='remember'
-                                className='input-checkbox'
+                                className='input-checkboxx'
                                 checked={formData.remember}
                                 onChange={handleInputChange}
                                 disabled={isLoading}
                             />
                             Remember Me
                         </label>
-                        <a href='/forgot-password' className='forgot-password-link'>
+                        <a href='/forgot-password' className='forgot-password-linkx'>
                             Forgot Password?
                         </a>
                     </div>
 
-                    <div className='input-group'>
+                    <div className='input-groupx'>
                         <button 
                             type='submit' 
-                            className={`login-button particle-effect ${isLoading ? 'loading' : ''}`}
+                            className={`login-buttonx particle-effectx ${isLoading ? 'loadingx' : ''}`}
                             disabled={isLoading}
                         >
                             <span>{isLoading ? 'Signing In...' : 'Login'}</span>
                         </button>
                     </div>
-                    <button onClick={handleResendVerification} className="btn">Verify Email</button>
+                    <button onClick={handleResendVerification} className="btnx">Verify Email</button>
 
-                    <div className='input-group'>
-                        <p className='login-footer'> Don't have an account? <Link to="/signup"> Register here</Link></p>
+                    <div className='input-groupx'>
+                        <p className='login-footerx'> Don't have an account? <Link to="/signup"> Register here</Link></p>
                     </div>
                 </form>
             </div>

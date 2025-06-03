@@ -1,0 +1,336 @@
+/* settings.css - Improved version */
+.settings-container {
+  padding: 2rem;
+  max-width: 700px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.settings-container h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.settings-section {
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.settings-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.settings-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.settings-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.settings-section:nth-child(2) h3::before {
+  content: "👤";
+  font-size: 1.3rem;
+}
+
+.settings-section:nth-child(3) h3::before {
+  content: "🔒";
+  font-size: 1.3rem;
+}
+
+.settings-section:nth-child(4) h3::before {
+  content: "⚙️";
+  font-size: 1.3rem;
+}
+
+.settings-section:nth-child(5) h3::before {
+  content: "⚠️";
+  font-size: 1.3rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.8);
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: white;
+  transform: translateY(-1px);
+}
+
+input[type="text"]:invalid,
+input[type="email"]:invalid {
+  border-color: #e74c3c;
+}
+
+input[type="text"]:valid,
+input[type="email"]:valid {
+  border-color: #27ae60;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.75rem;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #4a5568;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+label:hover {
+  color: #2d3748;
+}
+
+/* Button styling */
+.save-btn,
+.delete-btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #2d87f0 0%, #4f46e5 100%);
+  color: white;
+}
+
+.save-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(45, 135, 240, 0.3);
+}
+
+.save-btn:hover::before {
+  left: 100%;
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #ff4d4f 0%, #dc2626 100%);
+  color: white;
+}
+
+.delete-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.delete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 77, 79, 0.3);
+}
+
+.delete-btn:hover::before {
+  left: 100%;
+}
+
+.save-btn:active,
+.delete-btn:active {
+  transform: translateY(0);
+}
+
+/* Special styling for danger zone */
+.settings-section:last-child {
+  border: 2px solid #ff4d4f;
+  background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+}
+
+.settings-section:last-child::before {
+  background: linear-gradient(90deg, #ff4d4f 0%, #dc2626 100%);
+}
+
+.settings-section:last-child h3 {
+  color: #c53030;
+}
+
+/* Input grouping for related fields */
+.input-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.input-group input {
+  margin-bottom: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 1rem;
+  }
+  
+  .settings-container h2 {
+    font-size: 2rem;
+  }
+  
+  .settings-section {
+    padding: 1.5rem;
+  }
+  
+  .input-group {
+    grid-template-columns: 1fr;
+  }
+  
+  .save-btn,
+  .delete-btn {
+    margin-right: 0;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .settings-container {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  }
+  
+  .settings-section {
+    background: rgba(45, 55, 72, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .settings-section h3 {
+    color: #f7fafc;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    background: rgba(45, 55, 72, 0.8);
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+  
+  input[type="text"]::placeholder,
+  input[type="email"]::placeholder,
+  input[type="password"]::placeholder {
+    color: #a0aec0;
+  }
+  
+  label {
+    color: #cbd5e0;
+  }
+  
+  label:hover {
+    color: #e2e8f0;
+  }
+  
+  .settings-section:last-child {
+    background: linear-gradient(135deg, #742a2a 0%, #9b2c2c 100%);
+    border-color: #fc8181;
+  }
+  
+  .settings-section:last-child h3 {
+    color: #feb2b2;
+  }
+}
+
+/* Animation for page load */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-section {
+  animation: slideInUp 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.settings-section:nth-child(1) { animation-delay: 0.1s; }
+.settings-section:nth-child(2) { animation-delay: 0.2s; }
+.settings-section:nth-child(3) { animation-delay: 0.3s; }
+.settings-section:nth-child(4) { animation-delay: 0.4s; }
+.settings-section:nth-child(5) { animation-delay: 0.5s; }
+
+.cont1
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f7fafc;
+}

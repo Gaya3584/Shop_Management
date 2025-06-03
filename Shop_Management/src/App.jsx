@@ -8,6 +8,9 @@ import Disc from './components/discover'
 import Stock from './components/stock'
 import Pro from './components/profile'
 import Analysis from './components/analysis'
+import Order from './components/orders'
+import Help from './components/help';
+import Settings from './components/settings';
 
 function App() {
   return (
@@ -20,6 +23,9 @@ function App() {
         <Route path="/stock" element={<Stock />} />
         <Route path="/profile" element={<Pro />} />
         <Route path="/analysis" element={<Analysis />} />
+        <Route path="/orders" element={<Order />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/settings" element={<Settings />} />
 
       </Routes>
     </Router>
