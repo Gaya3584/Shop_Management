@@ -256,6 +256,7 @@ body {
   background: white;
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-sm);
+  cursor: pointer;
 }
 
 .nav-link::before {

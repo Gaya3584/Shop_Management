@@ -45,6 +45,15 @@ const Dashboard = () => {
 const handleProfileClick = () => {
   navigate(`/profile`);
 };
+const handleOrdersClick = () => {
+  navigate(`/orders`);
+}
+const handleSettingsClick = () => {
+  navigate(`/settings`);
+}
+const handleHelpClick = () => {
+  navigate(`/help`);
+}
   return (
     <div className="dashboard-container">
       {/* Overlay for both mobile and desktop */}
@@ -107,34 +116,35 @@ const handleProfileClick = () => {
               </a>
             </li>
             <li>
-              <a href="#" className="nav-link" onClick={toggleSidebar}>
+              <div className="nav-link" onClick={() => { toggleSidebar(); handleOrdersClick(); }}>
                 <svg className="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
                   <path d="M3 6h18"></path>
                   <path d="M16 10a4 4 0 0 1-8 0"></path>
                 </svg>
                 <span className="nav-text">Orders</span>
-              </a>
+              </div>
             </li>
+
             
             <li>
-              <a href="#" className="nav-link" onClick={toggleSidebar}>
+              <div className="nav-link" onClick={() => { toggleSidebar(); handleSettingsClick(); }}>
                 <svg className="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="3" />
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                 </svg>
                 <span className="nav-text">Settings</span>
-              </a>
+              </div>
             </li>
             <li>
-              <a href="#" className="nav-link" onClick={toggleSidebar}>
+              <div className="nav-link" onClick={() => { toggleSidebar(); handleHelpClick(); }}>
                 <svg className="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 3-3 3" />
                   <line x1="12" y1="17" x2="12" y2="17" />
                 </svg>
                 <span className="nav-text">Help</span>
-              </a>
+              </div>
             </li>
 
             <li>

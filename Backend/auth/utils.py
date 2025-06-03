@@ -31,5 +31,5 @@ def get_user_details(token,users):
     user_id=decode_token(token)
     if not user_id:
         return None
-    user=users.find_one({'_id': ObjectId(user_id)},{'password': 0})  # Exclude password from the returned user data
+    user=users.find_one({'_id': ObjectId(user_id)})  # Exclude password from the returned user data
     return user
