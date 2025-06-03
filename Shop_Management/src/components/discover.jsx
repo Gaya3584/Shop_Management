@@ -109,7 +109,10 @@ const DiscoverPage = () => {
           })
           .then(() => {
             setShowBuyModal(false);
-            navigate('/orders');
+            if (inquirySuccess) {
+              alert("Order placed successfully!");
+              setInquirySuccess(true);
+            }
           })
           .catch(err => {
             console.error("Error placing order", err);
