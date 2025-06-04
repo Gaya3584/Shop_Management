@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { 
   Search, Filter, Calendar, ChevronDown, Eye, Phone, MessageCircle, 
   Printer, CheckCircle, XCircle, Clock, Package, MapPin, DollarSign,
@@ -17,99 +17,48 @@ const OrderManagementSystem = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [notifications, setNotifications] = useState(3);
+  const [buyingOrders, setBuyingOrders] = useState([]);
+  const [sellingOrders, setSellingOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Sample data for orders (buying perspective)
-  const buyingOrders = [
-    {
-      id: 'ORD-2024-001',
-      shopName: 'Tech Electronics Store',
-      shopContact: '+91 98765 43210',
-      orderDate: '2024-06-02T10:30:00',
-      status: 'delivered',
-      totalAmount: 15999,
-      paymentMethod: 'UPI',
-      items: [
-        { name: 'Wireless Headphones', quantity: 1, price: 8999 },
-        { name: 'Phone Case', quantity: 2, price: 3500 }
-      ],
-      deliveryAddress: '123 Main St, Kochi, Kerala 682001',
-      specialInstructions: 'Handle with care',
-      timeline: [
-        { stage: 'Order Placed', time: '2024-06-02T10:30:00', completed: true },
-        { stage: 'Accepted', time: '2024-06-02T10:45:00', completed: true },
-        { stage: 'Dispatched', time: '2024-06-02T14:00:00', completed: true },
-        { stage: 'Delivered', time: '2024-06-02T18:30:00', completed: true }
-      ]
-    },
-    {
-      id: 'ORD-2024-002',
-      shopName: 'Fresh Grocers',
-      shopContact: '+91 98765 43211',
-      orderDate: '2024-06-02T14:15:00',
-      status: 'pending',
-      totalAmount: 2850,
-      paymentMethod: 'Cash',
-      items: [
-        { name: 'Organic Vegetables', quantity: 3, price: 1200 },
-        { name: 'Rice (5kg)', quantity: 1, price: 800 },
-        { name: 'Cooking Oil', quantity: 1, price: 850 }
-      ],
-      deliveryAddress: '456 Park Road, Kochi, Kerala 682002',
-      specialInstructions: 'Call before delivery',
-      timeline: [
-        { stage: 'Order Placed', time: '2024-06-02T14:15:00', completed: true },
-        { stage: 'Accepted', time: '', completed: false },
-        { stage: 'Dispatched', time: '', completed: false },
-        { stage: 'Delivered', time: '', completed: false }
-      ]
-    }
-  ];
+  useEffect(() => {
+    fetchBuyOrders();
+    fetchSellOrders();
+  }, []);
+  const fetchBuyOrders = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/orders/purchases', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      const transformed = data.buyingOrders.map(transformOrder);
+      setBuyingOrders(transformed);
 
-  // Sample data for orders (selling perspective)
-  const sellingOrders = [
-    {
-      id: 'ORD-2024-003',
-      customerName: 'Rahul Sharma',
-      customerContact: '+91 98765 43212',
-      orderDate: '2024-06-02T09:20:00',
-      status: 'accepted',
-      totalAmount: 4500,
-      paymentMethod: 'UPI',
-      items: [
-        { name: 'Coffee Beans (1kg)', quantity: 2, price: 2000 },
-        { name: 'Green Tea', quantity: 1, price: 500 }
-      ],
-      deliveryAddress: '789 Coffee Street, Kochi, Kerala 682003',
-      specialInstructions: 'Deliver between 2-4 PM',
-      timeline: [
-        { stage: 'Order Placed', time: '2024-06-02T09:20:00', completed: true },
-        { stage: 'Accepted', time: '2024-06-02T09:35:00', completed: true },
-        { stage: 'Dispatched', time: '', completed: false },
-        { stage: 'Delivered', time: '', completed: false }
-      ]
-    },
-    {
-      id: 'ORD-2024-004',
-      customerName: 'Priya Nair',
-      customerContact: '+91 98765 43213',
-      orderDate: '2024-06-02T11:45:00',
-      status: 'pending',
-      totalAmount: 1299,
-      paymentMethod: 'Online',
-      items: [
-        { name: 'Handmade Soap Set', quantity: 1, price: 899 },
-        { name: 'Essential Oil', quantity: 1, price: 400 }
-      ],
-      deliveryAddress: '321 Garden View, Kochi, Kerala 682004',
-      specialInstructions: 'Gift wrap requested',
-      timeline: [
-        { stage: 'Order Placed', time: '2024-06-02T11:45:00', completed: true },
-        { stage: 'Accepted', time: '', completed: false },
-        { stage: 'Dispatched', time: '', completed: false },
-        { stage: 'Delivered', time: '', completed: false }
-      ]
+
+      
+    } catch (error) {
+      console.error("Error fetching orders:", error);
     }
-  ];
+  };
+
+const fetchSellOrders = async () => {
+  try {
+    const response = await fetch('http://localhost:5000/api/orders/sales', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const data = await response.json();
+    if (data.message) {
+      console.error(data.message);
+    } else {
+      setSellingOrders(data.sellingOrders);
+    }
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+  }
+};
 
   const currentOrders = activeTab === 'buying' ? buyingOrders : sellingOrders;
 
@@ -160,10 +109,81 @@ const OrderManagementSystem = () => {
     }).format(amount);
   };
 
-  const handleStatusUpdate = (orderId, newStatus) => {
-    console.log(`Updating order ${orderId} to ${newStatus}`);
-  };
+ const handleStatusUpdate = async (orderId, newStatus) => {
+  try {
+    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({ status: newStatus })
+    });
 
+    const result = await response.json();
+
+    if (response.ok) {
+      console.log(result.message);
+      // Optionally: refetch or update local state
+      if (activeTab === 'buying') 
+        {
+          fetchBuyOrders();
+        }
+      else{
+          fetchSellOrders();
+      } 
+    
+    setShowModal(false);
+    setSelectedOrder(null);
+  }else {
+      console.error(result.message);
+    }
+  } catch (error) {
+    console.error("Error updating order status:", error);
+  }
+};
+
+const transformOrder = (order) => ({
+  id: order._id,
+  items: [ // assume one product per order for now
+    {
+      name: 'Product Name', // replace if you have product name elsewhere
+      quantity: order.quantity,
+      price: order.total_price,
+    },
+  ],
+  totalAmount: order.total_price,
+  paymentMethod: 'Cash', // or however you're handling it
+  orderDate: order.orderedAt,
+  status: order.status,
+  shopName: order.shopName,
+  customerName: order.customerName,
+  shopContact: 'N/A',
+  customerContact: 'N/A',
+  deliveryAddress: 'N/A',
+  timeline: [
+    {
+      stage: 'Order Placed',
+      time: order.orderedAt,
+      completed: true,
+    },
+    {
+      stage: 'Accepted',
+      time: null,
+      completed: order.status !== 'pending',
+    },
+    {
+      stage: 'Dispatched',
+      time: null,
+      completed: order.status === 'dispatched' || order.status === 'delivered',
+    },
+    {
+      stage: 'Delivered',
+      time: null,
+      completed: order.status === 'delivered',
+    },
+  ],
+});
 
   const OrderCard = ({ order }) => (
     <div className="order-card" onClick={() => { setSelectedOrder(order); setShowModal(true); }}>
@@ -202,21 +222,28 @@ const OrderManagementSystem = () => {
             <Eye className="action-icon" />
           </button>
           {activeTab === 'selling' && (
-            <>
-              <button className="action-btn action-phone">
+            
+            <select value={order.status} onChange={(e) => handleStatusUpdate(order.id, e.target.value)} className="status-select">
+              <option value="pending">Pending</option>
+              <option value="accepted">Accepted</option>  
+              <option value="dispatched">Dispatched</option>
+              <option value="delivered">Delivered</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+              {/* <button className="action-btn action-phone">
                 <Phone className="action-icon" />
               </button>
               <button className="action-btn action-message">
                 <MessageCircle className="action-icon" />
-              </button>
-            </>
+              </button> */}
+          </select>
           )}
         </div>
       </div>
     </div>
   );
 
-  const OrderModal = ({ order, onClose }) => {
+  const OrderModal = ({ order, onClose,handleStatusUpdate }) => {
     if (!order) return null;
 
     return (
@@ -311,9 +338,10 @@ const OrderManagementSystem = () => {
             {activeTab === 'selling' && order.status === 'pending' && (
               <div className="modal-actions">
                 <button 
-                  onClick={() => handleStatusUpdate(order.id, 'accepted')}
-                  className="action-button accept-btn"
-                >
+  disabled={isloading} // wrong
+  onClick={() => handleStatusUpdate(order.id, 'accepted').finally(()=>setIsLoading(false))}
+>
+
                   Accept Order
                 </button>
                 <button 
@@ -469,7 +497,7 @@ const OrderManagementSystem = () => {
         {/* Orders Grid */}
         <div className="orders-grid">
           {filteredOrders.map(order => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard key={order._id} order={order} />
           ))}
         </div>
 
@@ -492,6 +520,7 @@ const OrderManagementSystem = () => {
         <OrderModal 
           order={selectedOrder} 
           onClose={() => { setShowModal(false); setSelectedOrder(null); }} 
+          handleStatusUpdate={handleStatusUpdate}
         />
       )}
     </div>

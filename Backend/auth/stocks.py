@@ -24,7 +24,8 @@ def add_stock():
         if not user_id:
             return jsonify({'message': 'Invalid or expired token'}), 401
 
-
+        user2 = users.find_one({'_id': ObjectId(user_id)})
+        shop_name = user2.get('shopName', 'Unknown') if user2 else 'Unknown'
         stock_data = {
             'user_token': user_id,
             'name': data['name'],
@@ -39,7 +40,9 @@ def add_stock():
             'image':image_url,
             'discount':data.get('discount',0),
             'addedAt': datetime.utcnow(),
-            'updatedAt': datetime.utcnow()
+            'updatedAt': datetime.utcnow(),
+            'shopName': shop_name
+
         }
 
         result = stocks.insert_one(stock_data)
@@ -96,7 +99,7 @@ def update_stock(stock_id):
             'reviews':0,
             'image':image_url,
             'discount':data.get('discount',0),
-            'updatedAt': datetime.utcnow()
+            'updatedAt': datetime.utcnow(),
         }
 
         result = stocks.update_one(

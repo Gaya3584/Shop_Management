@@ -107,6 +107,7 @@ const DiscoverPage = () => {
             withCredentials: true,
             headers: { 'Content-Type': 'application/json' }
           })
+          
           .then(() => {
             setShowBuyModal(false);
             if (inquirySuccess) {
