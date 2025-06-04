@@ -16,7 +16,7 @@ users = db.users
 stocks = db.stocks
 orders=db.orders
 @auth_bp.route('/api/orders/new', methods=['POST',"OPTIONS"])
-@cross_origin(origins='http://localhost:5174', supports_credentials=True)
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def place_order():
     try:
         user_token = request.cookies.get('token')
@@ -98,7 +98,7 @@ def place_order():
         return jsonify({'message': 'Error placing order', 'error': str(e)}), 500
     
 @auth_bp.route("/api/notifications",methods=['GET'])
-@cross_origin(origins='http://localhost:5174', supports_credentials=True)
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_notifications():
     stock = db.stocks.find().sort('addedAt', -1)
     order = db.orders.find().sort('orderedAt', -1)
