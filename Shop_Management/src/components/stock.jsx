@@ -10,7 +10,18 @@ const StockManagement = () => {
     const [loading, setLoading] = useState(false);
     const [selectedImages, setSelectedImages] = React.useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
-
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    
+    const categorie = [
+    { id: 'all', name: 'All Categories', icon: '🛍️' },
+    { id: 'food', name: 'Food & Beverages', icon: '🍽️' },
+    { id: 'clothing', name: 'Clothing & Textiles', icon: '👕' },
+    { id: 'electronics', name: 'Electronics', icon: '📱' },
+    { id: 'beauty', name: 'Beauty & Care', icon: '💄' },
+    { id: 'accessories', name: 'Accessories', icon: '👜' },
+    { id: 'home', name: 'Home & Furniture', icon: '🏠' },
+    { id: 'misc', name: 'Miscellaneous', icon: '!' }
+  ];
     const navigate = useNavigate();
     const [stats, setStats] = useState({
         totalItems: 0,
@@ -431,13 +442,19 @@ const StockManagement = () => {
                                 className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                 required
                             />
-                            <input
-                                type="text"
-                                placeholder="Category"
+                            <select
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                 className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            />
+                                required
+                            >
+                                <option value="">Select Category *</option>
+                                {categorie.map(category => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.icon} {category.name}
+                                    </option>
+                                ))}
+                            </select>
                             <input
                                 type="number"
                                 placeholder="Quantity *"
