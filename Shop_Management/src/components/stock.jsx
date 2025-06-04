@@ -53,7 +53,6 @@ const StockManagement = () => {
             if (previewUrl) {
                 URL.revokeObjectURL(previewUrl);
             }
-
             const objectUrl = URL.createObjectURL(file);
             setPreviewUrl(objectUrl);
             setFormData({ ...formData, image: objectUrl }); 
@@ -206,8 +205,12 @@ const StockManagement = () => {
             quantity: stock.quantity?.toString() || "",
             price: stock.price?.toString() || "",
             minThreshold: stock.minThreshold?.toString() || "",
-            supplier: stock.supplier||"",
-            image: stock.image_id ? `/image/${stock.image_id}` : (stock.image?.startsWith('/') ? stock.image : `/static/uploads/${stock.image}`),
+            supplier: stock.supplier??"",
+            image: stock.image_id
+  ? `/image/${stock.image_id}`
+  : (stock.image && stock.image.length === 24
+      ? `/image/${stock.image}`
+      : (stock.image?.startsWith('/') ? stock.image : `/static/uploads/${stock.image}`)),
             minOrder:stock.minOrder?.toString()||"",
             discount:stock.discount?.toString()||""
         });
@@ -229,7 +232,9 @@ const StockManagement = () => {
             formDataToSend.append('category', formData.category);
             formDataToSend.append('quantity', parseInt(formData.quantity) || 0);
             formDataToSend.append('price', parseFloat(formData.price) || 0);
-            formDataToSend.append('supplier', JSON.stringify(formData.supplier || ""));
+            if (formData.supplier?.trim()) {
+                formDataToSend.append('supplier', formData.supplier.trim());
+            }
             formDataToSend.append('minThreshold', parseInt(formData.minThreshold) || 0);
             formDataToSend.append('minOrder', parseInt(formData.minOrder) || 0);
             formDataToSend.append('discount', parseInt(formData.discount) || 0);
@@ -384,9 +389,12 @@ const StockManagement = () => {
                         <div className="flex-1">
                             <input
                                 type="text"
-                                placeholder="Search by name or supplier..."
-                                value={searchItem}
-                                onChange={(e) => setSearchItem(e.target.value)}
+                                placeholder="Supplier"
+                                value={formData.supplier || ""}
+                                onChange={(e) => {
+                                    const val = e.target.value.trim();
+                                    setFormData({ ...formData, supplier: val.length > 0 ? val : "" });
+                                }}
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             />
                         </div>

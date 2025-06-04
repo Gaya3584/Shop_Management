@@ -40,7 +40,7 @@ def add_stock():
             'category': data.get('category', ''),
             'quantity': int(data['quantity']),
             'price': float(data['price']),
-            'supplier':"",
+            'supplier':None,
             'minThreshold': int(data.get('minThreshold', 0)),
             'minOrder':data.get('minOrder',0),
             'rating':0,
