@@ -23,9 +23,20 @@ const OrderManagementSystem = () => {
 
  
   useEffect(() => {
-    fetchBuyOrders();
-    fetchSellOrders();
-  }, []);
+    const fetchData = () => {
+      if (activeTab === 'buying') {
+        fetchBuyOrders();
+      } else {
+        fetchSellOrders();
+      }
+    };
+
+    fetchData(); // Initial fetch
+
+    const intervalId = setInterval(fetchData, 10000); // 10 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [activeTab]);
   const fetchBuyOrders = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/orders/purchases', {
