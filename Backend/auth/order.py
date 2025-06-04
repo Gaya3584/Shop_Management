@@ -59,6 +59,7 @@ def place_order():
         order_doc = {
             'user_token': user_id,
             'product_id': ObjectId(product_id),
+            'product_name': product.get('name', 'Unnamed'),
             'quantity': quantity,
             'total_price': total_price,
             'status': 'pending',
@@ -107,7 +108,7 @@ def place_order():
 def get_purchases():
     try:
         user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
+        user_id = decode_token(user_token)                                          #searches database orders for cookies=>token=>orders=>user_token in orders
         if not user_id:
             return jsonify({'message': 'Invalid or expired token'}), 401
         
@@ -115,23 +116,27 @@ def get_purchases():
         for order in orders:
             order['_id'] = str(order['_id'])
             order['product_id'] = str(order['product_id'])
+            product = db.stocks.find_one({'_id': ObjectId(order['product_id'])})
+            order['name'] = product.get('name', 'No Name')
         
         return jsonify({'buyingOrders': orders}), 200
 
     except Exception as e:
         return jsonify({'message': 'Error fetching purchases', 'error': str(e)}), 500
+    
 @auth_bp.route('/api/orders/sales', methods=['GET'])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_sales():
     try:
         user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
+        user_id = decode_token(user_token)                                          
         if not user_id:
             return jsonify({'message': 'Invalid or expired token'}), 401
 
         # Step 1: Find all product IDs the user owns
-        user_product_cursor = db.stocks.find({'user_token': user_id}, {'_id': 1})
+        user_product_cursor = db.stocks.find({'user_token': user_id}, {'_id': 1})                   #searches database orders for cookies=>token=>(orders=>product_id=>stokcks =>_id=>user_token) 
         user_product_ids = [product['_id'] for product in user_product_cursor]
+        
 
         # Step 2: Find orders where product_id is in user's product list
         sales_cursor = db.orders.find({'product_id': {'$in': user_product_ids}})
@@ -139,12 +144,15 @@ def get_sales():
         for sale in sales_cursor:
             sale['_id'] = str(sale['_id'])
             sale['product_id'] = str(sale['product_id'])
+            product = db.stocks.find_one({'_id': ObjectId(sale['product_id'])})
+            sale['name'] = product.get('name', 'No Name')
             sales.append(sale)
 
         return jsonify({'sellingOrders': sales}), 200
 
     except Exception as e:
         return jsonify({'message': 'Error fetching sales', 'error': str(e)}), 500
+    
 @auth_bp.route('/api/orders/<order_id>/status', methods=['PATCH'])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def update_order_status(order_id):
@@ -173,6 +181,7 @@ def update_order_status(order_id):
 def get_notifications():
     stock = db.stocks.find().sort('addedAt', -1)
     order = db.orders.find().sort('orderedAt', -1)
+    
 
     logs = []
 
@@ -185,9 +194,11 @@ def get_notifications():
 
     for log in order:
         action = "placed" if log.get("status") == "success" else "pending" if log.get("status")== "pending" else "cancelled"
+        product_id = log.get('product_id')
+        product = stocks.find_one({'_id': ObjectId(product_id)})
         logs.append({
             "type": f"order-{action}",
-            "message": f"Order {action} for {log.get('product_name', 'Unknown Product')} ({log.get('quantity', 0)} units)",
+            "message": f"Order {action} for {product.get('name', 'Unknown Product')} ({log.get('quantity', 0)} units)",
             "timestamp": log.get("orderedAt", datetime.utcnow())
         })
 

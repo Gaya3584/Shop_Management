@@ -21,7 +21,7 @@ const OrderManagementSystem = () => {
   const [sellingOrders, setSellingOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Sample data for orders (buying perspective)
+ 
   useEffect(() => {
     fetchBuyOrders();
     fetchSellOrders();
@@ -35,9 +35,6 @@ const OrderManagementSystem = () => {
       const data = await response.json();
       const transformed = data.buyingOrders.map(transformOrder);
       setBuyingOrders(transformed);
-
-
-      
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -147,9 +144,9 @@ const transformOrder = (order) => ({
   id: order._id,
   items: [ // assume one product per order for now
     {
-      name: 'Product Name', // replace if you have product name elsewhere
+      name: order.name, 
       quantity: order.quantity,
-      price: order.total_price,
+      price: order.total_price/order.quantity,
     },
   ],
   totalAmount: order.total_price,
@@ -338,7 +335,7 @@ const transformOrder = (order) => ({
             {activeTab === 'selling' && order.status === 'pending' && (
               <div className="modal-actions">
                 <button 
-  disabled={isloading} // wrong
+  disabled={isLoading} 
   onClick={() => handleStatusUpdate(order.id, 'accepted').finally(()=>setIsLoading(false))}
 >
 
@@ -497,7 +494,7 @@ const transformOrder = (order) => ({
         {/* Orders Grid */}
         <div className="orders-grid">
           {filteredOrders.map(order => (
-            <OrderCard key={order._id} order={order} />
+            <OrderCard key={order.id} order={order} />
           ))}
         </div>
 
