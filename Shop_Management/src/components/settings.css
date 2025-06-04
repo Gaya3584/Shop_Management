@@ -267,10 +267,10 @@ label:hover {
     border-color: rgba(255, 255, 255, 0.1);
   }
   
-  .settings-section h3 {
+  .settings-section h3,.shopType {
     color: #f7fafc;
   }
-  
+
   input[type="text"],
   input[type="email"],
   input[type="password"] {
@@ -284,6 +284,13 @@ label:hover {
   input[type="password"]::placeholder {
     color: #a0aec0;
   }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus {
+    color:#1a202c;
+  }
+
   
   label {
     color: #cbd5e0;

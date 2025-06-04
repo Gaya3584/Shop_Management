@@ -31,6 +31,9 @@ const Help = () => {
           <button type="submit" className="submit-btn">Submit</button>
         </form>
       </section>
+      <button className="btn btn-back" onClick={() => window.history.back()}>
+            Back
+          </button>
     </div>
   );
 };

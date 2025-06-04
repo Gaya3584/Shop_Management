@@ -11,6 +11,7 @@ import Analysis from './components/analysis'
 import Order from './components/orders'
 import Help from './components/help';
 import Settings from './components/settings';
+import Notifications from './components/Notifications';
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
         <Route path="/orders" element={<Order />} />
         <Route path="/help" element={<Help />} />
         <Route path="/settings" element={<Settings />} />
-
+        <Route path="/notifications" element={<Notifications/>}/>
       </Routes>
     </Router>
   );

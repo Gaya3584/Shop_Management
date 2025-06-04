@@ -3,6 +3,9 @@ from . import auth_bp
 from .utils import decode_token
 from pymongo import MongoClient
 from config import MONGO_URI
+from flask_mail import Message
+from flask import current_app
+from auth import mail 
 from datetime import datetime
 from bson.objectid import ObjectId
 from .uploads import save_uploaded_image
@@ -48,6 +51,26 @@ def add_stock():
         result = stocks.insert_one(stock_data)
         stock_data['_id'] = str(result.inserted_id)
         stock_data['id'] = stock_data['_id']
+
+        user = users.find_one({'_id': ObjectId(user_id)})
+        if user and user.get('email'):
+            msg = Message(
+                subject="Stock Added Successfully",
+                sender=current_app.config['MAIL_USERNAME'],
+                recipients=[user['email']]
+            )
+            msg.body = f"""Hello {user.get('shopName', 'User')},
+
+            Your stock item '{stock_data['name']}' has been added successfully.
+
+            Quantity: {stock_data['quantity']}
+            Price: {stock_data['price']}
+
+            Thank you for using Shopsy!
+            """
+        mail.send(msg)
+
+
         return jsonify({'message': 'Stock added', 'stock': stock_data}), 201
 
     except Exception as e:

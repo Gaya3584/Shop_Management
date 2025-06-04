@@ -179,6 +179,9 @@ const WeeklySalesAnalysis = () => {
   return (
     <div className="sales-analysis">
       {/* Header */}
+      <button className="btn btn-back" onClick={() => window.history.back()}>
+            Back
+          </button>
       <div className="header">
         <h1>Weekly Sales Analysis</h1>
         <div className="header-actions">
