@@ -169,7 +169,7 @@ def update_order_status(order_id):
         return jsonify({'message': 'Error updating order', 'error': str(e)}), 500
 
 @auth_bp.route("/api/notifications",methods=['GET'])
-@cross_origin(origins='http://localhost:5174', supports_credentials=True)
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_notifications():
     stock = db.stocks.find().sort('addedAt', -1)
     order = db.orders.find().sort('orderedAt', -1)
