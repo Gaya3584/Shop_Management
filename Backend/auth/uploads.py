@@ -1,16 +1,19 @@
-import os
-from werkzeug.utils import secure_filename
+import gridfs
+from pymongo import MongoClient
+from bson import ObjectId
+from config import MONGO_URI
 
-UPLOAD_FOLDER = 'static/uploads'
+client = MongoClient(MONGO_URI)
+db = client.shopsy
+fs = gridfs.GridFS(db)
 
-# make sure the folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# inside your function:
-def save_uploaded_image(image_file):
+def save_uploaded_image_to_gridfs(image_file):
     if image_file:
-        filename = secure_filename(image_file.filename)
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        image_file.save(file_path)
-        return f"/{UPLOAD_FOLDER}/{filename}"
+        filename = image_file.filename
+        content_type = image_file.content_type or 'application/octet-stream'
+
+        # Save any image format (jpg, png, webp, etc.)
+        file_id = fs.put(image_file.stream, filename=filename, content_type=content_type)
+        return str(file_id)  # Return the ObjectId as a string
+
     return ''

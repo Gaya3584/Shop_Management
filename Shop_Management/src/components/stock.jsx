@@ -142,6 +142,8 @@ const StockManagement = () => {
             minOrder:1,
             discount:0
         });
+        setSelectedImages(null);   // ← add this
+        setPreviewUrl(null); 
     };
 
     const handleAdd = async () => {
@@ -193,12 +195,12 @@ const StockManagement = () => {
             price: stock.price?.toString() || "",
             minThreshold: stock.minThreshold?.toString() || "",
             supplier: stock.supplier||"",
-            image: stock.image||'',
+            image: stock.image_id ? `/image/${stock.image_id}` : (stock.image?.startsWith('/') ? stock.image : `/static/uploads/${stock.image}`),
             minOrder:stock.minOrder?.toString()||"",
             discount:stock.discount?.toString()||""
         });
             setSelectedImages([]);
-            setPreviewUrl(stock.image || null); // show existing image URL as selected
+            setPreviewUrl(stock.image_id ? `http://localhost:5000/image/${stock.image_id}` : null); // show existing image URL as selected
     };
 
     const handleUpdate = async (stock) => {

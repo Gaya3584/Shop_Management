@@ -283,7 +283,7 @@ const productArray = Object.values(productSummary);
             <DollarSign size={24} />
           </div>
           <div className="summary-content">
-            <h3>${summaryStats.totalRevenue.toLocaleString()}</h3>
+            <h3>₹{summaryStats.totalRevenue.toLocaleString()}</h3>
             <p>Total Revenue</p>
           </div>
         </div>
@@ -401,9 +401,9 @@ const productArray = Object.values(productSummary);
           </div>
           <div className="drill-down-content">
             <p><strong>Category:</strong> {selectedProduct.category}</p>
-            <p><strong>Total Revenue:</strong> ${selectedProduct.value.toLocaleString()}</p>
+            <p><strong>Total Revenue:</strong> ₹{selectedProduct.value.toLocaleString()}</p>
             <p><strong>Units Sold:</strong> {selectedProduct.quantity.toLocaleString()}</p>
-            <p><strong>Average Price:</strong> ${(selectedProduct.value / selectedProduct.quantity).toFixed(2)}</p>
+            <p><strong>Average Price:</strong> ₹{(selectedProduct.value / selectedProduct.quantity).toFixed(2)}</p>
           </div>
         </div>
       )}
@@ -490,7 +490,7 @@ const productArray = Object.values(productSummary);
                         {row.quantity.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                        ${row.total_price.toLocaleString()}
+                        ₹{row.total_price.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

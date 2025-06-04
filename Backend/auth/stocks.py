@@ -8,20 +8,25 @@ from flask import current_app
 from auth import mail 
 from datetime import datetime
 from bson.objectid import ObjectId
-from .uploads import save_uploaded_image
-
+from .uploads import save_uploaded_image_to_gridfs
+from flask import send_file
+from bson import ObjectId
+from io import BytesIO
+import gridfs
 
 client = MongoClient(MONGO_URI)
 db = client.shopsy
 users = db.users
 stocks=db.stocks
 
+fs = gridfs.GridFS(db)
+
 @auth_bp.route('/api/stocks', methods=['POST'])
 def add_stock():
     try:
         data = request.form
-        image_file = request.files.get('image')#extracts json body of request and stores it in a python dict data
-        image_url = save_uploaded_image(image_file)
+        image_file = request.files.get('image')
+        image_id = save_uploaded_image_to_gridfs(image_file)
         user_token = request.cookies.get('token')
         user_id= decode_token(user_token)
         if not user_id:
@@ -40,7 +45,7 @@ def add_stock():
             'minOrder':data.get('minOrder',0),
             'rating':0,
             'reviews':0,
-            'image':image_url,
+            'image':image_id,
             'discount':data.get('discount',0),
             'addedAt': datetime.utcnow(),
             'updatedAt': datetime.utcnow(),
@@ -103,7 +108,7 @@ def update_stock(stock_id):
     try:
         data = request.form
         image_file = request.files.get('image')
-        image_url = save_uploaded_image(image_file)
+        image_id = save_uploaded_image_to_gridfs(image_file)
         user_token = request.cookies.get('token')
         user_id = decode_token(user_token)
         if not user_id:
@@ -120,7 +125,7 @@ def update_stock(stock_id):
             'minOrder':data.get('minOrder',0),
             'rating':0,
             'reviews':0,
-            'image':image_url,
+            'image':image_id,
             'discount':data.get('discount',0),
             'updatedAt': datetime.utcnow(),
         }
@@ -210,3 +215,11 @@ def get_all_public_stocks():
         return jsonify({'stocks': stock_and_users}), 200
     except Exception as e:
         return jsonify({'message': 'Error fetching public stocks', 'error': str(e)}), 500
+    
+@auth_bp.route('/image/<image_id>', methods=['GET'])
+def get_image(image_id):
+    try:
+        file = fs.get(ObjectId(image_id))
+        return send_file(BytesIO(file.read()), mimetype=file.content_type)
+    except:
+        return jsonify({'message': 'Image not found'}), 404

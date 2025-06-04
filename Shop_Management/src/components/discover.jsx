@@ -253,10 +253,12 @@ const DiscoverPage = () => {
                             )}
                 
                 <div className="product-image-container">
-                  {product.image ? (<img 
-                    src={`http://localhost:5000${product.image}`}
+                  {product.image ? (<img
+                    src={`http://localhost:5000${product.image || '/placeholder.png'}`}
                     alt={product.name}
-                    className="product-image"/>):null
+                    className="product-image"
+                    onError={(e) => { e.target.src = '/placeholder.png'; }}
+                  />):null
                   }
                   {!product.inStock && (
                     <div className="out-of-stock-overlay">
