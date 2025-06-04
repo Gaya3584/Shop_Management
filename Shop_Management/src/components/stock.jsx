@@ -13,7 +13,7 @@ const StockManagement = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     
     const categorie = [
-    { id: 'all', name: 'All Categories', icon: '🛍️' },
+    { id: 'toys', name: 'Toys', icon: '🛍️' },
     { id: 'food', name: 'Food & Beverages', icon: '🍽️' },
     { id: 'clothing', name: 'Clothing & Textiles', icon: '👕' },
     { id: 'electronics', name: 'Electronics', icon: '📱' },
@@ -21,6 +21,7 @@ const StockManagement = () => {
     { id: 'accessories', name: 'Accessories', icon: '👜' },
     { id: 'home', name: 'Home & Furniture', icon: '🏠' },
     { id: 'misc', name: 'Miscellaneous', icon: '!' }
+    
   ];
     const navigate = useNavigate();
     const [stats, setStats] = useState({
