@@ -4,7 +4,7 @@ import { Filter, Download, Calendar, TrendingUp, DollarSign, Package, Store } fr
 import './analysis.css';
 
 const WeeklySalesAnalysis = () => {
-  const [selectedShop, setSelectedShop] = useState('all');
+  // const [selectedShop, setSelectedShop] = useState('all');
   const [startDate, setStartDate] = useState('2025-05-19');
   const [endDate, setEndDate] = useState('2025-06-02');
   const [loading, setLoading] = useState(false);
@@ -14,79 +14,132 @@ const WeeklySalesAnalysis = () => {
   const [sortDirection, setSortDirection] = useState('asc');
   const [chartType, setChartType] = useState('pie');
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  const [sellingOrders,setSellingOrders]=useState([])
   // Mock data - replace with actual API calls
-  const shops = [
-    { id: 'all', name: 'All Shops' },
-    { id: 'shop001', name: 'Downtown Store' },
-    { id: 'shop002', name: 'Mall Location' },
-    { id: 'shop003', name: 'Airport Branch' },
-    { id: 'shop004', name: 'Online Store' }
-  ];
+  const fetchSellOrders=async()=>{
+    setLoading(true);
+    try{
+      const response=await fetch('http://localhost:5000/api/orders/sales',{
+        method:'GET',
+        credentials:'include'
+      });
+      const data=await response.json();
+      if(data.message){
+        setError(data.message);
+      }
+      else
+      {
+        setSellingOrders(data.sellingOrders||[]);
+      }
+    }
+    catch(error)
+    {
+      console.error("Error fetching orders:",error);
+      setError("Failed to fetch orders data");
+    }
+    finally{
+      setLoading(false);
+    }
+  };
+  useEffect(()=>{
+    fetchSellOrders();
+  },[]);
+  // const shops=[{id:'all',name:'All Shops'},...Array.from(new Set(sellingOrders.map(order=>order.shopName))).map(shopName=>({id:shopName,name:shopName}))];
+ 
 
-  const mockSalesData = [
-    { shopId: 'shop001', shopName: 'Downtown Store', productId: 'apple', productName: 'Apple iPhone 15', weekStart: '2025-05-26', quantitySold: 100, revenue: 79900, category: 'Electronics' },
-    { shopId: 'shop002', shopName: 'Mall Location', productId: 'samsung', productName: 'Samsung Galaxy S24', weekStart: '2025-05-26', quantitySold: 85, revenue: 67900, category: 'Electronics' },
-    { shopId: 'shop001', shopName: 'Downtown Store', productId: 'laptop', productName: 'MacBook Pro', weekStart: '2025-05-26', quantitySold: 45, revenue: 89900, category: 'Computers' },
-    { shopId: 'shop003', shopName: 'Airport Branch', productId: 'headphones', productName: 'AirPods Pro', weekStart: '2025-05-26', quantitySold: 120, revenue: 29900, category: 'Accessories' },
-    { shopId: 'shop004', shopName: 'Online Store', productId: 'tablet', productName: 'iPad Air', weekStart: '2025-05-26', quantitySold: 65, revenue: 38900, category: 'Electronics' },
-    { shopId: 'shop002', shopName: 'Mall Location', productId: 'watch', productName: 'Apple Watch', weekStart: '2025-05-26', quantitySold: 95, revenue: 37900, category: 'Wearables' },
-    { shopId: 'shop001', shopName: 'Downtown Store', productId: 'charger', productName: 'USB-C Charger', weekStart: '2025-05-26', quantitySold: 200, revenue: 5900, category: 'Accessories' },
-    { shopId: 'shop003', shopName: 'Airport Branch', productId: 'case', productName: 'Phone Case', weekStart: '2025-05-26', quantitySold: 180, revenue: 3600, category: 'Accessories' }
-  ];
-
-  const [salesData, setSalesData] = useState(mockSalesData);
-  const [filteredData, setFilteredData] = useState(mockSalesData);
+  // const [salesData, setSalesData] = useState(mockSalesData);
+  const [filteredData, setFilteredData] = useState([]);
 
   // Filter data based on selected criteria
   useEffect(() => {
-    let filtered = salesData;
+    let filtered = sellingOrders;
     
-    if (selectedShop !== 'all') {
-      filtered = filtered.filter(item => item.shopId === selectedShop);
-    }
+    // if (selectedShop !== 'all') {
+    //   filtered = filtered.filter(item => item.shopId === selectedShop);
+    // }
     
     // Filter by date range (mock implementation)
     // In real app, you'd filter by actual date ranges
     
     setFilteredData(filtered);
-  }, [selectedShop, startDate, endDate, salesData]);
+  }, [ startDate, endDate, sellingOrders]);
+const productSummary = filteredData.reduce((acc, item) => {
+  const productName = item.product_name;
+  if (!productName) return acc;
+  
+  if (!acc[productName]) {
+    acc[productName] = {
+      name: productName,
+      totalQuantity: 0,
+      totalRevenue: 0,
+      orderCount: 0
+    };
+  }
+  
+  acc[productName].totalQuantity += item.quantity || 0;
+  acc[productName].totalRevenue += item.total_price || 0;
+  acc[productName].orderCount += 1;
+  
+  return acc;
+}, {});
 
+const productArray = Object.values(productSummary);
   // Calculate summary statistics
   const summaryStats = {
-    totalRevenue: filteredData.reduce((sum, item) => sum + item.revenue, 0),
-    totalQuantity: filteredData.reduce((sum, item) => sum + item.quantitySold, 0),
-    bestSellingProduct: filteredData.reduce((best, item) => 
-      item.quantitySold > (best?.quantitySold || 0) ? item : best, null
-    ),
-    totalShops: new Set(filteredData.map(item => item.shopId)).size
-  };
+  totalRevenue: filteredData.reduce((sum, item) => sum + (item.total_price || 0), 0),
+  totalQuantity: filteredData.reduce((sum, item) => sum + (item.quantity || 0), 0),
+  
+  bestSellingProduct: productArray.length > 0 ? 
+    productArray.reduce((best, product) => 
+      product.totalQuantity > (best?.totalQuantity || 0) ? product : best
+    , null) : null,
+    
+  worstSellingProduct: productArray.length > 0 ?
+    productArray.reduce((worst, product) => 
+      product.totalQuantity < (worst?.totalQuantity || Infinity) ? product : worst
+    , null) : null,
+    
+  totalOrders: filteredData.length,
+  totalProducts: productArray.length
+};
 
-  // Prepare chart data
   const pieChartData = filteredData.reduce((acc, item) => {
-    const existing = acc.find(d => d.name === item.productName);
+    // Try different possible product name fields or use customer name as fallback
+    const productName = item.product_name ;
+    const existing = acc.find(d => d.name === productName);
     if (existing) {
-      existing.value += item.revenue;
-      existing.quantity += item.quantitySold;
+      existing.value += item.total_price || 0;
+      existing.quantity += item.quantity || 0;
     } else {
       acc.push({
-        name: item.productName,
-        value: item.revenue,
-        quantity: item.quantitySold,
-        category: item.category
+        name: productName,
+        value: item.total_price || 0,
+        quantity: item.quantity || 0,
+        category: item.category || 'General'
       });
     }
     return acc;
-  }, []);
+  }, []).filter(item => item.value > 0); // Filter out items with zero value
 
-  const barChartData = shops.slice(1).map(shop => {
-    const shopData = filteredData.filter(item => item.shopId === shop.id);
-    return {
-      name: shop.name,
-      revenue: shopData.reduce((sum, item) => sum + item.revenue, 0),
-      quantity: shopData.reduce((sum, item) => sum + item.quantitySold, 0)
-    };
-  });
+  // Debug log
+  console.log('Filtered Data:', filteredData);
+  console.log('Pie Chart Data:', pieChartData);
+
+  const barChartData = filteredData.reduce((acc, item) => {
+    const date = new Date(item.orderedAt).toLocaleDateString();
+    const existing = acc.find(d => d.name === date);
+    if (existing) {
+      existing.revenue += item.total_price || 0;
+      existing.quantity += item.quantity || 0;
+    } else {
+      acc.push({
+        name: date,
+        revenue: item.total_price || 0,
+        quantity: item.quantity || 0
+      });
+    }
+    return acc;
+  }, []).sort((a, b) => new Date(a.name) - new Date(b.name));
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0', '#ffb347', '#87ceeb'];
 
@@ -194,21 +247,7 @@ const WeeklySalesAnalysis = () => {
 
       {/* Filters Section */}
       <div className="filters-section">
-        <div className="filter-group">
-          <label>
-            <Store size={16} />
-            Shop:
-          </label>
-          <select 
-            value={selectedShop} 
-            onChange={(e) => setSelectedShop(e.target.value)}
-            className="shop-selector"
-          >
-            {shops.map(shop => (
-              <option key={shop.id} value={shop.id}>{shop.name}</option>
-            ))}
-          </select>
-        </div>
+        
 
         <div className="filter-group">
           <label>
@@ -264,8 +303,8 @@ const WeeklySalesAnalysis = () => {
             <TrendingUp size={24} />
           </div>
           <div className="summary-content">
-            <h3>{summaryStats.bestSellingProduct?.productName || 'N/A'}</h3>
-            <p>Best Seller</p>
+            <h3>{summaryStats.bestSellingProduct?.name || 'N/A'}</h3>
+            <p>Best Selling prdouct</p>
           </div>
         </div>
         <div className="summary-card">
@@ -273,8 +312,8 @@ const WeeklySalesAnalysis = () => {
             <Filter size={24} />
             </div>
             <div className="summary-content">
-                <h3>{summaryStats.worstSellingProduct?.productName||'N/A'}</h3>
-                <p>Worst Seller</p>
+                <h3>{summaryStats.worstSellingProduct?.name||'N/A'}</h3>
+                <p>Worst Selling product</p>
             </div>
         </div>
         <div className="summary-card">
@@ -282,8 +321,8 @@ const WeeklySalesAnalysis = () => {
             <Store size={24} />
           </div>
           <div className="summary-content">
-            <h3>{summaryStats.totalShops}</h3>
-            <p>Active Shops</p>
+            <h3>{summaryStats.totalOrders}</h3>
+            <p>Total orders</p>
           </div>
         </div>
       </div>
@@ -329,7 +368,7 @@ const WeeklySalesAnalysis = () => {
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} />
-              </PieChart>
+                </PieChart>
             </ResponsiveContainer>
           </div>
         ) : (
@@ -341,13 +380,13 @@ const WeeklySalesAnalysis = () => {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(value, name) => [
-                  name === 'revenue' ? `$${value.toLocaleString()}` : value.toLocaleString(),
-                  name === 'revenue' ? 'Revenue' : 'Quantity'
-                ]} />
-                <Legend />
-                <Bar dataKey="revenue" fill="#8884d8" name="Revenue ($)" />
-                <Bar dataKey="quantity" fill="#82ca9d" name="Items Sold" />
-              </BarChart>
+                    name === 'Revenue ($)' ? `${value.toLocaleString()}` : value.toLocaleString(),
+                    name === 'Revenue ($)' ? 'Revenue' : 'Items Sold'
+                  ]} />
+                  <Legend />
+                  <Bar dataKey="revenue" fill="#8884d8" name="Revenue ($)" />
+                  <Bar dataKey="quantity" fill="#82ca9d" name="Items Sold" />
+                </BarChart>
             </ResponsiveContainer>
           </div>
         )}
@@ -384,44 +423,92 @@ const WeeklySalesAnalysis = () => {
           </div>
         ) : (
           <>
-            <div className="table-container">
-              <table className="sales-table">
-                <thead>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th onClick={() => sortData('shopId')} className="sortable">
-                      Shop ID {sortColumn === 'shopId' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    <th 
+                      onClick={() => sortData('_id')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    >
+                      Order ID {sortColumn === '_id' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th onClick={() => sortData('shopName')} className="sortable">
-                      Shop Name {sortColumn === 'shopName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    <th 
+                      onClick={() => sortData('customerName')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    >
+                      Customer {sortColumn === 'customerName' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th onClick={() => sortData('productName')} className="sortable">
-                      Product {sortColumn === 'productName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    <th 
+                      onClick={() => sortData('shopName')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    >
+                      Shop {sortColumn === 'shopName' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th onClick={() => sortData('weekStart')} className="sortable">
-                      Week Start {sortColumn === 'weekStart' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    <th 
+                      onClick={() => sortData('orderedAt')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    >
+                      Order Date {sortColumn === 'orderedAt' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th onClick={() => sortData('quantitySold')} className="sortable">
-                      Quantity {sortColumn === 'quantitySold' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    <th 
+                      onClick={() => sortData('quantity')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    >
+                      Quantity {sortColumn === 'quantity' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th onClick={() => sortData('revenue')} className="sortable">
-                      Revenue {sortColumn === 'revenue' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    <th 
+                      onClick={() => sortData('total_price')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    >
+                      Total Price {sortColumn === 'total_price' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th 
+                      onClick={() => sortData('status')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    >
+                      Status {sortColumn === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedData.map((row, index) => (
-                    <tr key={index}>
-                      <td>{row.shopId}</td>
-                      <td>{row.shopName}</td>
-                      <td>{row.productName}</td>
-                      <td>{row.weekStart}</td>
-                      <td className="number">{row.quantitySold.toLocaleString()}</td>
-                      <td className="currency">${row.revenue.toLocaleString()}</td>
+                    <tr key={row._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {row._id.slice(-8)}...
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {row.customerName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {row.shopName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(row.orderedAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        {row.quantity.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        ${row.total_price.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          row.status === 'completed' 
+                            ? 'bg-green-100 text-green-800' 
+                            : row.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {row.status}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+
 
             {/* Pagination */}
             <div className="pagination">
