@@ -1,6 +1,6 @@
 from flask import request, jsonify, redirect, current_app
 from . import auth_bp, mail  # Import mail from __init__.py
-from .utils import hash_password, verify_password, generate_token,get_user_details
+from .utils import hash_password, verify_password, generate_token,get_user_details,decode_token
 from pymongo import MongoClient
 from config import MONGO_URI
 from datetime import datetime
@@ -16,6 +16,7 @@ client = MongoClient(MONGO_URI)
 db = client.shopsy
 users = db.users
 stocks = db.stocks
+contact=db.contact
 
 
 #signup
@@ -303,3 +304,46 @@ def update_password():
         print("Error:", e)
         traceback.print_exc()
         return jsonify({'message': 'Internal Server Error'}), 500
+    
+@auth_bp.route('/api/contact', methods=['POST'])
+def get_contact():
+    try:
+        data = request.form
+        user_token = request.cookies.get('token')
+        
+        # Decode the token to get user_id
+        user_id = decode_token(user_token)
+        if not user_id:
+            return jsonify({'message': 'Invalid or expired token'}), 401
+
+        # Fetch user details from users collection
+        user = users.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+
+        # Extract required fields
+        email = user.get('email')
+        phone = user.get('phone')
+        issue = data.get('issue')
+
+        if not issue:
+            return jsonify({'message': 'Issue is required'}), 400
+
+        # Prepare contact data
+        contact_data = {
+            'user_id': user_id,
+            'email': email,
+            'phone': phone,
+            'issue': issue,
+            'submittedAt': datetime.utcnow()
+        }
+
+        # Insert into contact collection
+        contact.insert_one(contact_data)
+
+        return jsonify({'message': 'Contact issue submitted successfully'}), 200
+
+    except Exception as e:
+        print(f"Error in /api/contact: {e}")
+        return jsonify({'message': 'Internal Server Error'}), 500
+
