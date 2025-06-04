@@ -10,6 +10,7 @@ const Settings = () => {
   const [profileData, setProfileData] = useState({
     ownerName: '',
     shopName: '',
+    shopLocation:'',
     shopType: '',
     email: '',
     phone: ''
@@ -23,6 +24,11 @@ const Settings = () => {
     darkMode: false,
     notifications: true
   });
+  const [isChecked, setIsChecked] = useState(false)
+
+  const handleCheckboxChange = () => {
+    setIsChecked(!isChecked)
+  }
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -46,6 +52,7 @@ const Settings = () => {
         setProfileData({
           ownerName: data.ownerName || '',
           shopName: data.shopName || '',
+          shopLocation: data.shopLocation||'',
           shopType: data.shopType || '',
           email: data.email || '',
           phone: data.phone || ''
@@ -56,6 +63,7 @@ const Settings = () => {
       setError('Failed to fetch profile data');
     }
   };
+  const [shopType, setShopType] = useState(profileData.shopType);
 
   const handleCameraClick = () => {
     fileInputRef.current?.click();
@@ -217,7 +225,6 @@ const Settings = () => {
       setIsLoading(false);
     }
   };
-
   const deleteAccount = async () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       try {
@@ -253,6 +260,9 @@ const Settings = () => {
 
   return (
     <div className="settings-container">
+      <button className="btn btn-back" onClick={() => window.history.back()}>
+            Back
+          </button>
       <h2>Settings</h2>
 
       {/* Profile Image Section */}
@@ -359,29 +369,119 @@ const Settings = () => {
           value={profileData.shopName}
           onChange={(e) => handleProfileInputChange('shopName', e.target.value)}
         />
-        <select
-          value={profileData.shopType}
-          onChange={(e) => handleProfileInputChange('shopType', e.target.value)}
-          style={{
-            width: '100%',
-            padding: '1rem',
-            marginBottom: '1.5rem',
-            border: '2px solid #e1e8ed',
-            borderRadius: '12px',
-            fontSize: '1rem',
-            fontFamily: 'inherit',
-            transition: 'all 0.3s ease',
-            background: 'rgba(255, 255, 255, 0.8)',
-            boxSizing: 'border-box'
-          }}
-        >
-          <option value="">Select Shop Type</option>
-          <option value="retail">Retail</option>
-          <option value="wholesale">Wholesale</option>
-          <option value="service">Service</option>
-          <option value="restaurant">Restaurant</option>
-          <option value="other">Other</option>
-        </select>
+        <input 
+          type="text" 
+          placeholder="Shop Location" 
+          value={profileData.shopLocation}
+          onChange={(e) => handleProfileInputChange('shopLocation', e.target.value)}
+        />
+         <div style={{ margin: '1.5rem 0' }}>
+          <label className="shopType" style={{ 
+            display: 'block', 
+            marginBottom: '0.75rem', 
+            fontSize: '0.95rem', 
+            fontWeight: '600', 
+            letterSpacing: '0.025em'
+          }}>
+            Shop Type
+          </label>
+          <div style={{
+            position: 'relative',
+            display: 'inline-flex',
+            background: 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)',
+            borderRadius: '20px',
+            padding: '6px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+            border: '1px solid rgba(148, 163, 184, 0.3)',
+            backdropFilter: 'blur(10px)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            cursor: 'pointer'
+          }}>
+            <input
+              type="checkbox"
+              checked={profileData.shopType === 'Whole-Sale'}
+              onChange={(e) => handleProfileInputChange('shopType', e.target.checked ? 'Whole-Sale' : 'Retail')}
+              style={{ display: 'none' }}
+              id="shopTypeToggle"
+            />
+            
+            {/* Retail Option */}
+            <span
+              onClick={() => handleProfileInputChange('shopType', 'Retail')}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '12px 24px',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                borderRadius: '16px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                zIndex: 2,
+                minWidth: '100px',
+                textAlign: 'center',
+                color: profileData.shopType === 'Retail' ? '#1e293b' : 'rgba(255, 255, 255, 0.8)',
+                background: profileData.shopType === 'Retail' 
+                  ? 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)' 
+                  : 'transparent',
+                boxShadow: profileData.shopType === 'Retail' 
+                  ? '0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)' 
+                  : 'none',
+                transform: profileData.shopType === 'Retail' ? 'translateY(-1px)' : 'none',
+                cursor: 'pointer'
+              }}
+            >
+              🏪 Retail
+            </span>
+            
+            {/* Whole-Sale Option */}
+            <span
+              onClick={() => handleProfileInputChange('shopType', 'Whole-Sale')}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '12px 24px',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                borderRadius: '16px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                zIndex: 2,
+                minWidth: '100px',
+                textAlign: 'center',
+                color: profileData.shopType === 'Whole-Sale' ? '#1e293b' : 'rgba(255, 255, 255, 0.8)',
+                background: profileData.shopType === 'Whole-Sale' 
+                  ? 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)' 
+                  : 'transparent',
+                boxShadow: profileData.shopType === 'Whole-Sale' 
+                  ? '0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)' 
+                  : 'none',
+                transform: profileData.shopType === 'Whole-Sale' ? 'translateY(-1px)' : 'none',
+                cursor: 'pointer'
+              }}
+            >
+              🏭 Whole-Sale
+            </span>
+            
+            {/* Animated glow effect */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: profileData.shopType === 'Whole-Sale' ? '50%' : '6px',
+              transform: `translate(${profileData.shopType === 'Whole-Sale' ? '6px' : '0'}, -50%)`,
+              width: 'calc(50% - 6px)',
+              height: 'calc(100% - 12px)',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(168, 85, 247, 0.2) 100%)',
+              borderRadius: '12px',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              pointerEvents: 'none',
+              opacity: 0.6,
+              filter: 'blur(2px)'
+            }} />
+          </div>
+        </div>
         <input 
           type="email" 
           placeholder="Email" 
@@ -436,14 +536,6 @@ const Settings = () => {
       {/* Preferences Section */}
       <section className="settings-section">
         <h3>Preferences</h3>
-        <label>
-          <input 
-            type="checkbox" 
-            checked={preferences.darkMode}
-            onChange={(e) => handlePreferenceChange('darkMode', e.target.checked)}
-          /> 
-          Enable Dark Mode
-        </label>
         <label>
           <input 
             type="checkbox" 

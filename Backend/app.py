@@ -21,7 +21,7 @@ def create_app():
     
     # Initialize extensions
     init_mail(app)
-    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+    CORS(app, origins=["http://localhost:5174"], supports_credentials=True)
     
     # Register blueprints
     app.register_blueprint(auth_bp)

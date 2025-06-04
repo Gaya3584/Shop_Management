@@ -189,6 +189,7 @@ def serialize_user_with_image(user):
     data={
         'ownerName':user['ownerName'],
         'shopName': user['shopName'],
+        'shopLocation':user['shopLocation'],
         'shopType': user['shopType'],
         'email': user['email'],
         'phone': user['phone'],

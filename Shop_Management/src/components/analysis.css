@@ -31,25 +31,36 @@
   gap: 10px;
 }
 
-.export-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #4f46e5;
-  color: white;
+.export-btn,.btn-back {
+   padding: 1rem 2rem;
   border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
 }
-
-.export-btn:hover {
-  background: #3730a3;
-  transform: translateY(-1px);
+.export-btn::before,.btn-back::before  {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
-
+.export-btn:hover,.btn-back:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(45, 135, 240, 0.3);
+}
+.export-btn:hover::before,.btn-back:hover::before {
+  left: 100%;
+}
 /* Filters Section */
 .filters-section {
   display: flex;
@@ -122,6 +133,7 @@
 .quick-filters button:hover {
   background: #f3f4f6;
   border-color: #9ca3af;
+  color: #374151;
 }
 
 /* Summary Section */
@@ -182,7 +194,7 @@
   display: flex;
   gap: 0;
   background: white;
-  border-radius: 8px;
+  border-radius: 9px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: inline-flex;
@@ -196,7 +208,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid #4f46e5;
 }
 
 .chart-type-selector button:last-child {
@@ -209,7 +221,7 @@
 }
 
 .chart-type-selector button:hover:not(.active) {
-  background: #f9fafb;
+  background: #faf8f8;
 }
 
 /* Visualization Section */
@@ -246,7 +258,7 @@
 }
 
 .drill-down-header h3 {
-  color: #92400e;
+  color: #ffffff;
   margin: 0;
   font-size: 1.2rem;
 }
@@ -346,6 +358,7 @@
 
 .sales-table th.sortable:hover {
   background: #e2e8f0;
+  color: #374151;
 }
 
 .sales-table td {
@@ -753,9 +766,24 @@
   }
   
   .sales-table tbody tr:hover {
-    background: #334155;
+    background: #a0a6ad;
   }
-  
+  .chart-container h3,.table-header h3,.summary-content h3{
+    color: #f2f4f7;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+    
+  .filter-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #f8f8f8;
+    white-space: nowrap;
+  }
   .shop-selector,
   .date-input {
     background: #1e293b;
@@ -769,11 +797,24 @@
     color: #e2e8f0;
   }
   
+  .shop-selector:focus,
+  .date-input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+  }
+
   .chart-type-selector button {
     background: #334155;
     color: #e2e8f0;
+    overflow:hidden;
   }
   
+  .chart-type-selector button:hover:not(.active) {
+    background: #080808;
+    overflow:hidden;
+  }
+
   .pagination button {
     background: #334155;
     border-color: #475569;
