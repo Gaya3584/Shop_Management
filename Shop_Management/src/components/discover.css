@@ -917,6 +917,10 @@ body {
     background: rgba(31, 41, 55, 0.95);
     color:#ffff;
   }
+  .section-title {
+    color: #fff;
+
+  }
 }
 
 /* Print styles */
