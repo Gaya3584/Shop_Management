@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect} from 'react';
 import { 
   Search, Filter, Calendar, ChevronDown, Eye, Phone, MessageCircle, 
   Printer, CheckCircle, XCircle, Clock, Package, MapPin, DollarSign,
@@ -50,8 +50,11 @@ const fetchSellOrders = async () => {
     if (data.message) {
       console.error(data.message);
     } else {
-      setSellingOrders(data.sellingOrders);
+      const transformed = data.sellingOrders.map(transformOrder); 
+      setSellingOrders(transformed);
     }
+    console.log("Fetching sales...");
+    console.log("Response:", data);
   } catch (error) {
     console.error("Error fetching orders:", error);
   }
@@ -61,6 +64,24 @@ const fetchSellOrders = async () => {
 
   // Filter and search logic
   const filteredOrders = currentOrders.filter(order => {
+    const orderDate = new Date(order.orderDate);
+    const now = new Date();
+
+    // Date Filter Logic
+    let matchesDate = true;
+    if (dateRange === 'today') {
+      matchesDate = orderDate.toDateString() === now.toDateString();
+    } else if (dateRange === 'week') {
+      const oneWeekAgo = new Date(now);
+      oneWeekAgo.setDate(now.getDate() - 7);
+      matchesDate = orderDate >= oneWeekAgo && orderDate <= now;
+    } else if (dateRange === 'month') {
+      const oneMonthAgo = new Date(now);
+      oneMonthAgo.setMonth(now.getMonth() - 1);
+      matchesDate = orderDate >= oneMonthAgo && orderDate <= now;
+    }
+
+    //Search Logic
     const matchesSearch = searchTerm === '' || 
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (activeTab === 'buying' ? 
@@ -70,7 +91,7 @@ const fetchSellOrders = async () => {
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus&&matchesDate;
   });
 
   const getStatusClass = (status) => {
@@ -155,9 +176,9 @@ const transformOrder = (order) => ({
   status: order.status,
   shopName: order.shopName,
   customerName: order.customerName,
-  shopContact: 'N/A',
-  customerContact: 'N/A',
-  deliveryAddress: 'N/A',
+  shopContact: order.shopPhone,
+  customerContact: order.customerPhone,
+  deliveryAddress: order.customerAddress,
   timeline: [
     {
       stage: 'Order Placed',
@@ -186,7 +207,7 @@ const transformOrder = (order) => ({
     <div className="order-card" onClick={() => { setSelectedOrder(order); setShowModal(true); }}>
       <div className="order-header">
         <div className="order-info">
-          <h3 className="order-id">{order.id}</h3>
+          <h3 className="order-name">{order.items[0].name}</h3>
           <p className="order-customer">
             {activeTab === 'buying' ? order.shopName : order.customerName}
           </p>
@@ -213,12 +234,14 @@ const transformOrder = (order) => ({
       </div>
       
       <div className="order-footer">
-        <span className="items-count">{order.items.length} items</span>
+        {Array.isArray(order.items) && (
+          <span className="items-count">{order.items.length} items</span>
+        )}
         <div className="order-actions">
           <button className="action-btn action-view">
             <Eye className="action-icon" />
           </button>
-          {activeTab === 'selling' && (
+          {/* {activeTab === 'selling' && (
             
             <select value={order.status} onChange={(e) => handleStatusUpdate(order.id, e.target.value)} className="status-select">
               <option value="pending">Pending</option>
@@ -227,14 +250,14 @@ const transformOrder = (order) => ({
               <option value="delivered">Delivered</option>
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
-              {/* <button className="action-btn action-phone">
+              <button className="action-btn action-phone">
                 <Phone className="action-icon" />
               </button>
               <button className="action-btn action-message">
                 <MessageCircle className="action-icon" />
-              </button> */}
+              </button> 
           </select>
-          )}
+          )}*/}
         </div>
       </div>
     </div>
@@ -259,8 +282,8 @@ const transformOrder = (order) => ({
             {/* Order Info */}
             <div className="order-info-grid">
               <div className="info-item">
-                <label className="info-label">Order ID</label>
-                <p className="info-value">{order.id}</p>
+                <label className="info-label">Order Name</label>
+                <p className="info-value">{order.items[0].name}</p>
               </div>
               <div className="info-item">
                 <label className="info-label">Status</label>
@@ -335,10 +358,10 @@ const transformOrder = (order) => ({
             {activeTab === 'selling' && order.status === 'pending' && (
               <div className="modal-actions">
                 <button 
-  disabled={isLoading} 
-  onClick={() => handleStatusUpdate(order.id, 'accepted').finally(()=>setIsLoading(false))}
->
-
+                    disabled={isLoading} 
+                    onClick={() => handleStatusUpdate(order.id, 'accepted').finally(()=>setIsLoading(false))}
+                    className='action-button accept-btn'
+                  >
                   Accept Order
                 </button>
                 <button 
@@ -346,6 +369,16 @@ const transformOrder = (order) => ({
                   className="action-button reject-btn"
                 >
                   Reject Order
+                </button>
+              </div>
+            )}
+            {activeTab === 'buying' && order.status === 'pending' && (
+              <div className="modal-actions">
+                <button 
+                  onClick={() => handleStatusUpdate(order.id, 'rejected')}
+                  className="action-button reject-btn"
+                >
+                  Cancel
                 </button>
               </div>
             )}
@@ -493,8 +526,8 @@ const transformOrder = (order) => ({
 
         {/* Orders Grid */}
         <div className="orders-grid">
-          {filteredOrders.map(order => (
-            <OrderCard key={order.id} order={order} />
+          {filteredOrders.map((order,index) => (
+            <OrderCard key={order.id || order._id || index} order={order} />
           ))}
         </div>
 

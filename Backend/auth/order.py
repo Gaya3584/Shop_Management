@@ -4,7 +4,7 @@ from flask import current_app
 from flask_cors import cross_origin
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 from config import MONGO_URI
 from . import auth_bp
 from auth import mail 
@@ -104,7 +104,6 @@ def place_order():
         return jsonify({'message': 'Error placing order', 'error': str(e)}), 500
     
 @auth_bp.route('/api/orders/purchases', methods=['GET'])
-@cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_purchases():
     try:
         user_token = request.cookies.get('token')
@@ -117,7 +116,12 @@ def get_purchases():
             order['_id'] = str(order['_id'])
             order['product_id'] = str(order['product_id'])
             product = db.stocks.find_one({'_id': ObjectId(order['product_id'])})
+            user_inst=db.users.find_one({'_id':ObjectId(product.get("user_token"))})
+            user_in=db.users.find_one({'_id':ObjectId(order["user_token"])})
             order['name'] = product.get('name', 'No Name')
+            order['shopPhone']=user_inst.get('phone',"empty")
+            order['customerAddress']=user_in.get('shopLocation',"NIL")
+            order['customerPhone']=user_in.get('phone',"NULL")
         
         return jsonify({'buyingOrders': orders}), 200
 
@@ -125,7 +129,6 @@ def get_purchases():
         return jsonify({'message': 'Error fetching purchases', 'error': str(e)}), 500
     
 @auth_bp.route('/api/orders/sales', methods=['GET'])
-@cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_sales():
     try:
         user_token = request.cookies.get('token')
@@ -145,7 +148,12 @@ def get_sales():
             sale['_id'] = str(sale['_id'])
             sale['product_id'] = str(sale['product_id'])
             product = db.stocks.find_one({'_id': ObjectId(sale['product_id'])})
+            user_inst=db.users.find_one({'_id':ObjectId(product.get("user_token"))})
+            user_in=db.users.find_one({'_id':ObjectId(sale["user_token"])})
             sale['name'] = product.get('name', 'No Name')
+            sale['shopPhone']=user_inst.get('phone',"empty")
+            sale['customerAddress']=user_in.get('shopLocation',"NIL")
+            sale['customerPhone']=user_in.get('phone',"NULL")
             sales.append(sale)
 
         return jsonify({'sellingOrders': sales}), 200
@@ -154,7 +162,6 @@ def get_sales():
         return jsonify({'message': 'Error fetching sales', 'error': str(e)}), 500
     
 @auth_bp.route('/api/orders/<order_id>/status', methods=['PATCH'])
-@cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def update_order_status(order_id):
     try:
         data = request.json
@@ -177,7 +184,6 @@ def update_order_status(order_id):
         return jsonify({'message': 'Error updating order', 'error': str(e)}), 500
 
 @auth_bp.route("/api/notifications",methods=['GET'])
-@cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_notifications():
     stock = db.stocks.find().sort('addedAt', -1)
     order = db.orders.find().sort('orderedAt', -1)
@@ -185,11 +191,30 @@ def get_notifications():
 
     logs = []
 
+    added_at = log.get("addedAt")
+    now = datetime.utcnow()
+
+    # Consider it "just added" if it's within the last 5 seconds
+    is_just_now = False
+    if added_at:
+        try:
+            # Handle both datetime objects and strings
+            added_at_dt = added_at if isinstance(added_at, datetime) else datetime.fromisoformat(added_at)
+            is_just_now = abs((now - added_at_dt).total_seconds()) < 5
+        except Exception as e:
+            print("Invalid addedAt format:", added_at)
+
+    # Determine action
+    if log.get("quantity") == log.get("minThreshold"):
+        action = "low-stock"
+    elif is_just_now:
+        action = "stock-added"
+
     for log in stock:
         logs.append({
-            "type": "stock-added",
-            "message": f"New stock added: {log.get('name', 'Unnamed')} ({log.get('quantity', 0)} units)",
-            "timestamp": log.get("addedAt", datetime.utcnow())
+            "type": f"stock-{action}",
+            "message": f"{log.get('name', 'Unnamed')} - {log.get('quantity', 0)} units",
+            "timestamp": added_at or now
         })
 
     for log in order:
