@@ -300,7 +300,6 @@ const Settings = () => {
                 No Image
               </div>
             )}
-            
             <input
               ref={fileInputRef}
               type="file"

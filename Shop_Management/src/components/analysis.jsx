@@ -15,7 +15,7 @@ const WeeklySalesAnalysis = () => {
   const [chartType, setChartType] = useState('pie');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sellingOrders,setSellingOrders]=useState([])
-  // Mock data - replace with actual API calls
+
   const fetchSellOrders=async()=>{
     setLoading(true);
     try{
@@ -44,23 +44,11 @@ const WeeklySalesAnalysis = () => {
   useEffect(()=>{
     fetchSellOrders();
   },[]);
-  // const shops=[{id:'all',name:'All Shops'},...Array.from(new Set(sellingOrders.map(order=>order.shopName))).map(shopName=>({id:shopName,name:shopName}))];
- 
-
-  // const [salesData, setSalesData] = useState(mockSalesData);
   const [filteredData, setFilteredData] = useState([]);
 
   // Filter data based on selected criteria
   useEffect(() => {
     let filtered = sellingOrders;
-    
-    // if (selectedShop !== 'all') {
-    //   filtered = filtered.filter(item => item.shopId === selectedShop);
-    // }
-    
-    // Filter by date range (mock implementation)
-    // In real app, you'd filter by actual date ranges
-    
     setFilteredData(filtered);
   }, [ startDate, endDate, sellingOrders]);
 const productSummary = filteredData.reduce((acc, item) => {
@@ -102,6 +90,35 @@ const productArray = Object.values(productSummary);
   totalOrders: filteredData.length,
   totalProducts: productArray.length
 };
+const handleTableCSVDownload = () => {
+    if (!filteredData?.length) return;
+
+    const headers = ['Order ID', 'Customer', 'Shop', 'Order Date', 'Quantity', 'Total Price', 'Status'];
+
+    const rows = filteredData.map(row => [
+      row._id,
+      row.customerName,
+      row.shopName,
+      new Date(row.orderedAt).toLocaleDateString(),
+      row.quantity,
+      row.total_price,
+      row.status,
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'detailed-sales-data.csv');
+    link.click();
+    alert('CSV downloaded successfully!');
+  };
 
   const pieChartData = filteredData.reduce((acc, item) => {
     // Try different possible product name fields or use customer name as fallback
@@ -166,32 +183,6 @@ const productArray = Object.values(productSummary);
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  // Export functionality
-  const exportToCSV = () => {
-    const headers = ['Shop ID', 'Shop Name', 'Product ID', 'Product Name', 'Week Start', 'Quantity Sold', 'Revenue'];
-    const csvContent = [
-      headers.join(','),
-      ...filteredData.map(row => [
-        row.shopId,
-        row.shopName,
-        row.productId,
-        row.productName,
-        row.weekStart,
-        row.quantitySold,
-        row.revenue
-      ].join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'weekly-sales-analysis.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
   // Date quick filters
   const setQuickDateFilter = (days) => {
     const end = new Date();
@@ -238,7 +229,7 @@ const productArray = Object.values(productSummary);
       <div className="header">
         <h1>Weekly Sales Analysis</h1>
         <div className="header-actions">
-          <button className="export-btn" onClick={exportToCSV}>
+          <button className="export-btn" onClick={handleTableCSVDownload}>
             <Download size={16} />
             Export CSV
           </button>

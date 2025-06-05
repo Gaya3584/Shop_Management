@@ -46,7 +46,7 @@ const Dashboard = () => {
     };
 
     fetchNotificationCount(); // initial fetch
-    const interval = setInterval(fetchNotificationCount, 5000); // auto-refresh every 5 seconds
+    const interval = setInterval(fetchNotificationCount, 50000); // auto-refresh every 5 seconds
 
     return () => clearInterval(interval); // cleanup on unmount
   }, []);

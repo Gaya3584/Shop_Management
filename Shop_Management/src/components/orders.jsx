@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect,useRef} from 'react';
 import { 
   Search, Filter, Calendar, ChevronDown, Eye, Phone, MessageCircle, 
   Printer, CheckCircle, XCircle, Clock, Package, MapPin, DollarSign,
@@ -6,6 +6,7 @@ import {
   Download, RefreshCw, Bell, Menu, X, Plus, ArrowRight, ArrowLeft
 } from 'lucide-react';
 import axios from 'axios';
+import html2pdf from 'html2pdf.js';
 import { useNavigate } from 'react-router-dom';
 import './orders.css';
 
@@ -15,8 +16,8 @@ const OrderManagementSystem = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState('all');
-  const [sortBy, setSortBy] = useState('date');
   const [showFilters, setShowFilters] = useState(false);
+  const invoiceRef = useRef();
   const [showModal, setShowModal] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   useEffect(() => {
@@ -93,6 +94,7 @@ const fetchSellOrders = async () => {
 };
 
   const currentOrders = activeTab === 'buying' ? buyingOrders : sellingOrders;
+
 
   // Filter and search logic
   const filteredOrders = currentOrders.filter(order => {
@@ -273,23 +275,6 @@ const transformOrder = (order) => ({
           <button className="action-btn action-view">
             <Eye className="action-icon" />
           </button>
-          {/* {activeTab === 'selling' && (
-            
-            <select value={order.status} onChange={(e) => handleStatusUpdate(order.id, e.target.value)} className="status-select">
-              <option value="pending">Pending</option>
-              <option value="accepted">Accepted</option>  
-              <option value="dispatched">Dispatched</option>
-              <option value="delivered">Delivered</option>
-              <option value="rejected">Rejected</option>
-              <option value="cancelled">Cancelled</option>
-              <button className="action-btn action-phone">
-                <Phone className="action-icon" />
-              </button>
-              <button className="action-btn action-message">
-                <MessageCircle className="action-icon" />
-              </button> 
-          </select>
-          )}*/}
         </div>
       </div>
     </div>
@@ -297,7 +282,22 @@ const transformOrder = (order) => ({
 
   const OrderModal = ({ order, onClose,handleStatusUpdate }) => {
     if (!order) return null;
+      const handlePrint = () => {
+      const productName = order?.items?.[0]?.name?.replace(/\s+/g, '_') || 'product';
+      const orderId = order?.id?.slice(-6) || 'order';
+      const originalTitle = document.title;
+      const fileTitle = `Invoice_${productName}_${orderId}`;
 
+      const printContents = invoiceRef.current.innerHTML;
+      const originalContents = document.body.innerHTML;
+
+      document.title = fileTitle; // Set dynamic title
+      document.body.innerHTML = printContents;
+      window.print();
+      document.body.innerHTML = originalContents;
+      document.title = originalTitle; // Restore title
+      window.location.reload(); // Restore full UI
+    };
     return (
       <div className="modal-overlay">
         <div className="modal-container">
@@ -309,13 +309,17 @@ const transformOrder = (order) => ({
               </button>
             </div>
           </div>
-          
-          <div className="modal-content">
+        <div className="full-content">
+          <div className="modal-content" ref={invoiceRef}>
             {/* Order Info */}
             <div className="order-info-grid">
               <div className="info-item">
                 <label className="info-label">Order Name</label>
                 <p className="info-value">{order.items[0].name}</p>
+              </div>
+              <div className="info-item">
+                <label className="info-label">Order ID</label>
+                <p className="info-value">{order.id}</p>
               </div>
               <div className="info-item">
                 <label className="info-label">Status</label>
@@ -385,8 +389,8 @@ const transformOrder = (order) => ({
                 <p className="instructions-text">{order.specialInstructions}</p>
               </div>
             )}
-
-            {/* Actions */}
+          </div>
+          {/* Actions */}
             {activeTab === 'selling' && order.status === 'pending' && (
               <div className="modal-actions">
                 <button 
@@ -438,15 +442,15 @@ const transformOrder = (order) => ({
             )}
 
             <div className="utility-actions">
-              <button className="utility-btn print-btn">
+              <button className="utility-btn print-btn" onClick={handlePrint}>
                 <Printer className="utility-icon" />
                 Print Invoice
               </button>
-              <button className="utility-btn download-btn">
+              <button className="utility-btn download-btn" onClick={handlePrint}>
                 <Download className="utility-icon" />
                 Download
               </button>
-            </div>
+          </div>
           </div>
         </div>
       </div>

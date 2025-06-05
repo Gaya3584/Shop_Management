@@ -35,7 +35,7 @@ def signup():
         'ownerName': data['ownerName'],
         'shopName': data['shopName'],
         'shopType': data['shopType'],
-        'shopLocation':'',
+        'shopLocation':data['shopLocation'],
         'email': data['email'],
         'user_token': None,
         'email_verified': False,
@@ -204,6 +204,8 @@ def serialize_user_with_image(user):
         content_type = image['content_type']
         data['image'] = f"data:{content_type};base64,{base64_string}"
     return data
+
+
 @auth_bp.route('/api/delete_img', methods=['DELETE'])
 def delete_image():
     token= request.cookies.get('token') or request.headers.get('Authorization', '').replace('Bearer ', '')
@@ -252,7 +254,7 @@ def edit_profile():
         if not data:
             return jsonify({'message': 'No data provided'}), 400
 
-        allowed_fields = ['ownerName', 'shopName', 'shopType', 'email', 'phone']
+        allowed_fields = ['ownerName', 'shopName', 'shopType','shopLocation', 'email', 'phone']
         update_fields = {key: value for key, value in data.items() if value is not None and key in allowed_fields}
 
         user_id = user['_id']

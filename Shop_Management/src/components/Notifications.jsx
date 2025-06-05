@@ -173,7 +173,7 @@ const Notifications = () => {
       }}>
         {/* Header */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
+          background: 'linear-gradient(135deg,rgb(106, 93, 121) 0%,rgb(40, 51, 102) 100%)',
           borderRadius: '20px',
           padding: '2rem',
           marginBottom: '2rem',
@@ -196,7 +196,7 @@ const Notifications = () => {
               📢 Notifications
             </h1>
             <p style={{
-              color: '#6b7280',
+              color: '#1f243f',
               margin: '0.5rem 0 0',
               fontSize: '1.1rem'
             }}>
@@ -206,7 +206,7 @@ const Notifications = () => {
           <button 
             onClick={() => navigate('/dash')} 
             style={{
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg,rgb(85, 86, 155) 0%, #8b5cf6 100%)',
               color: 'white',
               padding: '0.8rem 1.5rem',
               border: 'none',
@@ -269,7 +269,7 @@ const Notifications = () => {
               <div 
                 key={groupKey}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
+                  background: 'linear-gradient(135deg,rgb(90, 67, 116) 0%,rgb(50, 60, 102) 100%)',
                   borderRadius: '20px',
                   overflow: 'hidden',
                   boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
@@ -278,7 +278,7 @@ const Notifications = () => {
               >
                 {/* Section Header */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+                  background: 'linear-gradient(135deg,rgb(117, 82, 141) 0%,rgb(69, 83, 114) 100%)',
                   padding: '1.5rem 2rem',
                   borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
                 }}>
@@ -296,8 +296,8 @@ const Notifications = () => {
                     </span>
                     {getSectionTitle(groupKey)}
                     <span style={{
-                      background: 'rgba(99, 102, 241, 0.1)',
-                      color: '#6366f1',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: '#fff',
                       fontSize: '0.8rem',
                       fontWeight: '600',
                       padding: '0.3rem 0.8rem',
