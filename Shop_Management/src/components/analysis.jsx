@@ -15,7 +15,26 @@ const WeeklySalesAnalysis = () => {
   const [chartType, setChartType] = useState('pie');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sellingOrders,setSellingOrders]=useState([])
-  // Mock data - replace with actual API calls
+
+  // Helper function to get week start date (Monday)
+  const getWeekStart = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    const weekStart = new Date(d.setDate(diff));
+    return weekStart.toISOString().split('T')[0]; // Return as YYYY-MM-DD
+  };
+
+  // Helper function to format week range
+  const formatWeekRange = (weekStart) => {
+    const start = new Date(weekStart);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    
+    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  };
+
+  // Fetch selling orders
   const fetchSellOrders=async()=>{
     setLoading(true);
     try{
@@ -41,13 +60,13 @@ const WeeklySalesAnalysis = () => {
       setLoading(false);
     }
   };
+
   useEffect(()=>{
     fetchSellOrders();
   },[]);
+
   // const shops=[{id:'all',name:'All Shops'},...Array.from(new Set(sellingOrders.map(order=>order.shopName))).map(shopName=>({id:shopName,name:shopName}))];
  
-
-  // const [salesData, setSalesData] = useState(mockSalesData);
   const [filteredData, setFilteredData] = useState([]);
 
   // Filter data based on selected criteria
@@ -63,45 +82,125 @@ const WeeklySalesAnalysis = () => {
     
     setFilteredData(filtered);
   }, [ startDate, endDate, sellingOrders]);
-const productSummary = filteredData.reduce((acc, item) => {
-  const productName = item.product_name;
-  if (!productName) return acc;
-  
-  if (!acc[productName]) {
-    acc[productName] = {
-      name: productName,
-      totalQuantity: 0,
-      totalRevenue: 0,
-      orderCount: 0
-    };
-  }
-  
-  acc[productName].totalQuantity += item.quantity || 0;
-  acc[productName].totalRevenue += item.total_price || 0;
-  acc[productName].orderCount += 1;
-  
-  return acc;
-}, {});
 
-const productArray = Object.values(productSummary);
+  const productSummary = filteredData.reduce((acc, item) => {
+    const productName = item.product_name;
+    if (!productName) return acc;
+    
+    if (!acc[productName]) {
+      acc[productName] = {
+        name: productName,
+        totalQuantity: 0,
+        totalRevenue: 0,
+        orderCount: 0
+      };
+    }
+    
+    acc[productName].totalQuantity += item.quantity || 0;
+    acc[productName].totalRevenue += item.total_price || 0;
+    acc[productName].orderCount += 1;
+    
+    return acc;
+  }, {});
+
+  const productArray = Object.values(productSummary);
+
+  // Weekly bar chart data
+  const barChartData = filteredData.reduce((acc, item) => {
+    const weekStart = getWeekStart(item.orderedAt);
+    const weekLabel = formatWeekRange(weekStart);
+    
+    const existing = acc.find(d => d.weekStart === weekStart);
+    if (existing) {
+      existing.revenue += item.total_price || 0;
+      existing.quantity += item.quantity || 0;
+      existing.orderCount += 1;
+    } else {
+      acc.push({
+        name: weekLabel,
+        weekStart: weekStart,
+        revenue: item.total_price || 0,
+        quantity: item.quantity || 0,
+        orderCount: 1
+      });
+    }
+    return acc;
+  }, []).sort((a, b) => new Date(a.weekStart) - new Date(b.weekStart));
+
+  // Weekly product analysis
+  const weeklyProductSummary = filteredData.reduce((acc, item) => {
+    const weekStart = getWeekStart(item.orderedAt);
+    const weekLabel = formatWeekRange(weekStart);
+    const productName = item.product_name;
+    
+    const key = `${weekStart}-${productName}`;
+    
+    if (!acc[key]) {
+      acc[key] = {
+        week: weekLabel,
+        weekStart: weekStart,
+        productName: productName,
+        totalQuantity: 0,
+        totalRevenue: 0,
+        orderCount: 0
+      };
+    }
+    
+    acc[key].totalQuantity += item.quantity || 0;
+    acc[key].totalRevenue += item.total_price || 0;
+    acc[key].orderCount += 1;
+    
+    return acc;
+  }, {});
+
+  const weeklyProductArray = Object.values(weeklyProductSummary);
+
+  // Week-over-week growth calculation
+  const weeklyGrowthData = barChartData.map((week, index) => {
+    if (index === 0) {
+      return { ...week, revenueGrowth: 0, quantityGrowth: 0 };
+    }
+    
+    const prevWeek = barChartData[index - 1];
+    const revenueGrowth = prevWeek.revenue > 0 ? 
+      ((week.revenue - prevWeek.revenue) / prevWeek.revenue * 100) : 0;
+    const quantityGrowth = prevWeek.quantity > 0 ? 
+      ((week.quantity - prevWeek.quantity) / prevWeek.quantity * 100) : 0;
+    
+    return {
+      ...week,
+      revenueGrowth: revenueGrowth.toFixed(1),
+      quantityGrowth: quantityGrowth.toFixed(1)
+    };
+  });
+
   // Calculate summary statistics
   const summaryStats = {
-  totalRevenue: filteredData.reduce((sum, item) => sum + (item.total_price || 0), 0),
-  totalQuantity: filteredData.reduce((sum, item) => sum + (item.quantity || 0), 0),
-  
-  bestSellingProduct: productArray.length > 0 ? 
-    productArray.reduce((best, product) => 
-      product.totalQuantity > (best?.totalQuantity || 0) ? product : best
-    , null) : null,
+    totalRevenue: filteredData.reduce((sum, item) => sum + (item.total_price || 0), 0),
+    totalQuantity: filteredData.reduce((sum, item) => sum + (item.quantity || 0), 0),
     
-  worstSellingProduct: productArray.length > 0 ?
-    productArray.reduce((worst, product) => 
-      product.totalQuantity < (worst?.totalQuantity || Infinity) ? product : worst
-    , null) : null,
-    
-  totalOrders: filteredData.length,
-  totalProducts: productArray.length
-};
+    bestSellingProduct: productArray.length > 0 ? 
+      productArray.reduce((best, product) => 
+        product.totalQuantity > (best?.totalQuantity || 0) ? product : best
+      , null) : null,
+      
+    worstSellingProduct: productArray.length > 0 ?
+      productArray.reduce((worst, product) => 
+        product.totalQuantity < (worst?.totalQuantity || Infinity) ? product : worst
+      , null) : null,
+      
+    totalOrders: filteredData.length,
+    totalProducts: productArray.length,
+
+    // Weekly stats
+    totalWeeks: barChartData.length,
+    avgWeeklyRevenue: barChartData.length > 0 ? barChartData.reduce((sum, week) => sum + week.revenue, 0) / barChartData.length : 0,
+    avgWeeklyQuantity: barChartData.length > 0 ? barChartData.reduce((sum, week) => sum + week.quantity, 0) / barChartData.length : 0,
+    bestWeek: barChartData.reduce((best, week) => 
+      week.revenue > (best?.revenue || 0) ? week : best, null),
+    worstWeek: barChartData.reduce((worst, week) => 
+      week.revenue < (worst?.revenue || Infinity) ? week : worst, null)
+  };
 
   const pieChartData = filteredData.reduce((acc, item) => {
     // Try different possible product name fields or use customer name as fallback
@@ -124,22 +223,7 @@ const productArray = Object.values(productSummary);
   // Debug log
   console.log('Filtered Data:', filteredData);
   console.log('Pie Chart Data:', pieChartData);
-
-  const barChartData = filteredData.reduce((acc, item) => {
-    const date = new Date(item.orderedAt).toLocaleDateString();
-    const existing = acc.find(d => d.name === date);
-    if (existing) {
-      existing.revenue += item.total_price || 0;
-      existing.quantity += item.quantity || 0;
-    } else {
-      acc.push({
-        name: date,
-        revenue: item.total_price || 0,
-        quantity: item.quantity || 0
-      });
-    }
-    return acc;
-  }, []).sort((a, b) => new Date(a.name) - new Date(b.name));
+  console.log('Weekly Chart Data:', weeklyGrowthData);
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0', '#ffb347', '#87ceeb'];
 
@@ -169,17 +253,19 @@ const productArray = Object.values(productSummary);
 
   // Export functionality
   const exportToCSV = () => {
-    const headers = ['Shop ID', 'Shop Name', 'Product ID', 'Product Name', 'Week Start', 'Quantity Sold', 'Revenue'];
+    const headers = ['Order ID', 'Customer Name', 'Shop Name', 'Product Name', 'Order Date', 'Week', 'Quantity Sold', 'Revenue', 'Status'];
     const csvContent = [
       headers.join(','),
       ...filteredData.map(row => [
-        row.shopId,
+        row._id,
+        row.customerName,
         row.shopName,
-        row.productId,
-        row.productName,
-        row.weekStart,
-        row.quantitySold,
-        row.revenue
+        row.product_name,
+        new Date(row.orderedAt).toLocaleDateString(),
+        formatWeekRange(getWeekStart(row.orderedAt)),
+        row.quantity,
+        row.total_price,
+        row.status
       ].join(','))
     ].join('\n');
     
@@ -247,8 +333,6 @@ const productArray = Object.values(productSummary);
 
       {/* Filters Section */}
       <div className="filters-section">
-        
-
         <div className="filter-group">
           <label>
             <Calendar size={16} />
@@ -304,25 +388,37 @@ const productArray = Object.values(productSummary);
           </div>
           <div className="summary-content">
             <h3>{summaryStats.bestSellingProduct?.name || 'N/A'}</h3>
-            <p>Best Selling prdouct</p>
+            <p>Best Selling Product</p>
           </div>
         </div>
+        
         <div className="summary-card">
           <div className="summary-icon">
             <Filter size={24} />
             </div>
             <div className="summary-content">
                 <h3>{summaryStats.worstSellingProduct?.name||'N/A'}</h3>
-                <p>Worst Selling product</p>
+                <p>Worst Selling Product</p>
             </div>
         </div>
+        
         <div className="summary-card">
           <div className="summary-icon">
             <Store size={24} />
           </div>
           <div className="summary-content">
-            <h3>{summaryStats.totalOrders}</h3>
-            <p>Total orders</p>
+            <h3>{summaryStats.totalWeeks}</h3>
+            <p>Weeks Analyzed</p>
+          </div>
+        </div>
+
+        <div className="summary-card">
+          <div className="summary-icon">
+            <Calendar size={24} />
+          </div>
+          <div className="summary-content">
+            <h3>₹{summaryStats.avgWeeklyRevenue.toLocaleString()}</h3>
+            <p>Avg Weekly Revenue</p>
           </div>
         </div>
       </div>
@@ -340,7 +436,7 @@ const productArray = Object.values(productSummary);
             className={chartType === 'bar' ? 'active' : ''}
             onClick={() => setChartType('bar')}
           >
-            Shop Performance
+            Weekly Performance
           </button>
         </div>
       </div>
@@ -367,26 +463,36 @@ const productArray = Object.values(productSummary);
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} />
+                <Tooltip formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']} />
                 </PieChart>
             </ResponsiveContainer>
           </div>
         ) : (
           <div className="chart-container">
-            <h3>Shop Performance Comparison</h3>
+            <h3>Weekly Sales Performance</h3>
             <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={barChartData}>
+              <BarChart data={weeklyGrowthData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
                 <YAxis />
-                <Tooltip formatter={(value, name) => [
-                    name === 'Revenue ($)' ? `${value.toLocaleString()}` : value.toLocaleString(),
-                    name === 'Revenue ($)' ? 'Revenue' : 'Items Sold'
-                  ]} />
-                  <Legend />
-                  <Bar dataKey="revenue" fill="#8884d8" name="Revenue ($)" />
-                  <Bar dataKey="quantity" fill="#82ca9d" name="Items Sold" />
-                </BarChart>
+                <Tooltip 
+                  formatter={(value, name) => [
+                    name === 'revenue' ? `₹${value.toLocaleString()}` : value.toLocaleString(),
+                    name === 'revenue' ? 'Revenue' : name === 'quantity' ? 'Items Sold' : 'Orders'
+                  ]}
+                  labelFormatter={(label, payload) => {
+                    if (payload && payload[0]) {
+                      const data = payload[0].payload;
+                      return `${label} | Revenue Growth: ${data.revenueGrowth}% | Qty Growth: ${data.quantityGrowth}%`;
+                    }
+                    return label;
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="revenue" fill="#8884d8" name="revenue" />
+                <Bar dataKey="quantity" fill="#82ca9d" name="quantity" />
+                <Bar dataKey="orderCount" fill="#ffc658" name="orderCount" />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         )}
@@ -445,6 +551,9 @@ const productArray = Object.values(productSummary);
                     >
                       Shop {sortColumn === 'shopName' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Week
+                    </th>
                     <th 
                       onClick={() => sortData('orderedAt')} 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -483,6 +592,9 @@ const productArray = Object.values(productSummary);
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {row.shopName}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatWeekRange(getWeekStart(row.orderedAt))}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(row.orderedAt).toLocaleDateString()}
                       </td>
@@ -508,7 +620,6 @@ const productArray = Object.values(productSummary);
                 </tbody>
               </table>
             </div>
-
 
             {/* Pagination */}
             <div className="pagination">
