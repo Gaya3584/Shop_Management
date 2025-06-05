@@ -5,6 +5,8 @@ import {
   TrendingUp, ShoppingBag, Users, BarChart3, Star, Edit, Trash2,
   Download, RefreshCw, Bell, Menu, X, Plus, ArrowRight, ArrowLeft
 } from 'lucide-react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './orders.css';
 
 const OrderManagementSystem = () => {
@@ -16,27 +18,46 @@ const OrderManagementSystem = () => {
   const [sortBy, setSortBy] = useState('date');
   const [showFilters, setShowFilters] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [notifications, setNotifications] = useState(3);
-  const [buyingOrders, setBuyingOrders] = useState([]);
-  const [sellingOrders, setSellingOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
- 
+  const [notificationCount, setNotificationCount] = useState(0);
   useEffect(() => {
-    const fetchData = () => {
-      if (activeTab === 'buying') {
-        fetchBuyOrders();
-      } else {
-        fetchSellOrders();
+    const fetchNotificationCount = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/notifications', {
+          withCredentials: true,
+          headers: { 'Content-Type': 'application/json' },
+        });
+        setNotificationCount(res.data.count || 0);
+      } catch (err) {
+        console.error('Failed to fetch notification count:', err);
       }
     };
 
+    fetchNotificationCount(); // initial fetch
+    const interval = setInterval(fetchNotificationCount, 5000); // auto-refresh every 5 seconds
+
+    return () => clearInterval(interval); // cleanup on unmount
+  }, []);
+  const [buyingOrders, setBuyingOrders] = useState([]);
+  const [sellingOrders, setSellingOrders] = useState([]);
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchData = () => {
+    setIsLoading(true); 
+    if (activeTab === 'buying') {
+      fetchBuyOrders();
+    } else {
+      fetchSellOrders();
+    }
+    console.log("Successfully refreshed...");
+  };
+
+  useEffect(() => {
     fetchData(); // Initial fetch
-
-    const intervalId = setInterval(fetchData, 10000); // 10 seconds
-
-    return () => clearInterval(intervalId); // Cleanup on unmount
+    const intervalId = setInterval(fetchData, 10000);
+    return () => clearInterval(intervalId);
   }, [activeTab]);
+
   const fetchBuyOrders = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/orders/purchases', {
@@ -386,7 +407,7 @@ const transformOrder = (order) => ({
             {activeTab === 'buying' && order.status === 'pending' && (
               <div className="modal-actions">
                 <button 
-                  onClick={() => handleStatusUpdate(order.id, 'rejected')}
+                  onClick={() => handleStatusUpdate(order.id, 'cancelled')}
                   className="action-button reject-btn"
                 >
                   Cancel
@@ -442,18 +463,18 @@ const transformOrder = (order) => ({
         <div className="header-content">
           <div className="header-left">
             <h1 className="app-title">Order Management</h1>
-            <div className="notification-bell">
+            <div className="notification-bell" onClick={() => navigate(`/notifications`)} >
               <Bell className="bell-icon" />
-              {notifications > 0 && (
+              {notificationCount > 0 && (
                 <span className="notification-badgeo">
-                  {notifications}
+                  {notificationCount}
                 </span>
               )}
             </div>
           </div>
           
           <div className="header-actions">
-            <button className="header-btn">
+            <button className="header-btn" onClick={fetchData}>
               <RefreshCw className="header-icon" />
             </button>
             <button className="header-btn mobile-menu">

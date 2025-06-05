@@ -178,8 +178,8 @@ body {
 }
 
 .profile-icon {
-  width: 56px;
-  height: 56px;
+  width: 156px;
+  height: 156px;
   background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
   border-radius: 50%;
   display: flex;
@@ -666,7 +666,9 @@ body {
     transform: translateY(0);
   }
 }
-
+h3{
+  text-align: center;
+}
 .dashboard-card {
   animation: slideInUp 0.6s ease-out;
 }
@@ -701,7 +703,7 @@ body {
     --secondary-color: #1f2937;
   }
 
-  .dashboard-container {
+  .dashboard-container,.sidebar-header {
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   }
 
@@ -709,7 +711,7 @@ body {
   .nav-link,
   .topbar,
   .dashboard-card,
-  .orders-table {
+  .orders-table,.menu-btn {
     background: rgba(31, 41, 55, 0.9);
     border-color: var(--border-color);
   }

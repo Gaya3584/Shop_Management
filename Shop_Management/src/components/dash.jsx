@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import './dash.css';
+import axios from 'axios';
 import stockIcon from '../assets/stock.png';
 import Lens from '../assets/lens.png';
 import Bar from '../assets/bar.png';
@@ -8,55 +9,93 @@ import 'animate.css';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const userEmail = location.state?.userEmail;
-  const userName = location.state?.userName;
+  const [user, setUser] = useState(null);
+    useEffect(() => {
+      const fetchUser = async () => {
+        try {
+          const res = await axios.get('http://localhost:5000/api/profile', {
+            withCredentials: true, 
+          });
+          const data = res.data;
+          if (data.message) {
+            setError(data.message);
+          } else {
+            setUser(data);
+          }
+        } catch (err) {
+          console.error('User fetch failed:', err);
+        }
+      };
+
+      fetchUser();
+    }, []);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/notifications', {
+          withCredentials: true,
+          headers: { 'Content-Type': 'application/json' },
+        });
+        setNotificationCount(res.data.count || 0);
+      } catch (err) {
+        console.error('Failed to fetch notification count:', err);
+      }
+    };
+
+    fetchNotificationCount(); // initial fetch
+    const interval = setInterval(fetchNotificationCount, 5000); // auto-refresh every 5 seconds
+
+    return () => clearInterval(interval); // cleanup on unmount
+  }, []);
+
+
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  const currentUserToken = null;
+
   
 
-  const handleLogout = async (e) => {
-  e.preventDefault();
-  
-  if (window.confirm('Are you sure you want to logout?')) {
-    try{
-      // Clear user data
-    await fetch('http://localhost:5000/api/logout', {
-      method: 'POST',
-      credentials: 'include'
-    });
-    // Close sidebar if it's open
-    toggleSidebar();
+    const handleLogout = async (e) => {
+    e.preventDefault();
     
-    // Redirect to login
-    navigate('/');
-    }catch (error) {
-      console.error('Logout failed:', error);
-      alert('Error logging out. Please try again.');
+    if (window.confirm('Are you sure you want to logout?')) {
+      try{
+        // Clear user data
+      await fetch('http://localhost:5000/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      // Close sidebar if it's open
+      toggleSidebar();
+      
+      // Redirect to login
+      navigate('/');
+      }catch (error) {
+        console.error('Logout failed:', error);
+        alert('Error logging out. Please try again.');
+      }
     }
-  }
-};
+  };
 
-const handleProfileClick = () => {
-  navigate(`/profile`);
-};
-const handleNotiClick = () => {
-  navigate(`/notifications`);
-};
-const handleOrdersClick = () => {
-  navigate(`/orders`);
-}
-const handleSettingsClick = () => {
-  navigate(`/settings`);
-}
-const handleHelpClick = () => {
-  navigate(`/help`);
-}
+  const handleProfileClick = () => {
+    navigate(`/profile`);
+  };
+  const handleNotiClick = () => {
+    navigate(`/notifications`);
+  };
+  const handleOrdersClick = () => {
+    navigate(`/orders`);
+  }
+  const handleSettingsClick = () => {
+    navigate(`/settings`);
+  }
+  const handleHelpClick = () => {
+    navigate(`/help`);
+  }
   return (
     <div className="dashboard-container">
       {/* Overlay for both mobile and desktop */}
@@ -83,18 +122,24 @@ const handleHelpClick = () => {
 
         {/* Profile Section */}
         <div className="profile-section">           
-  <div className="profile-container">             
-    <div className="profile-icon" onClick={handleProfileClick}>               
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">                 
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>                 
-        <circle cx="12" cy="7" r="4"></circle>               
-      </svg>             
-    </div>             
-    <div className="profile-info">               
-      <h3 className="username">{userEmail}</h3>                            
-    </div>           
-  </div>         
-</div>
+          <div className="profile-container">             
+            <div className="profile-icon" onClick={handleProfileClick}>               
+              {user && user.image ? (
+                <img
+                  src={user.image}
+                  alt="Profile"
+                  className="profile-image1"
+                />
+              ) : (
+                <div className="placeholder-image">No Image</div>
+              )}  
+            </div>             
+            <div className="profile-info">               
+              <h3 className="username">{user?.ownerName || 'No Name'}</h3>
+              <h3 className="useremail">{user?.email || 'No Email'}</h3>      
+            </div>           
+          </div>         
+        </div>
 
         {/* Navigation Menu */}
         <nav className="nav-menu">
@@ -115,7 +160,7 @@ const handleHelpClick = () => {
                   <path d="m13.73 21a2 2 0 0 1-3.46 0"></path>
                 </svg>
                 <span className="nav-text">Notifications</span>
-                <span className="notification-badge">3</span>
+                <span className="notification-badge">{notificationCount}</span>
               </a>
             </li>
             <li>
@@ -196,7 +241,7 @@ const handleHelpClick = () => {
               <hr></hr>
               <p className="card-description">Manage your stocks</p>
               <div className="card-value stats-value">
-<button onClick={() => navigate(`/stock`)}>View My Stocks</button>              </div>
+    <button onClick={() => navigate(`/stock`)}>View My Stocks</button>              </div>
             </div>
             
             <div className="dashboard-card">
@@ -207,7 +252,7 @@ const handleHelpClick = () => {
               <hr></hr>
               <p className="card-description">Find your products from other stores</p>
               <div className="card-value activity-value">
-<button onClick={() => navigate(`/disc`)}>
+  <button onClick={() => navigate(`/disc`)}>
       Discover Products
     </button>              </div>
             </div>

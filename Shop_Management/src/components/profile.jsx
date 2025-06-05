@@ -101,8 +101,8 @@ const Profile = () => {
                 <span className="info-value">{user.shopType}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">Owner:</span>
-                <span className="info-value">{user.ownerName}</span>
+                <span className="profile info-label">Owner:</span>
+                <span className="profile info-value">{user.ownerName}</span>
               </div>
             </div>
           </div>
