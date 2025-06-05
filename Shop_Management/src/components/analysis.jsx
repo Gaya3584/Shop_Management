@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Filter, Download, Calendar, TrendingUp, DollarSign, Package, Store } from 'lucide-react';
 import './analysis.css';
-
 const WeeklySalesAnalysis = () => {
   // const [selectedShop, setSelectedShop] = useState('all');
   const [startDate, setStartDate] = useState('2025-05-19');
