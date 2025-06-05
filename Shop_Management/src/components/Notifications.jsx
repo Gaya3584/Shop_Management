@@ -6,7 +6,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const notificationCount = notifications.length;
+ const [notificationCount, setNotificationCount] = useState(0);
 
 
   useEffect(() => {
@@ -19,6 +19,7 @@ const Notifications = () => {
         });
         console.log('API Response:', res.data);
         setNotifications(res.data.notifications || []);
+        setNotificationCount(res.data.count);
       } catch (err) {
         console.error('Failed to fetch notifications:', err);
         alert('Error loading notifications');
@@ -36,10 +37,11 @@ const Notifications = () => {
       case 'stock-added': return '📦';
       case 'order-placed': return '🛒';
       case 'order-accepted': return '✅';
-      case 'order-pending': return '🔔';
       case 'order-cancelled': return '❌';
       case 'order-rejected': return '🚫';
       case 'order-delivered': return '🚚';
+      case 'stock-low':
+      case 'stock-low-stock':return'❗';
       default: return '🔔';
     }
   };
@@ -47,17 +49,20 @@ const Notifications = () => {
   const getSectionTitle = (type) => {
     switch (type) {
       case 'order-placed':
+        return 'Orders Placed';
       case 'order-accepted':
-        return 'Orders Placed & Accepted';
+        return 'Orders Accepted';
       case 'order-cancelled':
+        return 'Orders Cancelled';
       case 'order-rejected':
-        return 'Orders Cancelled & Rejected';
-      case 'order-pending':
-        return 'Pending Orders';
+        return 'Orders Rejected';
       case 'order-delivered':
         return 'Delivered Orders';
       case 'stock-added':
-        return 'Stock Updates';
+        return 'Stock Added';
+      case 'stock-low':
+      case 'stock-low-stock':
+        return 'Stock Low Alerts';
       default:
         return 'Other Notifications';
     }
@@ -66,17 +71,20 @@ const Notifications = () => {
   const getSectionIcon = (type) => {
     switch (type) {
       case 'order-placed':
+        return '🛒';
       case 'order-accepted':
         return '✅';
       case 'order-cancelled':
-      case 'order-rejected':
         return '❌';
-      case 'order-pending':
-        return '⏳';
+      case 'order-rejected':
+        return '🚫';
       case 'order-delivered':
         return '🚚';
       case 'stock-added':
         return '📦';
+      case 'stock-low':
+      case 'stock-low-stock':
+        return '📉';
       default:
         return '📋';
     }
@@ -86,10 +94,8 @@ const Notifications = () => {
   const groupedNotifications = notifications.reduce((acc, notification) => {
     let groupKey;
     
-    if (notification.type === 'order-placed' || notification.type === 'order-accepted') {
-      groupKey = 'order-placed';
-    } else if (notification.type === 'order-cancelled' || notification.type === 'order-rejected') {
-      groupKey = 'order-cancelled';
+    if (notification.type === 'stock-low-stock' || notification.type === 'stock-low') {
+      groupKey = 'stock-low';
     } else {
       groupKey = notification.type;
     }

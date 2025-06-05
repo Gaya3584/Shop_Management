@@ -26,8 +26,14 @@ def place_order():
         
         data = request.json
         product_id = data.get('productId')
-        quantity = data.get('quantity')
-        total_price = data.get('totalPrice')
+        try:
+            quantity = int(data.get('quantity', 0))
+        except (TypeError, ValueError):
+            return jsonify({'message': 'Invalid quantity format'}), 400
+        try:
+            total_price = float(data.get('totalPrice', 0))
+        except (TypeError, ValueError):
+            return jsonify({'message': 'Invalid total price format'}), 400
         # customer_id = data.get('shopName')
         customer = users.find_one({'_id': ObjectId(user_id)})
         # customer_id = customer.get('shopName', 'Unknown') if customer else 'Unknown'
@@ -62,7 +68,7 @@ def place_order():
             'product_name': product.get('name', 'Unnamed'),
             'quantity': quantity,
             'total_price': total_price,
-            'status': 'pending',
+            'status': 'placed',
             'orderedAt': datetime.utcnow(),
             'shopName': product.get('shopName', 'Unknown'),
             'customerName': customer.get('ownerName', 'Unknown') 
@@ -184,6 +190,7 @@ def update_order_status(order_id):
         return jsonify({'message': 'Error updating order', 'error': str(e)}), 500
 
 @auth_bp.route("/api/notifications",methods=['GET'])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_notifications():
     stock = db.stocks.find().sort('addedAt', -1)
     order = db.orders.find().sort('orderedAt', -1)
@@ -191,34 +198,50 @@ def get_notifications():
 
     logs = []
 
-    added_at = log.get("addedAt")
-    now = datetime.utcnow()
-
-    # Consider it "just added" if it's within the last 5 seconds
-    is_just_now = False
-    if added_at:
-        try:
-            # Handle both datetime objects and strings
-            added_at_dt = added_at if isinstance(added_at, datetime) else datetime.fromisoformat(added_at)
-            is_just_now = abs((now - added_at_dt).total_seconds()) < 5
-        except Exception as e:
-            print("Invalid addedAt format:", added_at)
-
-    # Determine action
-    if log.get("quantity") == log.get("minThreshold"):
-        action = "low-stock"
-    elif is_just_now:
-        action = "stock-added"
-
+    
     for log in stock:
-        logs.append({
-            "type": f"stock-{action}",
-            "message": f"{log.get('name', 'Unnamed')} - {log.get('quantity', 0)} units",
-            "timestamp": added_at or now
-        })
+        added_at = log.get("addedAt")
+        now = datetime.utcnow()
+
+        # Consider it "just added" if it's within the last 5 seconds
+        is_just_now = False
+        if added_at:
+            try:
+                # Handle both datetime objects and strings
+                added_at_dt = added_at if isinstance(added_at, datetime) else datetime.fromisoformat(added_at)
+                is_just_now = abs((now - added_at_dt).total_seconds()) < 5
+            except Exception as e:
+                print("Invalid addedAt format:", added_at)
+
+        # Determine action
+        action = None
+        if log.get("quantity") == log.get("minThreshold"):
+            action = "low"
+        elif is_just_now:
+            action = "stock-added"
+        if action: 
+            logs.append({
+                "type": f"stock-{action}",
+                "message": f"{log.get('name', 'Unnamed')} - {log.get('quantity', 0)} units",
+                "timestamp": added_at or now
+            })
 
     for log in order:
-        action = "placed" if log.get("status") == "success" else "pending" if log.get("status")== "pending" else "cancelled"
+        status = log.get("status")
+        if status in ["pending", "placed"]:
+            action = "placed"
+        elif status == "cancelled":
+            action = "cancelled"
+        elif status == "delivered":
+            action = "delivered"
+        elif status == "rejected":
+            action = "rejected"
+        elif status == "accepted":
+            action = "accepted"
+        elif status == "dispatched":
+            action = "dispatched"
+        else:
+            action = "unknown"
         product_id = log.get('product_id')
         product = stocks.find_one({'_id': ObjectId(product_id)})
         logs.append({
@@ -233,4 +256,4 @@ def get_notifications():
         if isinstance(log["timestamp"], datetime):
             log["timestamp"] = log["timestamp"].isoformat()
 
-    return jsonify(notifications=sorted_logs)
+    return jsonify(count=len(sorted_logs), notifications=sorted_logs)

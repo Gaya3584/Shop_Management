@@ -683,3 +683,65 @@
   border-radius: 4px;
   margin: 10px 0;
 }
+@media (prefers-color-scheme: dark) {
+  
+  .profile-card1,
+  .detail-section,
+  .contact-item,
+  .info-row,.profile-image-container1{
+    background: rgba(30, 30, 40, 0.9);
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .contact-icon {
+    background: linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%);
+  }
+
+  .contact-value:hover {
+    color: #7179b8;
+  }
+
+  .info-label,
+  .contact-info label,
+  .contact-value,
+  .info-value,
+  .shop-name {
+    color: #ccccdd;
+  }
+
+  input,
+  textarea,
+  select {
+    background-color: #2a2a3a;
+    color: #f0f0f0;
+    border-color: #444;
+  }
+
+  input::placeholder {
+    color: #aaa;
+  }
+
+  .detail-section h3{
+    color:#fdfdff;
+  }
+
+  .btn {
+    background: #3f3f4f;
+    color: #eee;
+  }
+
+  .btn:hover {
+    background: #55556a;
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, #555 0%, #333 100%);
+  }
+
+  .placeholder-image {
+    background: linear-gradient(135deg, #444 0%, #333 100%);
+    color: #ccc;
+    border: 3px solid #666;
+  }
+}
