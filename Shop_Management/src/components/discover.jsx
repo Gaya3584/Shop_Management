@@ -97,33 +97,30 @@ const DiscoverPage = () => {
       }
     });
 
-    const handlePlaceOrder = () => {
-        if (buyQuantity > selectedProduct.quantity) {
-          alert("Cannot buy more than in stock");
-          return;
-        }
+   const handlePlaceOrder = () => {
+      if (buyQuantity > selectedProduct.quantity) {
+        alert("Cannot buy more than in stock");
+        return;
+      }
 
-        axios.post('http://localhost:5000/api/orders/new', {
-          productId: selectedProduct.id,
-          quantity: buyQuantity,
-          totalPrice: selectedProduct.price * buyQuantity
-        }, {
-            withCredentials: true,
-            headers: { 'Content-Type': 'application/json' }
-          })
-          
-          .then(() => {
-            setShowBuyModal(false);
-            if (inquirySuccess) {
-              alert("Order placed successfully!");
-              setInquirySuccess(true);
-            }
-          })
-          .catch(err => {
-            console.error("Error placing order", err);
-            alert("Failed to place order.");
-          });
-      };
+      axios.post('http://localhost:5000/api/orders/new', {
+        productId: selectedProduct.id,
+        quantity: parseInt(buyQuantity),
+        totalPrice: parseFloat((selectedProduct.price * buyQuantity).toFixed(2))
+      }, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(() => {
+        setShowBuyModal(false);
+        alert("🛒 Order placed successfully!");
+      })
+      .catch(err => {
+        console.error("❌ Error placing order:", err.response?.data || err.message);
+        alert("Failed to place order.");
+      });
+    };
+
 
   return (
     <div className="discover-container">

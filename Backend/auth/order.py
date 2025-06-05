@@ -26,8 +26,14 @@ def place_order():
         
         data = request.json
         product_id = data.get('productId')
-        quantity = data.get('quantity')
-        total_price = data.get('totalPrice')
+        try:
+            quantity = int(data.get('quantity', 0))
+        except (TypeError, ValueError):
+            return jsonify({'message': 'Invalid quantity format'}), 400
+        try:
+            total_price = float(data.get('totalPrice', 0))
+        except (TypeError, ValueError):
+            return jsonify({'message': 'Invalid total price format'}), 400
         # customer_id = data.get('shopName')
         customer = users.find_one({'_id': ObjectId(user_id)})
         # customer_id = customer.get('shopName', 'Unknown') if customer else 'Unknown'
