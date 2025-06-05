@@ -316,7 +316,7 @@ const ResendVerificationButton = () => (
                             />
                             Remember Me
                         </label>
-                        <a href='/forgot-password' className='forgot-password-linkx'>
+                        <a href='http://localhost:5173/forgot-password' className='forgot-password-linkx'>
                             Forgot Password?
                         </a>
                     </div>

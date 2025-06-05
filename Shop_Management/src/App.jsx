@@ -12,6 +12,8 @@ import Order from './components/orders'
 import Help from './components/help';
 import Settings from './components/settings';
 import Notifications from './components/Notifications';
+import Pass from'./components/forgot_pass';
+import ResetPassword from './components/resetpass';
 
 function App() {
   return (
@@ -28,6 +30,9 @@ function App() {
         <Route path="/help" element={<Help />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/notifications" element={<Notifications/>}/>
+        <Route path='/forgot-password' element={<Pass/>}/>
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+
       </Routes>
     </Router>
   );

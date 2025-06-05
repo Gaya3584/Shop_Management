@@ -228,7 +228,7 @@ const Settings = () => {
   const deleteAccount = async () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       try {
-        const response = await fetch('http://localhost:5000/api/delete_account', {
+        const response = await fetch('http://localhost:5000/api/delete_acc', {
           method: 'DELETE',
           credentials: 'include'
         });

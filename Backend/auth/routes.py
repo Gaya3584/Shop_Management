@@ -349,3 +349,85 @@ def get_contact():
         print(f"Error in /api/contact: {e}")
         return jsonify({'message': 'Internal Server Error'}), 500
 
+@auth_bp.route("/api/delete_acc",methods=['DELETE'])
+def del_acc():
+    try:
+        user_token = request.cookies.get('token')
+        user_id = decode_token(user_token)
+        if not user_id:
+            return jsonify({'message': 'Invalid or expired token'}), 401
+        user_id = ObjectId(user_id) if not isinstance(user_id, ObjectId) else user_id
+
+        user = users.find_one({'_id': user_id})
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+        users.delete_one({'_id': user_id})
+
+        response = jsonify({'message': 'Account deleted successfully'})
+        response.set_cookie('token', '', expires=0)  # Clear token
+        return response, 200
+    except Exception as e:
+        return jsonify({'message':'An error occured','error':str(e)}),500
+@auth_bp.route('/api/request-reset', methods=['POST'])
+def request_password_reset():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+
+        if not email:
+            return jsonify({'message': 'Email is required'}), 400
+
+        user = users.find_one({'email': email})
+        if not user:
+            return jsonify({'message': 'No account found with this email'}), 404
+
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        token = serializer.dumps(email, salt='password-reset')
+
+        # This is your React frontend route
+        reset_url = f"http://localhost:5173/reset-password/{token}"
+
+        send_reset_email(email, reset_url)
+
+        return jsonify({'message': 'Password reset link sent to your email'}), 200
+
+    except Exception as e:
+        print("Error sending reset link:", e)
+        return jsonify({'message': 'Something went wrong'}), 500
+
+@auth_bp.route('/api/reset-password/<token>', methods=['POST'])
+def reset_password(token):
+    try:
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        email = serializer.loads(token, salt='password-reset', max_age=3600)
+    except Exception as e:
+        print("Reset link invalid or expired:", e)
+        return jsonify({"message": 'Invalid or expired reset link'}), 400
+
+    data = request.get_json()
+    new_password = data.get('password')
+    if not new_password:
+        return jsonify({'message': 'New password is required'}), 400
+
+    hashed = hash_password(new_password)
+    result = users.update_one({'email': email}, {'$set': {'password': hashed}})
+
+    if result.modified_count == 0:
+        return jsonify({'message': 'Password update failed'}), 500
+
+    return jsonify({'message': 'Password reset successful'}), 200
+
+def send_reset_email(email, link):
+    try:
+        msg = Message(
+            "Reset Password", 
+            sender=current_app.config['MAIL_USERNAME'],
+            recipients=[email]
+        )
+        msg.body = f'Click the link to reset your password: {link}'
+        mail.send(msg)
+        print(f"Reset link sent to {email}")
+    except Exception as e:
+        print(f"Error sending email: {str(e)}")
+
+    
