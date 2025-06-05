@@ -192,7 +192,7 @@ const WeeklySalesAnalysis = () => {
     bestWeek: barChartData.reduce((best, week) => 
       week.revenue > (best?.revenue || 0) ? week : best, null),
     worstWeek: barChartData.reduce((worst, week) => 
-      week.revenue < (worst?.revenue || Infinity) ? week : worst, null)
+      week.revenue < (worst?.revenue || Infinity) ? week : worst, null),
   totalRevenue: filteredData.reduce((sum, item) => sum + (item.total_price || 0), 0),
   totalQuantity: filteredData.reduce((sum, item) => sum + (item.quantity || 0), 0),
   
