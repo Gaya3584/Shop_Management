@@ -222,7 +222,7 @@ const transformOrder = (order) => ({
     {
       stage: 'Accepted',
       time: null,
-      completed: order.status === 'accepted',
+      completed: order.status === 'accepted'|| order.status === 'dispatched' || order.status === 'delivered',
     },
     {
       stage: 'Dispatched',
