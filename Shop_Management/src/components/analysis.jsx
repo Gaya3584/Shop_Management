@@ -193,6 +193,7 @@ const WeeklySalesAnalysis = () => {
     worstWeek: barChartData.reduce((worst, week) => 
       week.revenue < (worst?.revenue || Infinity) ? week : worst, null),
   
+ 
 };
 const handleTableCSVDownload = () => {
     if (!filteredData?.length) return;

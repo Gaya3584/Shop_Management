@@ -429,5 +429,18 @@ def send_reset_email(email, link):
         print(f"Reset link sent to {email}")
     except Exception as e:
         print(f"Error sending email: {str(e)}")
+@auth_bp.route('/api/token',methods=['GET'])
+def get_token():
+    token=request.cookies.get('token') or  request.headers.get('Authorization','').replace('Bearer ','')
+    if not token:
+        return jsonify({'message':'Unauthorized'}),401
+    
+    user=get_user_details(token,users)
+    if not user:
+        return jsonify({'message':'User not found'}),404
+    return jsonify({
+            'user_token': user['user_token']
+        }), 200
+    
 
     

@@ -97,7 +97,7 @@ function SignUp() {
       <div className="rightPane">
         <div className="holographic-card">
           <form className="signupForm" onSubmit={handleSubmit}>
-            <h1 id="heading">Register/Sign Up</h1>
+            <h1 id="heading" className='main-head'>Register/Sign Up</h1>
             {submitError && <p style={{ color: "red" }}>{submitError}</p>}
             {submitSuccess && <p style={{ color: "green" }}>{submitSuccess}</p>}
 
@@ -176,7 +176,7 @@ function SignUp() {
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', top: '50%', right: '10px', transform: 'translateY(-50%)', cursor: 'pointer' }}
+                style={{ position: 'absolute', top: '40%', right: '10px', transform: 'translateY(-50%)', cursor: 'pointer' }}
               >
                 {showPassword ? '🙈' : '👁️'}
               </span>

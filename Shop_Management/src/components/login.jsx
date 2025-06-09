@@ -285,7 +285,7 @@ const ResendVerificationButton = () => (
         onClick={() => setShowPassword(!showPassword)} 
         style={{
             position: 'absolute',
-            top: '50%',
+            top: '40%',
             right: '16px',
             transform: 'translateY(-50%)',
             cursor: 'pointer',
