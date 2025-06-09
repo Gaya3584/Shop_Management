@@ -71,19 +71,22 @@ def place_order():
             'status': 'placed',
             'orderedAt': datetime.utcnow(),
             'shopName': product.get('shopName', 'Unknown'),
-            'customerName': customer.get('ownerName', 'Unknown') 
+            'customerName': customer.get('ownerName', 'Unknown'),
+            'emailNotifications':False,
+            'localNotifications':False
         }
-        db.orders.insert_one(order_doc)
+        order_result=db.orders.insert_one(order_doc)
 
         seller_id = product.get('user_token')
         seller = users.find_one({'_id': ObjectId(seller_id)})
         seller_email = seller.get('email')
         buyer = users.find_one({'_id': ObjectId(user_id)})
+        buyer_email=buyer.get('email')
 
         if seller_email:
             try:
                 msg = Message(
-                    subject="🛒 New Order on Shopsy",
+                    subject="🛒 New Order for your product on Shopsy",
                     sender=current_app.config['MAIL_USERNAME'],
                     recipients=[seller_email]
                 )
@@ -104,6 +107,35 @@ def place_order():
                 mail.send(msg)
             except Exception as e:
                 print("Failed to send email:", e)
+
+        if buyer_email:
+            try:
+                msg = Message(
+                    subject="🛒 New Order on Shopsy",
+                    sender=current_app.config['MAIL_USERNAME'],
+                    recipients=[buyer_email]
+                )
+                msg.body = f"""Hello {buyer.get('shopName', 'Seller')},
+
+                    You have ordered product: {product.get('name', 'Unnamed')}.
+
+                    Order Details:
+                    - Quantity: {quantity}
+                    - Total Price: ₹{total_price}
+                    - Seller: {seller.get('shopName', 'Unknown')}
+
+                    Please check your dashboard to manage this order.
+
+                    Regards,
+                    Shopsy Team
+                    """
+                mail.send(msg)
+            except Exception as e:
+                print("Failed to send email:", e)
+        db.orders.update_one(
+        {"_id": ObjectId(order_result.inserted_id)},
+        {"$set": {"emailNotifications": True}}
+    )
         return jsonify({'message': 'Order placed successfully'}), 201
 
     except Exception as e:
