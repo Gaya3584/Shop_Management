@@ -125,10 +125,9 @@ body {
 }
 
 .input-labelx {
-  font-size: 15px;
+  font-size: 20px;
   margin-bottom: 8px;
   color: var(--text-primary);
-  font-weight: 600;
   font-family: var(--font-primary);
   letter-spacing: 0.25px;
 }
@@ -400,6 +399,7 @@ body {
   font-size: 14px;
   transition: all 0.2s ease;
   position: relative;
+  margin-top: -20px;
 }
 
 .forgot-password-linkx::after,
@@ -421,7 +421,7 @@ body {
 
 .forgot-password-linkx:hover,
 .register-linkx:hover {
-  color: #f5f1f1;
+  color:#000;
 }
 
 /* Footer */

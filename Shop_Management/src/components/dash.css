@@ -221,12 +221,12 @@ body {
   letter-spacing: -0.01em;
 }
 
-.user-email {
+.useremail
+{
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   margin: 0;
 }
-
 /* Enhanced Navigation Menu */
 .nav-menu {
   padding: 1.5rem;
