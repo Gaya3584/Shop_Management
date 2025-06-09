@@ -6,6 +6,7 @@ import {
   Download, RefreshCw, Bell, Menu, X, Plus, ArrowRight, ArrowLeft
 } from 'lucide-react';
 import axios from 'axios';
+import html2pdf from 'html2pdf.js';
 import { useNavigate } from 'react-router-dom';
 import './orders.css';
 
@@ -33,7 +34,7 @@ const OrderManagementSystem = () => {
     };
 
     fetchNotificationCount(); // initial fetch
-    const interval = setInterval(fetchNotificationCount, 5000); // auto-refresh every 5 seconds
+    const interval = setInterval(fetchNotificationCount, 500000); // auto-refresh every 5 seconds
 
     return () => clearInterval(interval); // cleanup on unmount
   }, []);
@@ -54,7 +55,7 @@ const OrderManagementSystem = () => {
 
   useEffect(() => {
     fetchData(); // Initial fetch
-    const intervalId = setInterval(fetchData, 10000);
+    const intervalId = setInterval(fetchData, 100000);
     return () => clearInterval(intervalId);
   }, [activeTab]);
 
@@ -133,7 +134,8 @@ const fetchSellOrders = async () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'pending': return <Clock className="status-icon" />;
+      case 'pending':
+      case 'placed': return <Clock className="status-icon" />;
       case 'accepted': return <CheckCircle className="status-icon" />;
       case 'dispatched': return <Package className="status-icon" />;
       case 'delivered': return <CheckCircle className="status-icon" />;
@@ -216,12 +218,12 @@ const transformOrder = (order) => ({
     {
       stage: 'Order Placed',
       time: order.orderedAt,
-      completed: true,
+      completed:true,
     },
     {
       stage: 'Accepted',
       time: null,
-      completed: order.status !== 'pending',
+      completed: order.status === 'accepted',
     },
     {
       stage: 'Dispatched',
@@ -390,11 +392,10 @@ const transformOrder = (order) => ({
             )}
           </div>
           {/* Actions */}
-            {activeTab === 'selling' && order.status === 'pending' && (
+            {activeTab === 'selling' && (order.status === 'pending' || order.status === 'placed') && (
               <div className="modal-actions">
                 <button 
-                    disabled={isLoading} 
-                    onClick={() => handleStatusUpdate(order.id, 'accepted').finally(()=>setIsLoading(false))}
+                    onClick={() => handleStatusUpdate(order.id, 'accepted')}
                     className='action-button accept-btn'
                   >
                   Accept Order
@@ -407,7 +408,7 @@ const transformOrder = (order) => ({
                 </button>
               </div>
             )}
-            {activeTab === 'buying' && order.status === 'pending' && (
+            {activeTab === 'buying' && (order.status === 'pending' || order.status === 'placed') && (
               <div className="modal-actions">
                 <button 
                   onClick={() => handleStatusUpdate(order.id, 'cancelled')}

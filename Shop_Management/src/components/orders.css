@@ -575,7 +575,8 @@ margin-left: 30px;}
   text-transform: capitalize;
 }
 
-.status-badge.status-pending {
+.status-badge.status-pending,
+.status-badge.status-placed {
   background-color: #fef3c7;
   color: #92400e;
 }

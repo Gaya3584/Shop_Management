@@ -59,7 +59,7 @@ const DiscoverPage = () => {
               : (stock.image?.startsWith('/') ? stock.image : `/static/uploads/${stock.image}`)),
           category: stock.category?.toLowerCase() || 'misc',
           quantity: stock.quantity,
-          inStock: stock.quantity > 0,
+          inStock: (stock.quantity -stock.minThreshold)> 0,
           discount: stock.discount,
           createdAt: stock.addedAt
         }));
