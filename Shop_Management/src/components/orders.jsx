@@ -6,7 +6,6 @@ import {
   Download, RefreshCw, Bell, Menu, X, Plus, ArrowRight, ArrowLeft
 } from 'lucide-react';
 import axios from 'axios';
-import html2pdf from 'html2pdf.js';
 import { useNavigate } from 'react-router-dom';
 import './orders.css';
 
