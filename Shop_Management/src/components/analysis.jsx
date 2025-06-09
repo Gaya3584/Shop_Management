@@ -192,21 +192,7 @@ const WeeklySalesAnalysis = () => {
       week.revenue > (best?.revenue || 0) ? week : best, null),
     worstWeek: barChartData.reduce((worst, week) => 
       week.revenue < (worst?.revenue || Infinity) ? week : worst, null),
-  totalRevenue: filteredData.reduce((sum, item) => sum + (item.total_price || 0), 0),
-  totalQuantity: filteredData.reduce((sum, item) => sum + (item.quantity || 0), 0),
-  
-  bestSellingProduct: productArray.length > 0 ? 
-    productArray.reduce((best, product) => 
-      product.totalQuantity > (best?.totalQuantity || 0) ? product : best
-    , null) : null,
-    
-  worstSellingProduct: productArray.length > 0 ?
-    productArray.reduce((worst, product) => 
-      product.totalQuantity < (worst?.totalQuantity || Infinity) ? product : worst
-    , null) : null,
-    
-  totalOrders: filteredData.length,
-  totalProducts: productArray.length
+ 
 };
 const handleTableCSVDownload = () => {
     if (!filteredData?.length) return;

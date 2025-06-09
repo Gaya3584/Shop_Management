@@ -20,7 +20,20 @@ const DiscoverPage = () => {
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [showWishlist, setShowWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-
+  const [currentUser, setCurrentUser] = useState(null); 
+   const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/token', { 
+        withCredentials: true 
+      });
+      setCurrentUser(response.data.user_token || response.data.id);
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
+  const isOwnProduct = (product) => {
+  return product.user_token === currentUser;
+};
   const fetchProducts = () => {
     setLoading(true);
     axios.get('http://localhost:5000/api/stocks/public', { withCredentials: true })
@@ -33,6 +46,8 @@ const DiscoverPage = () => {
           minOrder: stock.minOrder,
           threshold: stock.minThreshold,
           seller: stock.user_info.seller || 'Unknown Seller',
+          supplier:stock.user_info.supplier,
+          user_token:stock.user_info.user_token,
           sellerType: stock.user_info.sellerType,
           location: stock.user_info.location || 'Unknown',
           rating: stock.rating,
@@ -54,10 +69,11 @@ const DiscoverPage = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    fetchProducts();
-    fetchWishlist();
-  }, []);
+useEffect(() => {
+  fetchCurrentUser(); // Fetch current user when component mounts
+  fetchProducts();
+  fetchWishlist();
+}, []);
 
   const toggleWishlist = (product) => {
     setWishlist((prevWishlist) => {
@@ -544,15 +560,20 @@ const DiscoverPage = () => {
                     <div className="product-actions">
                       <button
                         className="inquire-btn"
-                        disabled={!product.inStock}
+                        disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
                           setSelectedProduct(product);
                           setBuyQuantity(1);
                           setShowBuyModal(true);
                         }}
                       >
-                        {product.inStock ? 'Buy Now' : 'Out of Stock'}
+                        {!product.inStock
+                        ? 'Out of Stock'
+                        : isOwnProduct(product)
+                        ? 'Your Product'
+                        : 'Buy Now'}
                       </button>
+
                       <button
                         className="wishlist-btn"
                         onClick={() => toggleWishlist(product)}

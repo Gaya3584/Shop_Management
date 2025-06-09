@@ -203,11 +203,17 @@ def get_all_public_stocks():
         for user in all_users:
             user['_id'] = str(user['_id'])
         
-        user_dict = {user['_id']:{
-            'seller':user['shopName'],
-            'sellerType':user['shopType'],
-            'location':user['shopLocation']
-        } for user in all_users}
+        user_dict = {
+        user['_id']: {
+            'seller': user.get('shopName', ''),
+            'supplier': user.get('supplier', ''),  # safely handles null
+            'sellerType': user.get('shopType', ''),
+            'location': user.get('shopLocation', ''),
+            'user_token':user.get('user_token','')
+        }
+        for user in all_users
+        }
+
 
         stock_and_users=[{
             **stock,
