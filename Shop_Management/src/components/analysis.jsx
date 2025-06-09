@@ -192,6 +192,7 @@ const WeeklySalesAnalysis = () => {
       week.revenue > (best?.revenue || 0) ? week : best, null),
     worstWeek: barChartData.reduce((worst, week) => 
       week.revenue < (worst?.revenue || Infinity) ? week : worst, null),
+  
  
 };
 const handleTableCSVDownload = () => {
@@ -272,6 +273,34 @@ const handleTableCSVDownload = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // Export functionality
+  const exportToCSV = () => {
+    const headers = ['Order ID', 'Customer Name', 'Shop Name', 'Product Name', 'Order Date', 'Week', 'Quantity Sold', 'Revenue', 'Status'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredData.map(row => [
+        row._id,
+        row.customerName,
+        row.shopName,
+        row.product_name,
+        new Date(row.orderedAt).toLocaleDateString(),
+        formatWeekRange(getWeekStart(row.orderedAt)),
+        row.quantity,
+        row.total_price,
+        row.status
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'weekly-sales-analysis.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   // Date quick filters
   const setQuickDateFilter = (days) => {
     const end = new Date();
