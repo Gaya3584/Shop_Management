@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Filter, Calendar, ChevronDown, Eye, Phone, MessageCircle, 
   Printer, CheckCircle, XCircle, Clock, Package, MapPin, DollarSign,
@@ -18,7 +18,17 @@ const OrderManagementSystem = () => {
   const [showFilters, setShowFilters] = useState(false);
   const invoiceRef = useRef();
   const [showModal, setShowModal] = useState(false);
+  const [deliveredOrder, setDeliveredOrder] = useState(null);
+  const [showStockPrompt, setShowStockPrompt] = useState(false);
+  const [prevBuyingOrders, setPrevBuyingOrders] = useState([]);
+  const [addedToStockOrders, setAddedToStockOrders] = useState([]);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [buyingOrders, setBuyingOrders] = useState([]);
+  const [sellingOrders, setSellingOrders] = useState([]);
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch notification count
   useEffect(() => {
     const fetchNotificationCount = async () => {
       try {
@@ -32,16 +42,106 @@ const OrderManagementSystem = () => {
       }
     };
 
-    fetchNotificationCount(); // initial fetch
-    const interval = setInterval(fetchNotificationCount, 500000); // auto-refresh every 5 seconds
-
-    return () => clearInterval(interval); // cleanup on unmount
+    fetchNotificationCount();
+    const interval = setInterval(fetchNotificationCount, 5000);
+    return () => clearInterval(interval);
   }, []);
-  const [buyingOrders, setBuyingOrders] = useState([]);
-  const [sellingOrders, setSellingOrders] = useState([]);
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
 
+  // Transform order data
+  const transformOrder = (order) => ({
+    id: order._id,
+    items: [
+      {
+        name: order.name, 
+        quantity: order.quantity,
+        price: order.total_price / order.quantity,
+      },
+    ],
+    totalAmount: order.total_price,
+    paymentMethod: 'Cash',
+    orderDate: order.orderedAt,
+    status: order.status,
+    shopName: order.shopName,
+    customerName: order.customerName,
+    shopContact: order.shopPhone,
+    customerContact: order.customerPhone,
+    deliveryAddress: order.customerAddress,
+    timeline: [
+      {
+        stage: 'Order Placed',
+        time: order.orderedAt,
+        completed: true,
+      },
+      {
+        stage: 'Accepted',
+        time: null,
+        completed: order.status !== 'pending',
+      },
+      {
+        stage: 'Dispatched',
+        time: null,
+        completed: order.status === 'dispatched' || order.status === 'delivered',
+      },
+      {
+        stage: 'Delivered',
+        time: null,
+        completed: order.status === 'delivered',
+      },
+    ],
+  });
+
+  // Handle adding to stock
+  const handleAddToStock = async (order) => {
+    try {
+      setIsLoading(true);
+      
+      const response = await fetch('http://localhost:5000/api/orders/add-to-stock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          order_id: order.id
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log(result.message);
+        setAddedToStockOrders(prev => [...prev, order.id]);
+        alert(`✅ ${result.message}`);
+        fetchBuyOrders();
+      } else {
+        console.error(result.message);
+        alert(`❌ Error: ${result.message}`);
+      }
+    } catch (error) {
+      console.error("Error adding to stock:", error);
+      alert('❌ Failed to add to stock. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check stock status for orders
+  const checkStockStatus = async (orderId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/stock-status`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+      return result.addedToStock || false;
+    } catch (error) {
+      console.error("Error checking stock status:", error);
+      return false;
+    }
+  };
+
+  // Fetch data based on active tab
   const fetchData = () => {
     setIsLoading(true); 
     if (activeTab === 'buying') {
@@ -52,12 +152,7 @@ const OrderManagementSystem = () => {
     console.log("Successfully refreshed...");
   };
 
-  useEffect(() => {
-    fetchData(); // Initial fetch
-    const intervalId = setInterval(fetchData, 100000);
-    return () => clearInterval(intervalId);
-  }, [activeTab]);
-
+  // Fetch buying orders
   const fetchBuyOrders = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/orders/purchases', {
@@ -66,36 +161,106 @@ const OrderManagementSystem = () => {
       });
       const data = await response.json();
       const transformed = data.buyingOrders.map(transformOrder);
-      setBuyingOrders(transformed);
+
+      // Get stock status for each order
+      const ordersWithStockStatus = await Promise.all(
+        transformed.map(async (order) => {
+          const addedToStock = await checkStockStatus(order.id);
+          return { ...order, addedToStock };
+        })
+      );
+
+      // Detect newly delivered orders
+      ordersWithStockStatus.forEach((newOrder) => {
+        const prevOrder = prevBuyingOrders.find(o => o.id === newOrder.id);
+        if (prevOrder && prevOrder.status !== 'delivered' && newOrder.status === 'delivered') {
+          setDeliveredOrder(newOrder);
+          setShowStockPrompt(true);
+        }
+      });
+
+      setBuyingOrders(ordersWithStockStatus);
+      setPrevBuyingOrders(ordersWithStockStatus);
+      
+      // Update addedToStockOrders state
+      const stockAddedOrders = ordersWithStockStatus
+        .filter(order => order.addedToStock)
+        .map(order => order.id);
+      setAddedToStockOrders(stockAddedOrders);
+      
     } catch (error) {
       console.error("Error fetching orders:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-const fetchSellOrders = async () => {
-  try {
-    const response = await fetch('http://localhost:5000/api/orders/sales', {
-      method: 'GET',
-      credentials: 'include'
-    });
-    const data = await response.json();
-    if (data.message) {
-      console.error(data.message);
-      alert('Error fetching current user. Please login.');
+  // Fetch selling orders
+  const fetchSellOrders = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('http://localhost:5000/api/orders/sales', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.message) {
+        console.error(data.message);
+        alert('Error fetching current user. Please login.');
       navigate('/');
     } else {
-      const transformed = data.sellingOrders.map(transformOrder); 
-      setSellingOrders(transformed);
+        const transformed = data.sellingOrders.map(transformOrder); 
+        setSellingOrders(transformed);
+      }
+      console.log("Fetching sales...");
+      console.log("Response:", data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setIsLoading(false);
     }
-    console.log("Fetching sales...");
-    console.log("Response:", data);
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-  }
-};
+  };
+
+  // Initial data fetch and interval setup
+  useEffect(() => {
+    fetchData();
+    const intervalId = setInterval(fetchData, 10000);
+    return () => clearInterval(intervalId);
+  }, [activeTab]);
+
+  // Handle status updates
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log(result.message);
+        // Refresh data after status update
+        fetchData();
+        alert(`✅ Order status updated to ${newStatus}`);
+      } else {
+        console.error(result.message);
+        alert(`❌ Error: ${result.message}`);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert('❌ Failed to update status. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const currentOrders = activeTab === 'buying' ? buyingOrders : sellingOrders;
-
 
   // Filter and search logic
   const filteredOrders = currentOrders.filter(order => {
@@ -116,7 +281,7 @@ const fetchSellOrders = async () => {
       matchesDate = orderDate >= oneMonthAgo && orderDate <= now;
     }
 
-    //Search Logic
+    // Search Logic
     const matchesSearch = searchTerm === '' || 
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (activeTab === 'buying' ? 
@@ -126,7 +291,7 @@ const fetchSellOrders = async () => {
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
-    return matchesSearch && matchesStatus&&matchesDate;
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const getStatusClass = (status) => {
@@ -135,8 +300,7 @@ const fetchSellOrders = async () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'pending':
-      case 'placed': return <Clock className="status-icon" />;
+      case 'pending': return <Clock className="status-icon" />;
       case 'accepted': return <CheckCircle className="status-icon" />;
       case 'dispatched': return <Package className="status-icon" />;
       case 'delivered': return <CheckCircle className="status-icon" />;
@@ -163,82 +327,7 @@ const fetchSellOrders = async () => {
     }).format(amount);
   };
 
- const handleStatusUpdate = async (orderId, newStatus) => {
-  try {
-    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({ status: newStatus })
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      console.log(result.message);
-      // Optionally: refetch or update local state
-      if (activeTab === 'buying') 
-        {
-          fetchBuyOrders();
-        }
-      else{
-          fetchSellOrders();
-      } 
-    
-    setShowModal(false);
-    setSelectedOrder(null);
-  }else {
-      console.error(result.message);
-    }
-  } catch (error) {
-    console.error("Error updating order status:", error);
-  }
-};
-
-const transformOrder = (order) => ({
-  id: order._id,
-  items: [ // assume one product per order for now
-    {
-      name: order.name, 
-      quantity: order.quantity,
-      price: order.total_price/order.quantity,
-    },
-  ],
-  totalAmount: order.total_price,
-  paymentMethod: 'Cash', // or however you're handling it
-  orderDate: order.orderedAt,
-  status: order.status,
-  shopName: order.shopName,
-  customerName: order.customerName,
-  shopContact: order.shopPhone,
-  customerContact: order.customerPhone,
-  deliveryAddress: order.customerAddress,
-  timeline: [
-    {
-      stage: 'Order Placed',
-      time: order.orderedAt,
-      completed:true,
-    },
-    {
-      stage: 'Accepted',
-      time: null,
-      completed: order.status === 'accepted'|| order.status === 'dispatched' || order.status === 'delivered',
-    },
-    {
-      stage: 'Dispatched',
-      time: null,
-      completed: order.status === 'dispatched' || order.status === 'delivered',
-    },
-    {
-      stage: 'Delivered',
-      time: null,
-      completed: order.status === 'delivered',
-    },
-  ],
-});
-
+  // Order Card Component
   const OrderCard = ({ order }) => (
     <div className="order-card" onClick={() => { setSelectedOrder(order); setShowModal(true); }}>
       <div className="order-header">
@@ -279,12 +368,36 @@ const transformOrder = (order) => ({
           </button>
         </div>
       </div>
+
+      {/* Add to Stock button for buying orders */}
+      {activeTab === 'buying' && (
+        <div className="order-stock-action">
+          <button
+            className={`action-button stock-btn ${
+              order.status !== 'delivered' || order.addedToStock || isLoading ? 'disabled' : ''
+            }`}
+            disabled={order.status !== 'delivered' || order.addedToStock || isLoading}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (order.status === 'delivered' && !order.addedToStock) {
+                handleAddToStock(order);
+              }
+            }}
+          >
+            {isLoading ? 'Adding...' : 
+             order.addedToStock ? '✅ Added to Stock' : 
+             'Add to Stock'}
+          </button>
+        </div>
+      )}
     </div>
   );
 
-  const OrderModal = ({ order, onClose,handleStatusUpdate }) => {
+  // Order Modal Component
+  const OrderModal = ({ order, onClose, handleStatusUpdate }) => {
     if (!order) return null;
-      const handlePrint = () => {
+    
+    const handlePrint = () => {
       const productName = order?.items?.[0]?.name?.replace(/\s+/g, '_') || 'product';
       const orderId = order?.id?.slice(-6) || 'order';
       const originalTitle = document.title;
@@ -293,13 +406,14 @@ const transformOrder = (order) => ({
       const printContents = invoiceRef.current.innerHTML;
       const originalContents = document.body.innerHTML;
 
-      document.title = fileTitle; // Set dynamic title
+      document.title = fileTitle;
       document.body.innerHTML = printContents;
       window.print();
       document.body.innerHTML = originalContents;
-      document.title = originalTitle; // Restore title
-      window.location.reload(); // Restore full UI
+      document.title = originalTitle;
+      window.location.reload();
     };
+
     return (
       <div className="modal-overlay">
         <div className="modal-container">
@@ -311,111 +425,122 @@ const transformOrder = (order) => ({
               </button>
             </div>
           </div>
-        <div className="full-content">
-          <div className="modal-content" ref={invoiceRef}>
-            {/* Order Info */}
-            <div className="order-info-grid">
-              <div className="info-item">
-                <label className="info-label">Order Name</label>
-                <p className="info-value">{order.items[0].name}</p>
+          <div className="full-content">
+            <div className="modal-content" ref={invoiceRef}>
+              {/* Order Info */}
+              <div className="order-info-grid">
+                <div className="info-item">
+                  <label className="info-label">Order Name</label>
+                  <p className="info-value">{order.items[0].name}</p>
+                </div>
+                <div className="info-item">
+                  <label className="info-label">Order ID</label>
+                  <p className="info-value">{order.id}</p>
+                </div>
+                <div className="info-item">
+                  <label className="info-label">Status</label>
+                  <span className={`status-badge ${getStatusClass(order.status)}`}>
+                    {getStatusIcon(order.status)}
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </span>
+                </div>
               </div>
-              <div className="info-item">
-                <label className="info-label">Order ID</label>
-                <p className="info-value">{order.id}</p>
-              </div>
-              <div className="info-item">
-                <label className="info-label">Status</label>
-                <span className={`status-badge ${getStatusClass(order.status)}`}>
-                  {getStatusIcon(order.status)}
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                </span>
-              </div>
-            </div>
 
-            {/* Customer/Shop Info */}
-            <div className="contact-info-section">
-              <h3 className="section-title">
-                {activeTab === 'buying' ? 'Shop Information' : 'Customer Information'}
-              </h3>
-              <div className="contact-details">
-                <p className="contact-name">
-                  <strong>{activeTab === 'buying' ? order.shopName : order.customerName}</strong>
-                </p>
-                <p className="contact-item">
-                  <Phone className="contact-icon" />
-                  {activeTab === 'buying' ? order.shopContact : order.customerContact}
-                </p>
-                <p className="contact-item">
-                  <MapPin className="contact-icon" />
-                  {order.deliveryAddress}
-                </p>
+              {/* Customer/Shop Info */}
+              <div className="contact-info-section">
+                <h3 className="section-title">
+                  {activeTab === 'buying' ? 'Shop Information' : 'Customer Information'}
+                </h3>
+                <div className="contact-details">
+                  <p className="contact-name">
+                    <strong>{activeTab === 'buying' ? order.shopName : order.customerName}</strong>
+                  </p>
+                  <p className="contact-item">
+                    <Phone className="contact-icon" />
+                    {activeTab === 'buying' ? order.shopContact : order.customerContact}
+                  </p>
+                  <p className="contact-item">
+                    <MapPin className="contact-icon" />
+                    {order.deliveryAddress}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* Items */}
-            <div className="items-section">
-              <h3 className="section-title">Order Items</h3>
-              <div className="items-list">
-                {order.items.map((item, index) => (
-                  <div key={index} className="item-card">
-                    <div className="item-info">
-                      <p className="item-name">{item.name}</p>
-                      <p className="item-quantity">Qty: {item.quantity}</p>
+              {/* Items */}
+              <div className="items-section">
+                <h3 className="section-title">Order Items</h3>
+                <div className="items-list">
+                  {order.items.map((item, index) => (
+                    <div key={index} className="item-card">
+                      <div className="item-info">
+                        <p className="item-name">{item.name}</p>
+                        <p className="item-quantity">Qty: {item.quantity}</p>
+                      </div>
+                      <p className="item-price">{formatCurrency(item.price)}</p>
                     </div>
-                    <p className="item-price">{formatCurrency(item.price)}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Timeline */}
-            <div className="timeline-section">
-              <h3 className="section-title">Order Timeline</h3>
-              <div className="timeline-list">
-                {order.timeline.map((stage, index) => (
-                  <div key={index} className={`timeline-item ${stage.completed ? 'completed' : 'pending'}`}>
-                    <div className="timeline-dot"></div>
-                    <div className="timeline-content">
-                      <p className="timeline-stage">{stage.stage}</p>
-                      {stage.time && <p className="timeline-time">{formatDateTime(stage.time)}</p>}
+              {/* Timeline */}
+              <div className="timeline-section">
+                <h3 className="section-title">Order Timeline</h3>
+                <div className="timeline-list">
+                  {order.timeline.map((stage, index) => (
+                    <div key={index} className={`timeline-item ${stage.completed ? 'completed' : 'pending'}`}>
+                      <div className="timeline-dot"></div>
+                      <div className="timeline-content">
+                        <p className="timeline-stage">{stage.stage}</p>
+                        {stage.time && <p className="timeline-time">{formatDateTime(stage.time)}</p>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Special Instructions */}
-            {order.specialInstructions && (
-              <div className="instructions-section">
-                <h3 className="instructions-title">Special Instructions</h3>
-                <p className="instructions-text">{order.specialInstructions}</p>
-              </div>
-            )}
-          </div>
-          {/* Actions */}
-            {activeTab === 'selling' && (order.status === 'pending' || order.status === 'placed') && (
+              {/* Special Instructions */}
+              {order.specialInstructions && (
+                <div className="instructions-section">
+                  <h3 className="instructions-title">Special Instructions</h3>
+                  <p className="instructions-text">{order.specialInstructions}</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Actions */}
+            {activeTab === 'selling' && order.status === 'pending' && (
               <div className="modal-actions">
                 <button 
-                    onClick={() => handleStatusUpdate(order.id, 'accepted')}
-                    className='action-button accept-btn'
-                  >
-                  Accept Order
+                  disabled={isLoading} 
+                  onClick={() => handleStatusUpdate(order.id, 'accepted')}
+                  className='action-button accept-btn'
+                >
+                  {isLoading ? 'Processing...' : 'Accept Order'}
                 </button>
                 <button 
                   onClick={() => handleStatusUpdate(order.id, 'rejected')}
                   className="action-button reject-btn"
+                  disabled={isLoading}
                 >
                   Reject Order
                 </button>
               </div>
             )}
-            {activeTab === 'buying' && (order.status === 'pending' || order.status === 'placed') && (
-              <div className="modal-actions">
-                <button 
-                  onClick={() => handleStatusUpdate(order.id, 'cancelled')}
-                  className="action-button reject-btn"
+
+            {activeTab === 'buying' && (
+              <div className="order-stock-action">
+                <button
+                  className={`action-button stock-btn ${order.status !== 'delivered' || order.addedToStock ? 'disabled' : ''}`}
+                  disabled={order.status !== 'delivered' || order.addedToStock}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (order.status === 'delivered' && !order.addedToStock) {
+                      setDeliveredOrder(order);
+                      setShowStockPrompt(true);
+                    }
+                  }}
                 >
-                  Cancel
+                  {order.addedToStock ? '✅ Added to Stock' : 'Add to Stock'}
                 </button>
               </div>
             )}
@@ -425,8 +550,9 @@ const transformOrder = (order) => ({
                 <button 
                   onClick={() => handleStatusUpdate(order.id, 'dispatched')}
                   className="action-button dispatch-btn"
+                  disabled={isLoading}
                 >
-                  Mark as Dispatched
+                  {isLoading ? 'Processing...' : 'Mark as Dispatched'}
                 </button>
               </div>
             )}
@@ -436,8 +562,9 @@ const transformOrder = (order) => ({
                 <button 
                   onClick={() => handleStatusUpdate(order.id, 'delivered')}
                   className="action-button deliver-btn"
+                  disabled={isLoading}
                 >
-                  Mark as Delivered
+                  {isLoading ? 'Processing...' : 'Mark as Delivered'}
                 </button>
               </div>
             )}
@@ -451,7 +578,7 @@ const transformOrder = (order) => ({
                 <Download className="utility-icon" />
                 Download
               </button>
-          </div>
+            </div>
           </div>
         </div>
       </div>
@@ -462,13 +589,13 @@ const transformOrder = (order) => ({
     <div className="app-container">
       {/* Header */}
       <header className="app-header">
-         <button className="back-btn" onClick={() => window.history.back()}>
-      <ArrowLeft className="back-icon" />
-    </button>
+        <button className="back-btn" onClick={() => window.history.back()}>
+          <ArrowLeft className="back-icon" />
+        </button>
         <div className="header-content">
           <div className="header-left">
             <h1 className="app-title">Order Management</h1>
-            <div className="notification-bell" onClick={() => navigate(`/notifications`)} >
+            <div className="notification-bell" onClick={() => navigate(`/notifications`)}>
               <Bell className="bell-icon" />
               {notificationCount > 0 && (
                 <span className="notification-badgeo">
@@ -507,8 +634,6 @@ const transformOrder = (order) => ({
             My Sales
           </button>
         </div>
-
-        {/* Analytics */}
 
         {/* Search and Filters */}
         <div className="search-filter-section">
@@ -563,7 +688,7 @@ const transformOrder = (order) => ({
 
         {/* Orders Grid */}
         <div className="orders-grid">
-          {filteredOrders.map((order,index) => (
+          {filteredOrders.map((order, index) => (
             <OrderCard key={order.id || order._id || index} order={order} />
           ))}
         </div>
@@ -589,6 +714,50 @@ const transformOrder = (order) => ({
           onClose={() => { setShowModal(false); setSelectedOrder(null); }} 
           handleStatusUpdate={handleStatusUpdate}
         />
+      )}
+
+      {/* Stock Prompt Modal */}
+      {showStockPrompt && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h3>Add to Stocks</h3>
+              <button onClick={() => setShowStockPrompt(false)} className="modal-close-btn">
+                <X className="close-icon" />
+              </button>
+            </div>
+            <div className="modal-content">
+              <p>
+                Do you want to add <strong>{deliveredOrder?.items[0].name}</strong> (Qty: {deliveredOrder?.items[0].quantity}) to your stock?
+              </p>
+              <div className="modal-actions">
+                <button
+                  className={`action-button accept-btn ${isLoading ? 'disabled' : ''}`}
+                  disabled={isLoading}
+                  onClick={async () => {
+                    if (deliveredOrder) {
+                      await handleAddToStock(deliveredOrder);
+                      setShowStockPrompt(false);
+                      setDeliveredOrder(null);
+                    }
+                  }}
+                >
+                  {isLoading ? 'Adding...' : 'Yes, Add to Stock'}
+                </button>
+                <button
+                  className="action-button reject-btn"
+                  onClick={() => {
+                    setShowStockPrompt(false);
+                    setDeliveredOrder(null);
+                  }}
+                  disabled={isLoading}
+                >
+                  No, Skip
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

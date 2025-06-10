@@ -73,7 +73,9 @@ def place_order():
             'shopName': product.get('shopName', 'Unknown'),
             'customerName': customer.get('ownerName', 'Unknown'),
             'emailNotifications':False,
-            'localNotifications':False
+            'localNotifications':False,
+            'addedToStock': False  # New field to track stock addition
+
         }
         order_result=db.orders.insert_one(order_doc)
 
@@ -141,6 +143,86 @@ def place_order():
     except Exception as e:
         return jsonify({'message': 'Error placing order', 'error': str(e)}), 500
     
+@auth_bp.route('/api/orders/add-to-stock', methods=['POST', 'OPTIONS'])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def add_to_stock():
+    """Add ordered items to user's stock"""
+    try:
+        user_token = request.cookies.get('token')
+        user_id = decode_token(user_token)
+        if not user_id:
+            return jsonify({'message': 'Invalid or expired token'}), 401
+
+        data = request.json
+        order_id = data.get('order_id')
+
+        if not order_id or not ObjectId.is_valid(order_id):
+            return jsonify({'message': 'Invalid order ID'}), 400
+
+        # Find the order
+        order = orders.find_one({'_id': ObjectId(order_id), 'user_token': user_id})
+        if not order:
+            return jsonify({'message': 'Order not found'}), 404
+
+        # Check if order is delivered
+        if order.get('status') != 'delivered':
+            return jsonify({'message': 'Order must be delivered before adding to stock'}), 400
+
+        # Check if already added to stock
+        if order.get('addedToStock', False):
+            return jsonify({'message': 'Order items already added to stock'}), 400
+
+        # Get the original product details
+        product_id = order.get('product_id')
+        original_product = stocks.find_one({'_id': ObjectId(product_id)})
+        if not original_product:
+            return jsonify({'message': 'Original product not found'}), 404
+
+        # Check if user already has this product in their stock
+        user_existing_product = stocks.find_one({
+            'user_token': user_id,
+            'name': original_product.get('name'),
+            'category': original_product.get('category')
+        })
+
+        quantity_to_add = order.get('quantity', 0)
+
+        if user_existing_product:
+            # Update existing product quantity
+            stocks.update_one(
+                {'_id': user_existing_product['_id']},
+                {'$inc': {'quantity': quantity_to_add}}
+            )
+            message = f"Added {quantity_to_add} units to existing product in your stock"
+        else:
+            # Create new product in user's stock
+            new_stock_item = {
+                'user_token': user_id,
+                'name': original_product.get('name'),
+                'category': original_product.get('category'),
+                'price': original_product.get('price'),
+                'quantity': quantity_to_add,
+                'minThreshold': original_product.get('minThreshold', 5),
+                'minOrder': original_product.get('minOrder', 1),
+                'shopName': order.get('customerName', 'Unknown'),
+                'addedAt': datetime.utcnow(),
+                'description': original_product.get('description', ''),
+                'image': original_product.get('image', '')
+            }
+            stocks.insert_one(new_stock_item)
+            message = f"Added new product '{original_product.get('name')}' with {quantity_to_add} units to your stock"
+
+        # Mark order as added to stock
+        orders.update_one(
+            {'_id': ObjectId(order_id)},
+            {'$set': {'addedToStock': True}}
+        )
+
+        return jsonify({'message': message}), 200
+
+    except Exception as e:
+        return jsonify({'message': 'Error adding to stock', 'error': str(e)}), 500
+    
 @auth_bp.route('/api/orders/purchases', methods=['GET'])
 def get_purchases():
     try:
@@ -198,28 +280,29 @@ def get_sales():
 
     except Exception as e:
         return jsonify({'message': 'Error fetching sales', 'error': str(e)}), 500
-    
-@auth_bp.route('/api/orders/<order_id>/status', methods=['PATCH'])
-def update_order_status(order_id):
+@auth_bp.route('/api/orders/<order_id>/stock-status', methods=['GET'])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def check_stock_status(order_id):
+    """Check if an order has been added to stock"""
     try:
-        data = request.json
-        new_status = data.get('status')
+        user_token = request.cookies.get('token')
+        user_id = decode_token(user_token)
+        if not user_id:
+            return jsonify({'message': 'Invalid or expired token'}), 401
 
-        if not new_status:
-            return jsonify({'message': 'Status is required'}), 400
+        if not ObjectId.is_valid(order_id):
+            return jsonify({'message': 'Invalid order ID'}), 400
 
-        result = db.orders.update_one(
-            {'_id': ObjectId(order_id)},
-            {'$set': {'status': new_status}}
-        )
+        order = orders.find_one({'_id': ObjectId(order_id), 'user_token': user_id})
+        if not order:
+            return jsonify({'message': 'Order not found'}), 404
 
-        if result.modified_count == 0:
-            return jsonify({'message': 'No order updated'}), 404
-
-        return jsonify({'message': 'Order status updated'}), 200
+        added_to_stock = order.get('addedToStock', False)
+        return jsonify({'addedToStock': added_to_stock}), 200
 
     except Exception as e:
-        return jsonify({'message': 'Error updating order', 'error': str(e)}), 500
+        return jsonify({'message': 'Error checking stock status', 'error': str(e)}), 500
+
 
 @auth_bp.route("/api/notifications", methods=['GET'])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
