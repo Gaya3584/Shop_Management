@@ -26,7 +26,7 @@ const OrderManagementSystem = () => {
           withCredentials: true,
           headers: { 'Content-Type': 'application/json' },
         });
-        setNotificationCount(res.data.count || 0);
+        setNotificationCount(res.data.countUnread || 0);
       } catch (err) {
         console.error('Failed to fetch notification count:', err);
       }
@@ -81,6 +81,8 @@ const fetchSellOrders = async () => {
     const data = await response.json();
     if (data.message) {
       console.error(data.message);
+      alert('Error fetching current user. Please login.');
+      navigate('/');
     } else {
       const transformed = data.sellingOrders.map(transformOrder); 
       setSellingOrders(transformed);

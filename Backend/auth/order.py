@@ -221,45 +221,64 @@ def update_order_status(order_id):
     except Exception as e:
         return jsonify({'message': 'Error updating order', 'error': str(e)}), 500
 
-@auth_bp.route("/api/notifications",methods=['GET'])
+@auth_bp.route("/api/notifications", methods=['GET'])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_notifications():
-    stock = db.stocks.find().sort('addedAt', -1)
-    order = db.orders.find().sort('orderedAt', -1)
-    
+    user_token = request.cookies.get('token')
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({'message': 'Invalid or expired token'}), 401
 
-    logs = []
+    now = datetime.utcnow()
 
-    
-    for log in stock:
-        added_at = log.get("addedAt")
-        now = datetime.utcnow()
-
-        # Consider it "just added" if it's within the last 5 seconds
+    # --- STOCK NOTIFICATIONS ---
+    stock_cursor = db.stocks.find({'user_token': user_id}).sort('addedAt', -1)
+    for stock in stock_cursor:
+        added_at = stock.get("addedAt") or now
         is_just_now = False
-        if added_at:
-            try:
-                # Handle both datetime objects and strings
-                added_at_dt = added_at if isinstance(added_at, datetime) else datetime.fromisoformat(added_at)
-                is_just_now = abs((now - added_at_dt).total_seconds()) < 5
-            except Exception as e:
-                print("Invalid addedAt format:", added_at)
+        try:
+            added_at_dt = added_at if isinstance(added_at, datetime) else datetime.fromisoformat(added_at)
+            is_just_now = abs((now - added_at_dt).total_seconds()) < 5
+        except:
+            pass
 
-        # Determine action
         action = None
-        if log.get("quantity") == log.get("minThreshold"):
+        if stock.get("quantity") == stock.get("minThreshold"):
             action = "low"
         elif is_just_now:
             action = "stock-added"
-        if action: 
-            logs.append({
+
+        if action:
+            notification = {
+                "user_id": user_id,
                 "type": f"stock-{action}",
-                "message": f"{log.get('name', 'Unnamed')} - {log.get('quantity', 0)} units",
-                "timestamp": added_at or now
+                "message": f"{stock.get('name', 'Unnamed')} - {stock.get('quantity', 0)} units",
+                "timestamp": added_at,
+                "ref_id": str(stock.get('_id')),
+                "source": "stock",
+                "readOrNot": False
+            }
+
+            existing = db.notifications.find_one({
+                "user_id": user_id,
+                "type": notification["type"],
+                "ref_id": notification["ref_id"]
             })
 
-    for log in order:
-        status = log.get("status")
+            if not existing:
+                db.notifications.insert_one(notification)
+
+    # --- ORDER NOTIFICATIONS ---
+    owned_product_ids = [p['_id'] for p in db.stocks.find({'user_token': user_id}, {'_id': 1})]
+    order_cursor = db.orders.find({
+        '$or': [
+            {'user_token': user_id},  # Buyer
+            {'product_id': {'$in': owned_product_ids}}  # Seller
+        ]
+    }).sort('orderedAt', -1)
+
+    for order in order_cursor:
+        status = order.get("status", "unknown")
         if status in ["pending", "placed"]:
             action = "placed"
         elif status == "cancelled":
@@ -274,18 +293,88 @@ def get_notifications():
             action = "dispatched"
         else:
             action = "unknown"
-        product_id = log.get('product_id')
-        product = stocks.find_one({'_id': ObjectId(product_id)})
-        logs.append({
+
+        product_id = order.get('product_id')
+        product = db.stocks.find_one({'_id': ObjectId(product_id)})
+
+        notification = {
+            "user_id": user_id,
             "type": f"order-{action}",
-            "message": f"Order {action} for {product.get('name', 'Unknown Product')} ({log.get('quantity', 0)} units)",
-            "timestamp": log.get("orderedAt", datetime.utcnow())
+            "message": f"Order {action} for {product.get('name', 'Unknown Product')} ({order.get('quantity', 0)} units)",
+            "timestamp": order.get("orderedAt", now),
+            "ref_id": str(order.get('_id')),
+            "source": "order",
+            "readOrNot": False
+        }
+
+        existing = db.notifications.find_one({
+            "user_id": user_id,
+            "type": notification["type"],
+            "ref_id": notification["ref_id"]
         })
 
-    # Sort and format timestamps for frontend
-    sorted_logs = sorted(logs, key=lambda x: x['timestamp'], reverse=True)
-    for log in sorted_logs:
-        if isinstance(log["timestamp"], datetime):
-            log["timestamp"] = log["timestamp"].isoformat()
+        if not existing:
+            db.notifications.insert_one(notification)
 
-    return jsonify(count=len(sorted_logs), notifications=sorted_logs)
+    # --- FETCH AND RETURN USER NOTIFICATIONS ---
+    notifs = list(db.notifications.find({"user_id": user_id}).sort("timestamp", -1))
+    notifi=list(db.notifications.find({
+    "user_id": user_id,
+    "readOrNot": False
+}).sort("timestamp", -1))
+
+    for n in notifs:
+        n['_id'] = str(n['_id'])
+        if isinstance(n['timestamp'], datetime):
+            n['timestamp'] = n['timestamp'].isoformat()
+
+    return jsonify(count=len(notifs),countUnread=len(notifi), notifications=notifs)
+
+@auth_bp.route("/api/notifications/<notif_id>/read", methods=["PATCH"])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def mark_notification_as_read(notif_id):
+    user_token = request.cookies.get('token')
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({'message': 'Invalid or expired token'}), 401
+
+    result = db.notifications.update_one(
+        {"_id": ObjectId(notif_id), "user_id": user_id},
+        {"$set": {"readOrNot": True}}
+    )
+    if result.modified_count == 0:
+        return jsonify({"message": "No notification updated"}), 404
+
+    return jsonify({"message": "Notification marked as read"}), 200
+
+@auth_bp.route("/api/notifications/mark-all-read", methods=["PATCH"])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def mark_all_notifications_as_read():
+    user_token = request.cookies.get('token')
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({'message': 'Invalid or expired token'}), 401
+
+    db.notifications.update_many(
+        {"user_id": user_id, "readOrNot": False},
+        {"$set": {"readOrNot": True}}
+    )
+    return jsonify({"message": "All notifications marked as read"}), 200
+
+@auth_bp.route("/api/notifications/mark-all-unread", methods=["PATCH"])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def mark_all_notifications_as_unread():
+    user_token = request.cookies.get('token')
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({'message': 'Invalid or expired token'}), 401
+
+    result = db.notifications.update_many(
+        {"user_id": user_id, "readOrNot": True},
+        {"$set": {"readOrNot": False}}
+    )
+    
+    return jsonify({
+        "message": "All notifications marked as unread",
+        "modified_count": result.modified_count
+    }), 200

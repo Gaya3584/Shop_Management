@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate} from 'react-router-dom';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Filter, Download, Calendar, TrendingUp, DollarSign, Package, Store } from 'lucide-react';
 import './analysis.css';
 const WeeklySalesAnalysis = () => {
-  // const [selectedShop, setSelectedShop] = useState('all');
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState('2025-05-19');
   const [endDate, setEndDate] = useState('2025-06-02');
   const [loading, setLoading] = useState(false);
@@ -332,7 +333,7 @@ const handleTableCSVDownload = () => {
       <div className="sales-analysis">
         <div className="error-message">
           <p>Error loading data: {error}</p>
-          <button onClick={() => setError('')}>Try Again</button>
+          <button onClick={() => navigate(`/`)}>Try Again by Logging in</button>
         </div>
       </div>
     );
