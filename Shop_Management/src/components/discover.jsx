@@ -11,7 +11,6 @@ const DiscoverPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [selectedBusinessType, setSelectedBusinessType] = useState('all');
-  const [inquirySuccess, setInquirySuccess] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sortOption, setSortOption] = useState('reviews');
@@ -19,6 +18,8 @@ const DiscoverPage = () => {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [showWishlist, setShowWishlist] = useState(false);
+
+
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null); 
   const [recommendations, setRecommendations] = useState([]);
@@ -31,8 +32,14 @@ const DiscoverPage = () => {
       setCurrentUser(response.data.user_token || response.data.id);
     } catch (error) {
       console.error('Error fetching current user:', error);
+      alert('Error fetching current user. Please Login.');
     }
   };
+  useEffect(() => {
+  if (!fetchCurrentUser) {
+    navigate('/'); // or your login route
+  }
+}, [fetchCurrentUser, navigate]);
   const isOwnProduct = (product) => {
   return product.user_token === currentUser;
 };
@@ -147,7 +154,8 @@ useEffect(() => {
       alert("Cannot buy more than in stock");
       return;
     }
-
+    setLoading(true); 
+    setShowBuyModal(false);
     axios.post('http://localhost:5000/api/orders/new', {
       productId: selectedProduct.id,
       quantity: parseInt(buyQuantity),
@@ -157,12 +165,18 @@ useEffect(() => {
       headers: { 'Content-Type': 'application/json' }
     })
     .then(() => {
-      setShowBuyModal(false);
       alert("🛒 Order placed successfully!");
+      window.location.reload();
     })
     .catch(err => {
       console.error("❌ Error placing order:", err.response?.data || err.message);
-      alert("Failed to place order.");
+      alert(err.message);
+      if (!fetchCurrentUser()){
+        alert("Failed to place order.Login!!");
+      } 
+
+    }).finally(() => {
+      setLoading(false); // ✅ Stop loading
     });
   };
 
@@ -495,9 +509,13 @@ useEffect(() => {
         {/* Products Grid */}
         <div className="products-section">
           <div className="products-header">
-            <h2 className="section-title">
-              {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
-            </h2>
+           {!showBuyModal && loading ? (
+            <h1 className="section-title">Placing Your Order. Wait a moment</h1>
+            ) : (
+              <h2 className="section-title">
+                {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
+              </h2>
+            )}
             <div className="sort-options">
               <select className="sort-select" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
                 <option value="reviews">Sort by Number of Reviews</option>

@@ -1,5 +1,4 @@
 import React, { useState,useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
 import './dash.css';
 import axios from 'axios';
 import stockIcon from '../assets/stock.png';
@@ -70,7 +69,7 @@ const handleSendMessage = async () => {
           withCredentials: true,
           headers: { 'Content-Type': 'application/json' },
         });
-        setNotificationCount(res.data.count || 0);
+        setNotificationCount(res.data.countUnread || 0);
       } catch (err) {
         console.error('Failed to fetch notification count:', err);
       }

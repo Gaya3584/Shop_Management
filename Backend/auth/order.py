@@ -15,6 +15,8 @@ db = client.shopsy
 users = db.users
 stocks = db.stocks
 orders=db.orders
+notifications=db.notifications
+
 @auth_bp.route('/api/orders/new', methods=['POST',"OPTIONS"])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def place_order():
@@ -143,6 +145,7 @@ def place_order():
     except Exception as e:
         return jsonify({'message': 'Error placing order', 'error': str(e)}), 500
     
+    
 @auth_bp.route('/api/orders/add-to-stock', methods=['POST', 'OPTIONS'])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def add_to_stock():
@@ -233,6 +236,8 @@ def add_to_stock():
     except Exception as e:
         return jsonify({'message': 'Error adding to stock', 'error': str(e)}), 500
     
+
+    
 @auth_bp.route('/api/orders/purchases', methods=['GET'])
 def get_purchases():
     try:
@@ -290,6 +295,9 @@ def get_sales():
 
     except Exception as e:
         return jsonify({'message': 'Error fetching sales', 'error': str(e)}), 500
+    
+
+    
 @auth_bp.route('/api/orders/<order_id>/stock-status', methods=['GET'])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def check_stock_status(order_id):
@@ -307,6 +315,11 @@ def check_stock_status(order_id):
         if not order:
             return jsonify({'message': 'Order not found'}), 404
 
+        product_id=order.get('product_id')
+        if order.get('status') in ['cancelled','rejected']:
+            quan=int(order.get('quantity',0))
+            result = db.stocks.update_one({"_id": ObjectId(product_id), "user_id": user_id},{"$inc": {"quantity": quan}})
+
         added_to_stock = order.get('addedToStock', False)
         return jsonify({'addedToStock': added_to_stock}), 200
 
@@ -314,45 +327,67 @@ def check_stock_status(order_id):
         return jsonify({'message': 'Error checking stock status', 'error': str(e)}), 500
 
 
-@auth_bp.route("/api/notifications",methods=['GET'])
+
+
+@auth_bp.route("/api/notifications", methods=['GET'])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def get_notifications():
-    stock = db.stocks.find().sort('addedAt', -1)
-    order = db.orders.find().sort('orderedAt', -1)
-    
+    user_token = request.cookies.get('token')
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({'message': 'Invalid or expired token'}), 401
 
-    logs = []
+    now = datetime.utcnow()
 
-    
-    for log in stock:
-        added_at = log.get("addedAt")
-        now = datetime.utcnow()
-
-        # Consider it "just added" if it's within the last 5 seconds
+    # --- STOCK NOTIFICATIONS ---
+    stock_cursor = db.stocks.find({'user_token': user_id}).sort('addedAt', -1)
+    for stock in stock_cursor:
+        added_at = stock.get("addedAt") or now
         is_just_now = False
-        if added_at:
-            try:
-                # Handle both datetime objects and strings
-                added_at_dt = added_at if isinstance(added_at, datetime) else datetime.fromisoformat(added_at)
-                is_just_now = abs((now - added_at_dt).total_seconds()) < 5
-            except Exception as e:
-                print("Invalid addedAt format:", added_at)
+        try:
+            added_at_dt = added_at if isinstance(added_at, datetime) else datetime.fromisoformat(added_at)
+            is_just_now = abs((now - added_at_dt).total_seconds()) < 5
+        except:
+            pass
 
-        # Determine action
         action = None
-        if log.get("quantity") == log.get("minThreshold"):
+        if stock.get("quantity") == stock.get("minThreshold"):
             action = "low"
         elif is_just_now:
             action = "stock-added"
-        if action: 
-            logs.append({
+
+        if action:
+            notification = {
+                "user_id": user_id,
+                'seller_id': user_id,
                 "type": f"stock-{action}",
-                "message": f"{log.get('name', 'Unnamed')} - {log.get('quantity', 0)} units",
-                "timestamp": added_at or now
+                "message": f"{stock.get('name', 'Unnamed')} - {stock.get('quantity', 0)} units",
+                "timestamp": added_at,
+                "ref_id": str(stock.get('_id')),
+                "source": "stock",
+                "readOrNot": False
+            }
+
+            existing = db.notifications.find_one({
+                "user_id": user_id,
+                "type": notification["type"],
+                "ref_id": notification["ref_id"]
             })
 
-    for log in order:
-        status = log.get("status")
+            if not existing:
+                db.notifications.insert_one(notification)
+
+    # --- ORDER NOTIFICATIONS ---
+    owned_product_ids = [p['_id'] for p in db.stocks.find({'user_token': user_id}, {'_id': 1})]
+    order_cursor = db.orders.find({
+        '$or': [
+            {'user_token': user_id},  # Buyer
+            {'product_id': {'$in': owned_product_ids}}  # Seller
+        ]
+    }).sort('orderedAt', -1)
+
+    for order in order_cursor:
+        status = order.get("status", "unknown")
         if status in ["pending", "placed"]:
             action = "placed"
         elif status == "cancelled":
@@ -367,20 +402,197 @@ def get_notifications():
             action = "dispatched"
         else:
             action = "unknown"
-        product_id = log.get('product_id')
-        product = stocks.find_one({'_id': ObjectId(product_id)})
-        logs.append({
+
+        product_id = order.get('product_id')
+        product = db.stocks.find_one({'_id': ObjectId(product_id)})
+        shop_name = order.get('shopName')  # from the order document
+        
+        # Find user by shopName with proper error handling
+        user = None
+        seller_id = user_id  # Default fallback
+        
+        if shop_name:
+            user = db.users.find_one({"shopName": shop_name})
+        
+        # If user not found by shopName, try to get seller from product
+        if not user and product:
+            product_seller_id = product.get('user_token')
+            if product_seller_id:
+                user = db.users.find_one({'_id': ObjectId(product_seller_id)})
+                seller_id = str(product_seller_id)
+        
+        # If still no user found, use the current user_id as fallback
+        if user and user.get("_id"):
+            seller_id = str(user.get("_id"))
+
+        # Determine if current user is buyer or seller
+        is_buyer = order.get('user_token') == user_id
+        is_seller = str(product.get('user_token')) == user_id if product else False
+        
+        # Create different messages based on buyer/seller role
+        product_name = product.get('name', 'Unknown Product') if product else 'Unknown Product'
+        quantity = order.get('quantity', 0)
+        
+        if is_buyer:
+            # Messages from buyer's perspective
+            if action == "placed":
+                message = f"You placed an order for {product_name} ({quantity} units)"
+            elif action == "accepted":
+                message = f"Your order for {product_name} ({quantity} units) has been accepted"
+            elif action == "rejected":
+                message = f"Your order for {product_name} ({quantity} units) was rejected"
+            elif action == "dispatched":
+                message = f"Your order for {product_name} ({quantity} units) has been dispatched"
+            elif action == "delivered":
+                message = f"Your order for {product_name} ({quantity} units) has been delivered"
+            elif action == "cancelled":
+                message = f"Your order for {product_name} ({quantity} units) was cancelled"
+            else:
+                message = f"Order update: {product_name} ({quantity} units) - {action}"
+                
+        elif is_seller:
+            # Messages from seller's perspective
+            if action == "placed":
+                message = f"New order received for {product_name} ({quantity} units)"
+            elif action == "accepted":
+                message = f"You accepted order for {product_name} ({quantity} units)"
+            elif action == "rejected":
+                message = f"You rejected order for {product_name} ({quantity} units)"
+            elif action == "dispatched":
+                message = f"You dispatched order for {product_name} ({quantity} units)"
+            elif action == "delivered":
+                message = f"Order delivered: {product_name} ({quantity} units)"
+            elif action == "cancelled":
+                message = f"Order cancelled: {product_name} ({quantity} units)"
+            else:
+                message = f"Order update: {product_name} ({quantity} units) - {action}"
+        else:
+            # Fallback message
+            message = f"Order {action} for {product_name} ({quantity} units)"
+
+        notification = {
+            "user_id": user_id,
+            'seller_id': seller_id,
             "type": f"order-{action}",
-            "message": f"Order {action} for {product.get('name', 'Unknown Product')} ({log.get('quantity', 0)} units)",
-            "timestamp": log.get("orderedAt", datetime.utcnow())
+            "message": message,
+            "timestamp": order.get("orderedAt", now),
+            "ref_id": str(order.get('_id')),
+            "source": "order",
+            "readOrNot": False,
+            "role": "buyer" if is_buyer else "seller" if is_seller else "unknown"  # Added role field for clarity
+        }
+
+        existing = db.notifications.find_one({
+            "user_id": user_id,
+            "type": notification["type"],
+            "ref_id": notification["ref_id"]
         })
 
-    # Sort and format timestamps for frontend
-    sorted_logs = sorted(logs, key=lambda x: x['timestamp'], reverse=True)
-    for log in sorted_logs:
-        if isinstance(log["timestamp"], datetime):
-            log["timestamp"] = log["timestamp"].isoformat()
+        if not existing:
+            db.notifications.insert_one(notification)
 
-    return jsonify(count=len(sorted_logs), notifications=sorted_logs)
+    # --- FETCH AND RETURN USER NOTIFICATIONS ---
+    notifs = list(db.notifications.find({"user_id": user_id}).sort("timestamp", -1))
+    notifi = list(db.notifications.find({
+        "user_id": user_id,
+        "readOrNot": False
+    }).sort("timestamp", -1))
 
+    for n in notifs:
+        # Convert all ObjectId fields to strings
+        n['_id'] = str(n['_id'])
+        
+        # Handle user_id - could be string or ObjectId
+        if isinstance(n.get('user_id'), ObjectId):
+            n['user_id'] = str(n['user_id'])
+        elif n.get('user_id'):
+            n['user_id'] = str(n['user_id'])
+        
+        # Handle seller_id - could be string or ObjectId
+        if isinstance(n.get('seller_id'), ObjectId):
+            n['seller_id'] = str(n['seller_id'])
+        elif n.get('seller_id'):
+            n['seller_id'] = str(n['seller_id'])
+        
+        # Handle ref_id - could be string or ObjectId
+        if isinstance(n.get('ref_id'), ObjectId):
+            n['ref_id'] = str(n['ref_id'])
+        elif n.get('ref_id'):
+            n['ref_id'] = str(n['ref_id'])
+        
+        # Convert datetime to ISO format
+        if isinstance(n.get('timestamp'), datetime):
+            n['timestamp'] = n['timestamp'].isoformat()
 
+    return jsonify(count=len(notifs), countUnread=len(notifi), notifications=notifs)
+@auth_bp.route("/api/notifications/<notif_id>/read", methods=["PATCH"])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def mark_notification_as_read(notif_id):
+    user_token = request.cookies.get('token')
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({'message': 'Invalid or expired token'}), 401
+
+    result = db.notifications.update_one(
+        {"_id": ObjectId(notif_id), "user_id": user_id},
+        {"$set": {"readOrNot": True}}
+    )
+    if result.modified_count == 0:
+        return jsonify({"message": "No notification updated"}), 404
+
+    return jsonify({"message": "Notification marked as read"}), 200
+@auth_bp.route('/api/orders/<order_id>/status', methods=['PATCH','OPTIONS'])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def update_order_status(order_id):
+    try:
+        data = request.json
+        new_status = data.get('status')
+
+        if not new_status:
+            return jsonify({'message': 'Status is required'}), 400
+        
+        result = db.orders.update_one(
+                {'_id': ObjectId(order_id)},
+                {'$set': {'status': new_status}}
+            )
+            
+
+        if result.modified_count == 0:
+            return jsonify({'message': 'No order updated'}), 404
+
+        return jsonify({'message': 'Order status updated'}), 200
+
+    except Exception as e:
+        return jsonify({'message': 'Error updating order', 'error': str(e)}), 500
+
+@auth_bp.route("/api/notifications/mark-all-read", methods=["PATCH"])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def mark_all_notifications_as_read():
+    user_token = request.cookies.get('token')
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({'message': 'Invalid or expired token'}), 401
+
+    db.notifications.update_many(
+        {"user_id": user_id, "readOrNot": False},
+        {"$set": {"readOrNot": True}}
+    )
+    return jsonify({"message": "All notifications marked as read"}), 200
+
+@auth_bp.route("/api/notifications/mark-all-unread", methods=["PATCH"])
+@cross_origin(origins='http://localhost:5173', supports_credentials=True)
+def mark_all_notifications_as_unread():
+    user_token = request.cookies.get('token')
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({'message': 'Invalid or expired token'}), 401
+
+    result = db.notifications.update_many(
+        {"user_id": user_id, "readOrNot": True},
+        {"$set": {"readOrNot": False}}
+    )
+    
+    return jsonify({
+        "message": "All notifications marked as unread",
+        "modified_count": result.modified_count
+    }), 200
