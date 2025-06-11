@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import RatingModal from './ratingModal';
 import './orders.css';
 
 const OrderManagementSystem = () => {
@@ -20,6 +21,8 @@ const OrderManagementSystem = () => {
   const [showModal, setShowModal] = useState(false);
   const [deliveredOrder, setDeliveredOrder] = useState(null);
   const [showStockPrompt, setShowStockPrompt] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [orderToRate, setOrderToRate] = useState(null);
   const [prevBuyingOrders, setPrevBuyingOrders] = useState([]);
   const [addedToStockOrders, setAddedToStockOrders] = useState([]);
   const [notificationCount, setNotificationCount] = useState(0);
@@ -43,7 +46,7 @@ const OrderManagementSystem = () => {
     };
 
     fetchNotificationCount();
-    const interval = setInterval(fetchNotificationCount, 5000);
+    const interval = setInterval(fetchNotificationCount, 900000);
     return () => clearInterval(interval);
   }, []);
 
@@ -66,6 +69,7 @@ const OrderManagementSystem = () => {
     shopContact: order.shopPhone,
     customerContact: order.customerPhone,
     deliveryAddress: order.customerAddress,
+    hasReview: order.hasReview || false,
     timeline: [
       {
         stage: 'Order Placed',
@@ -75,7 +79,7 @@ const OrderManagementSystem = () => {
       {
         stage: 'Accepted',
         time: null,
-        completed: order.status !== 'pending',
+        completed: order.status ==='accepted'||order.status === 'dispatched' || order.status === 'delivered',
       },
       {
         stage: 'Dispatched',
@@ -89,6 +93,35 @@ const OrderManagementSystem = () => {
       },
     ],
   });
+
+  // Handle rating submission
+  const handleRatingSubmit = async (ratingData) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(ratingData)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log('Review submitted successfully:', result);
+        alert('✅ Thank you for your review!');
+        // Refresh orders to update review status
+        fetchData();
+      } else {
+        console.error('Error submitting review:', result.message);
+        alert(`❌ Error: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      throw error;
+    }
+  };
 
   // Handle adding to stock
   const handleAddToStock = async (order) => {
@@ -170,12 +203,20 @@ const OrderManagementSystem = () => {
         })
       );
 
-      // Detect newly delivered orders
+      // Detect newly delivered orders and show rating modal
       ordersWithStockStatus.forEach((newOrder) => {
         const prevOrder = prevBuyingOrders.find(o => o.id === newOrder.id);
         if (prevOrder && prevOrder.status !== 'delivered' && newOrder.status === 'delivered') {
           setDeliveredOrder(newOrder);
           setShowStockPrompt(true);
+          
+          // Show rating modal after a short delay if no review exists
+          if (!newOrder.hasReview) {
+            setTimeout(() => {
+              setOrderToRate(newOrder);
+              setShowRatingModal(true);
+            }, 2000);
+          }
         }
       });
 
@@ -224,7 +265,7 @@ const OrderManagementSystem = () => {
   // Initial data fetch and interval setup
   useEffect(() => {
     fetchData();
-    const intervalId = setInterval(fetchData, 10000);
+    const intervalId = setInterval(fetchData, 900000);
     return () => clearInterval(intervalId);
   }, [activeTab]);
 
@@ -366,11 +407,25 @@ const OrderManagementSystem = () => {
           <button className="action-btn action-view">
             <Eye className="action-icon" />
           </button>
+          {/* Rate Product button for delivered buying orders */}
+          {activeTab === 'buying' && order.status === 'delivered' && !order.hasReview && (
+            <button 
+              className="action-btn action-rate"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOrderToRate(order);
+                setShowRatingModal(true);
+              }}
+              title="Rate this product"
+            >
+              <Star className="action-icon" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Add to Stock button for buying orders */}
-      {activeTab === 'buying' && (
+      {activeTab === 'buying' && order.status !== 'rejected' && order.status !== 'cancelled' &&(
         <div className="order-stock-action">
           <button
             className={`action-button stock-btn ${
@@ -384,8 +439,8 @@ const OrderManagementSystem = () => {
               }
             }}
           >
-            {isLoading ? 'Adding...' : 
-             order.addedToStock ? '✅ Added to Stock' : 
+            {isLoading ? 'Loading...' : 
+             order.addedToStock ? '✅ Added to the Stock' : 
              'Add to Stock'}
           </button>
         </div>
@@ -508,7 +563,7 @@ const OrderManagementSystem = () => {
             </div>
             
             {/* Actions */}
-            {activeTab === 'selling' && order.status === 'pending' && (
+            {activeTab === 'selling' && (order.status==='pending'|| order.status==='placed') && (
               <div className="modal-actions">
                 <button 
                   disabled={isLoading} 
@@ -526,7 +581,18 @@ const OrderManagementSystem = () => {
                 </button>
               </div>
             )}
-
+            {activeTab==='buying'&& (order.status==='pending'||order.status==='placed') &&(
+              <div className="modal-actions">
+                <button 
+                  onClick={() => handleStatusUpdate(order.id, 'cancelled')}
+                  className="action-button reject-btn"
+                  disabled={isLoading}
+                >
+                  Cancel Order
+                </button>
+              </div>
+            )
+            }
             {activeTab === 'buying' && (
               <div className="order-stock-action">
                 <button
@@ -541,6 +607,22 @@ const OrderManagementSystem = () => {
                   }}
                 >
                   {order.addedToStock ? '✅ Added to Stock' : 'Add to Stock'}
+                </button>
+              </div>
+            )}
+
+            {/* Rate Product button in modal */}
+            {activeTab === 'buying' && order.status === 'delivered' && !order.hasReview && (
+              <div className="modal-actions">
+                <button 
+                  onClick={() => {
+                    setOrderToRate(order);
+                    setShowRatingModal(true);
+                  }}
+                  className="action-button rate-btn"
+                >
+                  <Star className="action-icon" />
+                  Rate this Product
                 </button>
               </div>
             )}
@@ -713,6 +795,18 @@ const OrderManagementSystem = () => {
           order={selectedOrder} 
           onClose={() => { setShowModal(false); setSelectedOrder(null); }} 
           handleStatusUpdate={handleStatusUpdate}
+        />
+      )}
+
+      {/* Rating Modal */}
+      {showRatingModal && orderToRate && (
+        <RatingModal
+          order={orderToRate}
+          onClose={() => {
+            setShowRatingModal(false);
+            setOrderToRate(null);
+          }}
+          onSubmit={handleRatingSubmit}
         />
       )}
 
