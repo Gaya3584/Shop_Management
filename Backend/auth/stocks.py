@@ -47,7 +47,7 @@ def add_stock():
             'minThreshold': int(data.get('minThreshold', 0)),
             'minOrder':data.get('minOrder',0),
             'rating':0,
-            'reviews':0,
+            'reviews':[],
             'image':image_id,
             'discount':data.get('discount',0),
             'addedAt': datetime.utcnow(),

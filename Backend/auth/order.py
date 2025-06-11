@@ -305,11 +305,6 @@ def check_stock_status(order_id):
         if not order:
             return jsonify({'message': 'Order not found'}), 404
 
-        product_id=order.get('product_id')
-        if order.get('status') in ['cancelled','rejected']:
-            quan=int(order.get('quantity',0))
-            result = db.stocks.update_one({"_id": ObjectId(product_id), "user_id": user_id},{"$inc": {"quantity": quan}})
-
         added_to_stock = order.get('addedToStock', False)
         return jsonify({'addedToStock': added_to_stock}), 200
 
@@ -531,6 +526,7 @@ def mark_notification_as_read(notif_id):
         return jsonify({"message": "No notification updated"}), 404
 
     return jsonify({"message": "Notification marked as read"}), 200
+
 @auth_bp.route('/api/orders/<order_id>/status', methods=['PATCH','OPTIONS'])
 @cross_origin(origins='http://localhost:5173', supports_credentials=True)
 def update_order_status(order_id):
@@ -545,7 +541,15 @@ def update_order_status(order_id):
                 {'_id': ObjectId(order_id)},
                 {'$set': {'status': new_status}}
             )
-            
+        order=orders.find_one({'_id': ObjectId(order_id)})
+        product_id=order.get("product_id")
+        quan=int(order.get('quantity',0))
+        if new_status in ['cancelled', 'rejected']:
+            db.stocks.update_one(
+                {'_id': ObjectId(product_id)},
+                {'$inc': {'quantity': quan}}
+            )
+    
 
         if result.modified_count == 0:
             return jsonify({'message': 'No order updated'}), 404

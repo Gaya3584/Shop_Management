@@ -66,7 +66,7 @@ const StockManagement = () => {
                     formData.price.trim() &&
                     formData.category.trim() &&
                     formData.minThreshold.trim()&&
-(selectedImages && selectedImages.length > 0) &&
+                        (selectedImages) &&
                     formData.minOrder!=null &&
                     formData.discount!=null
     // API call helper function
@@ -339,13 +339,13 @@ const StockManagement = () => {
                             <span className="font-semibold">Add Stock</span>
                         </button>
                         <button
-    onClick={() => navigate(`/dash`)} // ← Added closing ) and }
-    disabled={loading}
-className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
->
-    {/* Add button content here */}
-    Go to Dashboard
-</button>
+                            onClick={() => navigate(`/dash`)} // ← Added closing ) and }
+                            disabled={loading}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                        >
+                            {/* Add button content here */}
+                            Go to Dashboard
+                        </button>
                         
                     </div>
 
@@ -374,9 +374,18 @@ className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-
                         <div className="bg-gradient-to-r from-orange-400 to-red-500 rounded-xl p-4 text-white">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-orange-100 text-sm">Low Stock</p>
+                                    <p className="text-orange-100 text-sm" >Low Stock</p>
 <p className="text-2xl font-bold">{stats.lowStockItems ?? 0}</p>
                                 </div>
+                                {stats.lowStockItems && (<button
+                            onClick={() => navigate(`/disc`)}
+                            disabled={loading}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                        >
+                            {/* Add button content here */}
+                            Low Stock!Go to Discover
+                        </button>)}
+                        
                                 <AlertTriangle className="w-8 h-8 text-orange-200" />
                             </div>
                         </div>
