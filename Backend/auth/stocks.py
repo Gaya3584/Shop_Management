@@ -208,7 +208,6 @@ def get_all_public_stocks():
         user_dict = {
         user['_id']: {
             'seller': user.get('shopName', ''),
-            'supplier': user.get('supplier', ''),  # safely handles null
             'sellerType': user.get('shopType', ''),
             'location': user.get('shopLocation', ''),
             'user_token':user.get('user_token','')

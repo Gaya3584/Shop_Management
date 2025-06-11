@@ -69,7 +69,7 @@ const fetchRecommendations = async () => {
           minOrder: stock.minOrder,
           threshold: stock.minThreshold,
           seller: stock.user_info.seller || 'Unknown Seller',
-          supplier:stock.user_info.supplier,
+          supplier:stock.supplier,
           user_token:stock.user_info.user_token,
           sellerType: stock.user_info.sellerType,
           location: stock.user_info.location || 'Unknown',
