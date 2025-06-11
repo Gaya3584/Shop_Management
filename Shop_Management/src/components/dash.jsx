@@ -31,6 +31,37 @@ const Dashboard = () => {
     }, []);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [chatOpen, setChatOpen] = useState(false);
+  const toggleChat = () => setChatOpen(!chatOpen);
+  // Inside Dashboard component:
+const [chatInput, setChatInput] = useState("");
+const [chatMessages, setChatMessages] = useState([
+  { sender: "bot", text: "Hi! How can I help you today?" },
+]);
+
+const handleSendMessage = async () => {
+  if (!chatInput.trim()) return;
+  const userText = chatInput.trim();
+
+  setChatMessages([...chatMessages, { sender: "user", text: userText }]);
+  setChatInput("");
+
+  try {
+    const res = await fetch("http://localhost:5000/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", 
+      body: JSON.stringify({ message: userText }),
+    });
+    const data = await res.json();
+    setChatMessages((prev) => [...prev, { sender: "bot", text: data.reply }]);
+  } catch (err) {
+    console.error("Error sending message:", err);
+    setChatMessages((prev) => [...prev, { sender: "bot", text: "Server error." }]);
+  }
+};
+
+
   useEffect(() => {
     const fetchNotificationCount = async () => {
       try {
@@ -240,8 +271,8 @@ const Dashboard = () => {
               <hr></hr>
               <p className="card-description">Manage your stocks</p>
               <div className="card-value stats-value">
-    <button onClick={() => navigate(`/stock`)}>View My Stocks</button>              </div>
-            </div>
+                <button onClick={() => navigate(`/stock`)}>View My Stocks</button>              </div>
+              </div>
             
             <div className="dashboard-card">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -251,9 +282,10 @@ const Dashboard = () => {
               <hr></hr>
               <p className="card-description">Find your products from other stores</p>
               <div className="card-value activity-value">
-  <button onClick={() => navigate(`/disc`)}>
-      Discover Products
-    </button>              </div>
+                <button onClick={() => navigate(`/disc`)}>
+                    Discover Products
+                  </button>        
+              </div>
             </div>
             
             <div className="dashboard-card">
@@ -267,6 +299,41 @@ const Dashboard = () => {
                 <button onClick={()=>navigate(`/analysis`)}>Get Reports</button>
               </div>
             </div>
+            {/* Floating Chat Icon */}
+<div className="chat-toggle-btn" onClick={toggleChat}>
+  💬
+</div>
+
+{/* Chat Box */}
+{chatOpen && (
+  <div className="chatbox">
+    <div className="chatbox-header">
+      <span>Chat Assistant</span>
+      <button className="chatbox-close" onClick={toggleChat}>✕</button>
+    </div>
+    <div className="chatbox-body">
+  {chatMessages.map((msg, idx) => (
+    <div key={idx} className={`chat-message ${msg.sender}`}>
+      {msg.text}
+    </div>
+  ))}
+</div>
+
+<div className="chatbox-footer">
+  <input
+    type="text"
+    value={chatInput}
+    onChange={(e) => setChatInput(e.target.value)}
+    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+    placeholder="Type your message..."
+  />
+  <button onClick={handleSendMessage}>Send</button>
+</div>
+
+    
+  </div>
+)}
+
           </div>
         </main>
       </div>

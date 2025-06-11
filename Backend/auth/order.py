@@ -145,58 +145,56 @@ def place_order():
     except Exception as e:
         return jsonify({'message': 'Error placing order', 'error': str(e)}), 500
     
-    
-@auth_bp.route('/api/orders/add-to-stock', methods=['POST', 'OPTIONS'])
-@cross_origin(origins='http://localhost:5173', supports_credentials=True)
-def add_to_stock():
-    """Add ordered items to user's stock"""
+@auth_bp.route('/api/orders/add-to-stock', methods=['POST'])
+def add_order_to_stock():
     try:
-        user_token = request.cookies.get('token')
-        user_id = decode_token(user_token)
-        if not user_id:
-            return jsonify({'message': 'Invalid or expired token'}), 401
-
-        data = request.json
+        data = request.get_json()
         order_id = data.get('order_id')
+        supplier = data.get('supplier', '').strip()
 
-        if not order_id or not ObjectId.is_valid(order_id):
-            return jsonify({'message': 'Invalid order ID'}), 400
+        if not order_id or not supplier:
+            return jsonify({'message': 'Missing order_id or supplier'}), 400
 
-        # Find the order
-        order = orders.find_one({'_id': ObjectId(order_id), 'user_token': user_id})
+        # Fetch order
+        order = orders.find_one({'_id': ObjectId(order_id)})
         if not order:
             return jsonify({'message': 'Order not found'}), 404
 
-        # Check if order is delivered
-        if order.get('status') != 'delivered':
-            return jsonify({'message': 'Order must be delivered before adding to stock'}), 400
-
-        # Check if already added to stock
-        if order.get('addedToStock', False):
-            return jsonify({'message': 'Order items already added to stock'}), 400
-
-        # Get the original product details
+        user_id = order.get('user_token')
         product_id = order.get('product_id')
+        quantity_to_add = order.get('quantity')
+
+        # Find original product (source of name/category/price/etc.)
         original_product = stocks.find_one({'_id': ObjectId(product_id)})
         if not original_product:
             return jsonify({'message': 'Original product not found'}), 404
 
-        # Check if user already has this product in their stock
+        # Check if product already in user's stock
         user_existing_product = stocks.find_one({
             'user_token': user_id,
             'name': original_product.get('name'),
-            'category': original_product.get('category')
+            'category': original_product.get('category'),
         })
 
-        quantity_to_add = order.get('quantity', 0)
-
         if user_existing_product:
-            # Update existing product quantity
+            current_supplier = str(user_existing_product.get('supplier') or '').strip()
+            suppliers = [s.strip() for s in current_supplier.split(',') if s.strip()]
+
+            if supplier and supplier not in suppliers:
+                suppliers.append(supplier)
+
+            update_data = {
+                '$inc': {'quantity': quantity_to_add},
+                '$set': {'supplier': ', '.join(suppliers)}
+            }
+
             stocks.update_one(
                 {'_id': user_existing_product['_id']},
-                {'$inc': {'quantity': quantity_to_add}}
+                update_data
             )
-            message = f"Added {quantity_to_add} units to existing product in your stock"
+
+            message = f"✅ Added {quantity_to_add} units to existing product in your stock"
+
         else:
             # Create new product in user's stock
             new_stock_item = {
@@ -209,19 +207,23 @@ def add_to_stock():
                 'minOrder': original_product.get('minOrder', 1),
                 'shopName': order.get('customerName', 'Unknown'),
                 'addedAt': datetime.utcnow(),
+                'updatedAt': datetime.utcnow(),
                 'description': original_product.get('description', ''),
-                'image': original_product.get('image', '')
+                'supplier': supplier,
+                'image': original_product.get('image', ''),
+                'discount': original_product.get('discount', 0),
+                'rating': 0,
+                'reviews': []
             }
-            stocks.insert_one(new_stock_item)
-            message = f"Added new product '{original_product.get('name')}' with {quantity_to_add} units to your stock"
 
-        # Mark order as added to stock
-        orders.update_one(
-            {'_id': ObjectId(order_id)},
-            {'$set': {'addedToStock': True}}
-        )
+            stocks.insert_one(new_stock_item)
+            message = f"✅ Added new product '{original_product.get('name')}' with {quantity_to_add} units to your stock"
+
+        # Mark order as added
+        orders.update_one({'_id': ObjectId(order_id)}, {'$set': {'addedToStock': True}})
 
         return jsonify({'message': message}), 200
+
 
     except Exception as e:
         return jsonify({'message': 'Error adding to stock', 'error': str(e)}), 500

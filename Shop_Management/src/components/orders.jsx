@@ -134,9 +134,11 @@ const OrderManagementSystem = () => {
         },
         credentials: 'include',
         body: JSON.stringify({
-          order_id: order.id
+          order_id: order.id,
+          supplier: order.shopName
         })
       });
+      console.log("Sending to stock:", order.id, order.shopName);
 
       const result = await response.json();
 

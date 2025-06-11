@@ -37,13 +37,15 @@ def add_stock():
 
         user2 = users.find_one({'_id': ObjectId(user_id)})
         shop_name = user2.get('shopName', 'Unknown') if user2 else 'Unknown'
+        supplier_name = data.get('supplier', None)
+
         stock_data = {
             'user_token': user_id,
             'name': data['name'],
             'category': data.get('category', ''),
             'quantity': int(data['quantity']),
             'price': float(data['price']),
-            'supplier':None,
+            'supplier':supplier_name,
             'minThreshold': int(data.get('minThreshold', 0)),
             'minOrder':data.get('minOrder',0),
             'rating':0,
@@ -206,7 +208,6 @@ def get_all_public_stocks():
         user_dict = {
         user['_id']: {
             'seller': user.get('shopName', ''),
-            'supplier': user.get('supplier', ''),  # safely handles null
             'sellerType': user.get('shopType', ''),
             'location': user.get('shopLocation', ''),
             'user_token':user.get('user_token','')

@@ -10,6 +10,7 @@ from itsdangerous import URLSafeTimedSerializer
 import base64
 from flask import session
 from flask_cors import cross_origin
+import random
 
 
 client = MongoClient(MONGO_URI)
@@ -442,5 +443,32 @@ def get_token():
             'user_token': user['user_token']
         }), 200
     
+@auth_bp.route('/api/recommendations', methods=['GET'])
+def get_recommendations():
+    user_token = request.cookies.get('token')
+    if not user_token:
+        return jsonify({"recommendations": []}), 401
 
-    
+    decoded = decode_token(user_token)
+    user_id = decoded if isinstance(decoded, str) else decoded.get("user_id")
+
+    # Sample logic: Recommend 5 random public products (not their own)
+    from random import sample
+    all_products = list(stocks.find({"user_token": {"$ne": user_id}}))
+    if len(all_products) == 0:
+        return jsonify({"recommendations": []})
+
+    recommendations = sample(all_products, min(3, len(all_products)))
+    formatted = [
+        {
+            "id": str(item["_id"]),
+            "name": item["name"],
+            "price": item["price"],
+            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.png"
+            
+        }
+        for item in recommendations
+    ]
+
+    return jsonify({"recommendations": formatted})
+
