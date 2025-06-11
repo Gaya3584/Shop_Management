@@ -177,6 +177,7 @@ def add_to_stock():
         original_product = stocks.find_one({'_id': ObjectId(product_id)})
         if not original_product:
             return jsonify({'message': 'Original product not found'}), 404
+        supplier_name = order.get('shopName', 'Unknown Supplier')
 
         # Check if user already has this product in their stock
         user_existing_product = stocks.find_one({
@@ -186,8 +187,17 @@ def add_to_stock():
         })
 
         quantity_to_add = order.get('quantity', 0)
+        
 
         if user_existing_product:
+            current_supplier=user_existing_product.get('supplier')
+            update_data={'$inc':{'quantity':quantity_to_add}}
+            if not current_supplier:
+                update_data['$set']={'supplier':supplier_name}
+            elif current_supplier!=supplier_name:
+                if supplier_name not in current_supplier:
+                    new_supplier=f"{current_supplier},{supplier_name}"
+                    update_data['$set']={'supplier':new_supplier}
             # Update existing product quantity
             stocks.update_one(
                 {'_id': user_existing_product['_id']},
