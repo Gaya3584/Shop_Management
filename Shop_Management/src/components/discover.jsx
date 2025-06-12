@@ -685,11 +685,15 @@ useEffect(() => {
 <div className="product-image-container">
                     {product.image ? (
                       <img
-                        src={`http://localhost:5000${product.image || '/placeholder.jpg'}`}
+                        src={product.image ? `http://localhost:5000${product.image}` : '/placeholder.jpg'}
                         alt={product.name}
                         className="product-image"
-                        onError={(e) => { e.target.src = '/placeholder.jpg'; }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/placeholder.jpg';
+                        }}
                       />
+
                     ) : null}
                     {!product.inStock && (
                       <div className="out-of-stock-overlay">

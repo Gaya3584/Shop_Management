@@ -210,7 +210,7 @@ def add_order_to_stock():
                 'updatedAt': datetime.utcnow(),
                 'description': original_product.get('description', ''),
                 'supplier': supplier,
-                'image': original_product.get('image', ''),
+                'image_id': original_product.get('image_id', ''),
                 'discount': original_product.get('discount', 0),
                 'rating': 0,
                 'reviews': []

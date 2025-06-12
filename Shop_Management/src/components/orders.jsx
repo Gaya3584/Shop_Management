@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
   Search, Filter, Calendar, ChevronDown, Eye, Phone, MessageCircle, 
   Printer, CheckCircle, XCircle, Clock, Package, MapPin, DollarSign,
@@ -668,241 +668,102 @@ const OrderManagementSystem = () => {
     );
   };
 
-  // Single Truck Rating Modal Component
-  const SingleTruckRatingModal = ({ order, onClose }) => {
-    const [rating, setRating] = useState(0);
-    const [hoverRating, setHoverRating] = useState(0);
-    const [review, setReview] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showThankYou, setShowThankYou] = useState(false);
-    const [submittedRating, setSubmittedRating] = useState(0);
+  // Simple Truck Rating Modal Component
+  const TruckRatingModal = ({ order, onClose }) => {
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
 
-    const satisfactionLevels = [
-      'Very Poor',
-      'Poor', 
-      'Average',
-      'Good',
-      'Excellent'
-    ];
+  const satisfactionLevels = useMemo(() => [
+    'Very Poor',
+    'Poor',
+    'Average',
+    'Good',
+    'Excellent'
+  ], []);
 
-    const handleSubmit = useCallback(async () => {
-      if (rating === 0) {
-        alert('Please select a rating');
-        return;
-      }
-      
-      setSubmittedRating(rating);
-      setIsSubmitting(true);
-      setHoverRating(0); // Clear any hover state
-      
-      try {
-        await handleRatingSubmit({
-          order_id: order.id,
-          orderName: order.items[0].name,
-          rating,
-          review: review.trim() || '',
-          shopName: order.shopName
-        });
-        
-        setShowThankYou(true);
-        setTimeout(() => {
-          onClose();
-        }, 3000);
-      } catch (error) {
-        console.error("Error submitting review", error);
-        alert("Failed to submit review.");
-      } finally {
-        setIsSubmitting(false);
-      }
-    }, [rating, review, order, handleRatingSubmit, onClose]);
-
-    const handleTruckClick = useCallback((value) => {
-    setRating(value);
-    setHoverRating(0); // Clear hover when clicking
-  }, []);
-
-    const handleTruckHover = useCallback((value) => {
-    if (!isSubmitting) { // Don't allow hover during submission
-      setHoverRating(value);
-    }
-  }, [isSubmitting]);
-
-  const handleTruckLeave = useCallback(() => {
-    if (!isSubmitting) { // Don't clear hover during submission
-      setHoverRating(0);
-    }
-  }, [isSubmitting]);
-
-     const displayRating = useMemo(() => {
-    return hoverRating || rating;
-  }, [hoverRating, rating]);
-
-
-    if (showThankYou) {
-      return (
-        <div className="modal-overlay">
-          <div className="modal-container single-truck-rating-modal">
-            <div className="thank-you-content">
-              <div className="thank-you-truck">
-                <div className="single-truck-container final-truck">
-                  <div className="truck-body">
-                    <div className="truck-cargo" style={{ height: `${(submittedRating / 5) * 100}%` }}>
-                      <div className="cargo-items">
-                        {[...Array(submittedRating)].map((_, i) => (
-                          <div key={i} className="cargo-item" style={{ animationDelay: `${i * 0.1}s` }} />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="truck-cab">
-                      <Truck className="truck-icon" />
-                    </div>
-                    <div className="rating-number">{submittedRating}</div>
-                  </div>
-                  <div className="truck-wheels">
-                    <div className="wheel wheel-1"></div>
-                    <div className="wheel wheel-2"></div>
-                  </div>
-                </div>
-              </div>
-              <h2 className="thank-you-title">Thank You for Your Feedback!</h2>
-              <p className="thank-you-message">Your review helps us improve our service</p>
-              <div className="loading-truck">
-                <Truck className="loading-truck-icon" />
-                <span className="loading-rating">{submittedRating}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      alert('Please select a rating');
+      return;
     }
 
-    return (
-      <div className="modal-overlay">
-        <div className="modal-container single-truck-rating-modal">
-          <div className="modal-header">
-            <div className="modal-title-section">
-              <h2 className="modal-title">Rate Your Delivery Experience</h2>
-              <button className="modal-close-btn" onClick={onClose}>
-                <X className="close-icon" />
-              </button>
-            </div>
-          </div>
-          <div className="modal-content">
-            <div className="product-info">
-              <h3 className="product-name">{order.items[0].name}</h3>
-              <p className="shop-name">from {order.shopName}</p>
-            </div>
+    setIsSubmitting(true);
 
-            <div className="rating-section">
-              <h4 className="rating-title">How satisfied are you with this delivery?</h4>
-              
-              <div className="single-truck-rating-container">
-                <div className="single-truck-container">
-                  <div className="truck-body">
-                    <div 
-                      className="truck-cargo"
-                      style={{
-                        height: `${(displayRating / 5) * 100}%`
-                      }}
-                    >
-                      <div className="cargo-items">
-                        {displayRating > 0 && [...Array(displayRating)].map((_, i) => (
-                          <div key={i} className="cargo-item" />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="truck-cab">
-                      <Truck className="truck-icon" />
-                    </div>
-                    {displayRating > 0 && (
-                      <div className="rating-number">{displayRating}</div>
-                    )}
-                  </div>
-                  <div className="truck-wheels">
-                    <div className="wheel wheel-1"></div>
-                    <div className="wheel wheel-2"></div>
-                  </div>
-                </div>
-              </div>
+    try {
+      // Assuming a handleRatingSubmit function exists
+      await handleRatingSubmit({
+        order_id: order.id,
+        rating,
+        review: review.trim() || '',
+      });
 
-              <div className="rating-controls">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    className={`rating-btn ${displayRating >= value ? 'active' : ''}`}
-                    onClick={() => handleTruckClick(value)}
-                    onMouseEnter={() => handleTruckHover(value)}
-                    onMouseLeave={handleTruckLeave}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-
-              {displayRating > 0 && (
-                <div className="rating-feedback">
-                  <p className="rating-text">{satisfactionLevels[displayRating - 1]}</p>
-                  <div className="rating-stars">
-                    {[...Array(5)].map((_, index) => (
-                      <span
-                        key={index}
-                        className={`star ${index < displayRating ? 'filled' : ''}`}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="review-section">
-              <label htmlFor="review" className="review-label">
-                Share your thoughts (optional)
-              </label>
-              <textarea
-                id="review"
-                placeholder="Tell us about your delivery experience..."
-                value={review}
-                onChange={(e) => setReview(e.target.value)}
-                rows="4"
-                className="review-textarea"
-                maxLength={500}
-              />
-              <div className="character-count">
-                {review.length}/500 characters
-              </div>
-            </div>
-
-            <div className="modal-actions">
-              <button
-                type="button"
-                onClick={onClose}
-                className="cancel-btn"
-                disabled={isSubmitting}
-              >
-                Skip for now
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="submit-btn"
-                disabled={rating === 0 || isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="loading-spinner"></div>
-                    Submitting...
-                  </>
-                ) : (
-                  'Submit Review'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+      setShowThankYou(true);
+      setTimeout(() => {
+        onClose();
+      }, 3000);
+    } catch (error) {
+      console.error("Error submitting review", error);
+      alert("Failed to submit review.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  return (
+    <div className="modal-overlay">
+      <div className="rating-modal">
+        {showThankYou ? (
+          <div className="thank-you-content">
+            <h2>Thank you for your feedback!</h2>
+          </div>
+        ) : (
+          <div className="modal-content">
+            <div className="truck-container">
+              <div className="truck-body">
+                {rating > 0 && (
+                  <div className="truck-cargo" style={{ width: `${(rating / 5) * 100}%` }}>
+                    <div className="cargo-fill"></div>
+                  </div>
+                )}
+                <div className="truck-cab">
+                  <Truck className="truck-icon"/>
+                </div>
+              </div>
+              <div className="truck-wheels">
+                <div className="wheel"></div>
+                <div className="wheel"></div>
+              </div>
+            </div>
+            <div className="rating-controls">
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  className={`rating-btn ${rating >= value ? 'active' : ''}`}
+                  onClick={() => setRating(value)}
+                  disabled={isSubmitting}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <textarea
+              placeholder="Leave a review (optional)"
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+              disabled={isSubmitting}
+            />
+            <button onClick={handleSubmit} disabled={isSubmitting || rating === 0}>
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 
   return (
     <div className="app-container">
@@ -1035,9 +896,9 @@ const OrderManagementSystem = () => {
         />
       )}
 
-      {/* Single Truck Rating Modal */}
+      {/* Truck Rating Modal */}
       {showRatingModal && orderToRate && (
-        <SingleTruckRatingModal
+        <TruckRatingModal
           order={orderToRate}
           onClose={() => {
             setShowRatingModal(false);

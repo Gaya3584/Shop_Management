@@ -730,6 +730,16 @@ margin-left: 30px;}
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
+.rating-modal {
+  background-color: white;
+  border-radius: 1rem;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
 .modal-header {
   padding: 1.5rem 1.5rem 0 1.5rem;
   border-bottom: 1px solid #e5e7eb;
@@ -1314,40 +1324,26 @@ margin-left: 30px;}
   cursor: not-allowed;
 }
 
-/* Single Truck Rating Modal Styles */
-.single-truck-rating-modal {
-  max-width: 700px;
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-  border: 2px solid #e2e8f0;
-}
-
-.single-truck-rating-modal .modal-title {
-  background: linear-gradient(135deg, #3b82f6, #1e40af);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 1.75rem;
-}
-
+/* Truck Rating Modal Styles */
 .product-info {
   text-align: center;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
   border-radius: 1rem;
-  border: 1px solid #93c5fd;
+  border: 1px solid #bae6fd;
 }
 
 .product-name {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e40af;
+  color: #0369a1;
   margin: 0 0 0.5rem 0;
 }
 
 .shop-name {
   font-size: 1rem;
-  color: #3730a3;
+  color: #0284c7;
   margin: 0;
   font-weight: 500;
 }
@@ -1364,83 +1360,77 @@ margin-left: 30px;}
   text-align: center;
 }
 
-.single-truck-rating-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.single-truck-container {
+.truck-rating-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
-  border-radius: 1.5rem;
-  background: white;
-  border: 3px solid #e2e8f0;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.single-truck-container:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.2);
+.truck-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 1.5rem;
+  border: 3px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .truck-body {
   position: relative;
-  width: 120px;
+  width: 150px;
   height: 80px;
   background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
   border: 4px solid #cbd5e1;
   border-radius: 12px;
-  margin-bottom: 1.5rem;
   overflow: hidden;
   box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
 }
 
 .truck-cargo {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(180deg, #fbbf24, #f59e0b, #d97706);
-  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 0 0 8px 8px;
+  min-width: 8px;
   overflow: hidden;
+  transition: width 0.8s ease-in-out;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b, #d97706);
+  border-radius: 8px 0 0 8px;
 }
 
-.cargo-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  padding: 4px;
+.cargo-fill {
+  width: 100%;
   height: 100%;
-  align-content: flex-end;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.1) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  animation: cargoMove 2s linear infinite;
 }
 
-.cargo-item {
-  width: 8px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 2px;
-  animation: cargoFloat 2s ease-in-out infinite;
+@keyframes cargoMove {
+  0% { transform: translateX(-20px); }
+  100% { transform: translateX(0); }
 }
 
-.cargo-item:nth-child(even) {
-  animation-delay: 0.5s;
+.wheel {
+  width: 28px;
+  height: 28px;
+  background: #1f2937;
+  border: 3px solid #6b7280;
+  border-radius: 50%;
+  animation: wheelSpin 2s linear infinite;
+  transform-origin: center;
 }
 
-@keyframes cargoFloat {
-  0%, 100% {
-    transform: translateY(0);
-    opacity: 0.9;
-  }
-  50% {
-    transform: translateY(-3px);
-    opacity: 1;
-  }
+@keyframes wheelSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .truck-cab {
@@ -1448,65 +1438,56 @@ margin-left: 30px;}
   right: -12px;
   top: 50%;
   transform: translateY(-50%);
-  width: 30px;
-  height: 45px;
+  width: 35px;
+  height: 50px;
   background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
   border: 3px solid #cbd5e1;
   border-radius: 0 8px 8px 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
 }
 
 .truck-icon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   color: #64748b;
-  transition: color 0.3s ease;
-}
-
-.rating-number {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 2rem;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  z-index: 10;
 }
 
 .truck-wheels {
   display: flex;
-  gap: 60px;
+  gap: 80px;
   margin-top: -12px;
 }
 
-.wheel {
-  width: 24px;
-  height: 24px;
-  background: linear-gradient(145deg, #374151, #1f2937);
-  border-radius: 50%;
-  border: 3px solid #6b7280;
-  animation: wheelSpin 3s linear infinite;
+
+.rating-display {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+  border-radius: 1rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-@keyframes wheelSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.rating-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3b82f6;
+  margin: 0 0 0.5rem 0;
+}
+
+.rating-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0;
 }
 
 .rating-controls {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 
@@ -1540,39 +1521,6 @@ margin-left: 30px;}
   color: white;
   transform: translateY(-2px) scale(1.05);
   box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
-}
-
-.rating-feedback {
-  text-align: center;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
-  border-radius: 1rem;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  margin-top: 1.5rem;
-}
-
-.rating-text {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #3b82f6;
-  margin: 0 0 1rem 0;
-}
-
-.rating-stars {
-  display: flex;
-  justify-content: center;
-  gap: 0.25rem;
-}
-
-.star {
-  font-size: 1.5rem;
-  color: #e2e8f0;
-  transition: color 0.2s ease;
-}
-
-.star.filled {
-  color: #fbbf24;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
 }
 
 .review-section {
@@ -1685,11 +1633,11 @@ margin-left: 30px;}
   background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
 }
 
-.thank-you-truck {
+.truck-animation-final {
   margin-bottom: 2rem;
 }
 
-.final-truck {
+.truck-animation-final .truck-container {
   transform: scale(1.2);
   margin: 2rem 0;
 }
@@ -1704,57 +1652,65 @@ margin-left: 30px;}
 .thank-you-message {
   font-size: 1.125rem;
   color: #0284c7;
-  margin: 0 0 2rem 0;
+  margin: 0;
 }
 
-.loading-truck {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 1rem;
-  border: 2px solid #3b82f6;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  margin: 0 auto;
-  max-width: 200px;
-}
-
-.loading-truck-icon {
-  width: 2rem;
-  height: 2rem;
-  color: #3b82f6;
-  animation: truckBounce 1s ease-in-out infinite;
-}
-
-@keyframes truckBounce {
-  0%, 100% {
-    transform: translateY(0);
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .rating-modal {
+    margin: 0.5rem;
+    border-radius: 1rem;
   }
-  50% {
-    transform: translateY(-4px);
+
+  .truck-container {
+    padding: 1.5rem;
+  }
+
+  .truck-body {
+    width: 120px;
+    height: 65px;
+  }
+
+  .truck-wheels {
+    gap: 60px;
+  }
+
+  .wheel {
+    width: 24px;
+    height: 24px;
+  }
+
+  .rating-controls {
+    gap: 0.5rem;
+  }
+
+  .rating-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .submit-btn {
+    flex: 1;
+  }
+
+  .thank-you-title {
+    font-size: 1.5rem;
+  }
+
+  .truck-animation-final .truck-container {
+    transform: scale(1);
   }
 }
 
-.loading-rating {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #3b82f6;
-}
-
-/* Dark Mode Support for Single Truck Rating Modal */
+/* Dark Mode Support for Rating Modal */
 @media (prefers-color-scheme: dark) {
-  .single-truck-rating-modal {
-    background: linear-gradient(135deg, #1f2937, #111827);
-    border-color: #374151;
-  }
-
-  .single-truck-rating-modal .modal-title {
-    background: linear-gradient(135deg, #60a5fa, #3b82f6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .rating-modal {
+    background: #1f2937;
   }
 
   .product-info {
@@ -1774,13 +1730,9 @@ margin-left: 30px;}
     color: #f9fafb;
   }
 
-  .single-truck-container {
+  .truck-container {
     background: #374151;
     border-color: #4b5563;
-  }
-
-  .single-truck-container:hover {
-    border-color: #60a5fa;
   }
 
   .truck-body {
@@ -1812,13 +1764,17 @@ margin-left: 30px;}
     background: linear-gradient(135deg, #60a5fa, #3b82f6);
   }
 
-  .rating-feedback {
+  .rating-display {
     background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(147, 197, 253, 0.1));
     border-color: rgba(96, 165, 250, 0.2);
   }
 
-  .rating-text {
+  .rating-number {
     color: #60a5fa;
+  }
+
+  .rating-text {
+    color: #93c5fd;
   }
 
   .review-label {
@@ -1873,69 +1829,58 @@ margin-left: 30px;}
   .thank-you-message {
     color: #93c5fd;
   }
-
-  .loading-truck {
-    background: #374151;
-    border-color: #60a5fa;
-  }
-
-  .loading-truck-icon {
-    color: #60a5fa;
-  }
-
-  .loading-rating {
-    color: #60a5fa;
-  }
+}
+.wheel {
+  transform-origin: center;
+}
+.truck-cargo {
+  min-width: 8px;
+  overflow: hidden;
+  transition: width 0.8s ease-in-out;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b, #d97706);
+  border-radius: 8px 0 0 8px;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 640px) {
-  .single-truck-rating-modal {
-    margin: 0.5rem;
-    border-radius: 1rem;
-  }
+.cargo-fill {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.1) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  animation: cargoMove 2s linear infinite;
+}
 
-  .single-truck-container {
-    padding: 1.5rem;
-  }
+@keyframes cargoMove {
+  0% { transform: translateX(-20px); }
+  100% { transform: translateX(0); }
+}
 
-  .truck-body {
-    width: 100px;
-    height: 65px;
-  }
+.wheel {
+  width: 28px;
+  height: 28px;
+  background: #1f2937;
+  border: 3px solid #6b7280;
+  border-radius: 50%;
+  animation: wheelSpin 2s linear infinite;
+  transform-origin: center;
+}
 
-  .truck-wheels {
-    gap: 45px;
-  }
+@keyframes wheelSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.truck-icon {
+  width: 24px;
+  height: 24px;
+  color: #64748b;
+  animation: truckBounce 1s ease-in-out infinite;
+}
 
-  .wheel {
-    width: 20px;
-    height: 20px;
-  }
-
-  .rating-controls {
-    gap: 0.5rem;
-  }
-
-  .rating-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 1.25rem;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .submit-btn {
-    flex: 1;
-  }
-
-  .thank-you-title {
-    font-size: 1.5rem;
-  }
-
-  .final-truck {
-    transform: scale(1);
-  }
+@keyframes truckBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }

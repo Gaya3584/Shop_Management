@@ -442,31 +442,33 @@ def get_token():
     return jsonify({
             'user_token': user['user_token']
         }), 200
-    
+
 @auth_bp.route('/api/recommendations', methods=['GET'])
 def get_recommendations():
     user_token = request.cookies.get('token')
     if not user_token:
         return jsonify({"recommendations": []}), 401
 
-    decoded = decode_token(user_token)
-    user_id = decoded if isinstance(decoded, str) else decoded.get("user_id")
+    user_id = decode_token(user_token)
+    if not user_id:
+        return jsonify({"recommendations": []}), 401
 
-    from random import sample
-    all_products = list(stocks.find({"user_token": {"$ne": user_id}}))
+    # Get all products NOT added by this user
+    all_products = list(stocks.find({ "user_token": { "$ne": user_id } }))
     if not all_products:
         return jsonify({"recommendations": []})
 
+    from random import sample
     recommendations = sample(all_products, min(3, len(all_products)))
 
-    # Gather all unique user_tokens from recommendations
-    user_tokens = list({item['user_token'] for item in recommendations})
-    user_docs = users.find({"user_token": {"$in": user_tokens}})
-    user_map = {user['user_token']: user for user in user_docs}
+    # Get all unique user_tokens from stocks (which are actually user _ids as strings)
+    user_ids = list({ObjectId(item['user_token']) for item in recommendations})
+    user_docs = users.find({ "_id": { "$in": user_ids } })
+    user_map = {str(user['_id']): user for user in user_docs}
 
     formatted = []
     for item in recommendations:
-        user_info = user_map.get(item.get('user_token'), {})
+        user_info = user_map.get(item['user_token'], {})
 
         formatted.append({
             "id": str(item["_id"]),
@@ -476,10 +478,9 @@ def get_recommendations():
             "rating": float(item.get("rating", 0)),
             "reviewCount": len(item.get("reviews", [])),
             "image": f"/image/{item['images'][0]}" if "images" in item and item["images"] else "/placeholder.jpg",
-            "shopName": item.get("shopName", "Unknown"),
-            "shopType": user_info.get("shopType", "Unknown"),
-            "shopLocation": user_info.get("shopLocation", "")
+            "seller": item.get("shopName", "Unknown"),
+            "sellerType": user_info.get("shopType", "Unknown"),
+            "location": user_info.get("shopLocation", "Unknown")
         })
 
     return jsonify({"recommendations": formatted})
-
