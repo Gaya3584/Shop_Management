@@ -44,20 +44,20 @@ const StockManagement = () => {
     const [filterCategory, setFilterCategory] = useState("");
     
     function handleImageChange(event) {
-        const files = event.target.files;
+        const files = Array.from(event.target.files);
         if (files.length > 0) {
-            const file = files[0];
-            setSelectedImages([file]);
+            setSelectedImages(files);
 
-            // Revoke previous URL to avoid memory leaks
+            // Revoke previous preview if needed
             if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
+            URL.revokeObjectURL(previewUrl);
             }
-            const objectUrl = URL.createObjectURL(file);
+
+            const objectUrl = URL.createObjectURL(files[0]); // Show the first image preview
             setPreviewUrl(objectUrl);
-            setFormData({ ...formData, image: objectUrl }); 
         }
     }
+
         
     
 
@@ -66,7 +66,7 @@ const StockManagement = () => {
                     formData.price.trim() &&
                     formData.category.trim() &&
                     formData.minThreshold.trim()&&
-                        (selectedImages) &&
+                    Array.isArray(selectedImages) && selectedImages.length > 0 &&
                     formData.minOrder!=null &&
                     formData.discount!=null
     // API call helper function
@@ -174,9 +174,9 @@ const StockManagement = () => {
             formDataToSend.append('discount', parseInt(formData.discount) || 0);
 
             // Append image file if exists
-            if (selectedImages.length > 0 && selectedImages[0] instanceof File) {
-                formDataToSend.append('image', selectedImages[0]);
-            }
+           selectedImages.forEach((file, index) => {
+            formDataToSend.append(`images`, file); // or use `images[]`
+            })
 
             const data = await apiCall('http://localhost:5000/api/stocks', {
                 method: 'POST',
@@ -215,7 +215,13 @@ const StockManagement = () => {
             discount:stock.discount?.toString()||""
         });
             setSelectedImages([]);
-            setPreviewUrl(stock.image_id ? `http://localhost:5000/image/${stock.image_id}` : null); // show existing image URL as selected
+            if (Array.isArray(stock.images) && stock.images.length > 0) {
+                setPreviewUrl(`http://localhost:5000/image/${stock.images[0]}`); // preview first image
+                } else if (stock.image) {
+                setPreviewUrl(`http://localhost:5000/image/${stock.image}`);
+                } else {
+                setPreviewUrl(null);
+                }// show existing image URL as selected
     };
 
     const handleUpdate = async (stock) => {
@@ -238,11 +244,13 @@ const StockManagement = () => {
             formDataToSend.append('minThreshold', parseInt(formData.minThreshold) || 0);
             formDataToSend.append('minOrder', parseInt(formData.minOrder) || 0);
             formDataToSend.append('discount', parseInt(formData.discount) || 0);
-
-            if (selectedImages.length > 0 && selectedImages[0] instanceof File) {
-                formDataToSend.append('image', selectedImages[0]);
-            }
-
+                if (selectedImages.length > 0) {
+                selectedImages.forEach((file) => {
+                    if (file instanceof File) {
+                    formDataToSend.append('images', file); // key must match backend
+                    }
+                });
+                }
             await apiCall(`http://localhost:5000/api/stocks/${editingStock._id}`, {
                 method: 'PUT',
                 body: formDataToSend,
@@ -434,6 +442,7 @@ const StockManagement = () => {
                                 <input 
                                 type="file"
                                 accept="image/*" 
+                                multiple
                                 onChange={handleImageChange} 
                                 />
                             </label>

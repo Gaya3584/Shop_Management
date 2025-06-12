@@ -112,36 +112,46 @@ def get_stock_stats():
 def update_stock(stock_id):
     try:
         data = request.form
-        image_file = request.files.get('image')
-        image_id = save_uploaded_image_to_gridfs(image_file)
         user_token = request.cookies.get('token')
         user_id = decode_token(user_token)
         if not user_id:
             return jsonify({'message': 'Authorization token is required'}), 401
 
+        # Only save new images if uploaded
+        image_files = request.files.getlist('images')
+        new_image_ids = []
+        for image in image_files:
+            if image.filename:  # make sure it's a valid file
+                image_id = save_uploaded_image_to_gridfs(image)
+                new_image_ids.append(image_id)
+
+        # Fetch existing stock to retain old images if none uploaded
+        stock = stocks.find_one({'_id': ObjectId(stock_id), 'user_token': user_id})
+        if not stock:
+            return jsonify({'message': 'Stock not found or unauthorized'}), 404
+
+        existing_images = stock.get('images', [])
+        final_images = new_image_ids if new_image_ids else existing_images
 
         update_data = {
             'name': data['name'],
             'category': data.get('category', ''),
             'quantity': int(data['quantity']),
             'price': float(data['price']),
-            'supplier':data.get('supplier',""),
+            'supplier': data.get('supplier', ""),
             'minThreshold': int(data.get('minThreshold', 0)),
-            'minOrder':data.get('minOrder',0),
-            'rating':0,
-            'reviews':0,
-            'image':image_id,
-            'discount':data.get('discount',0),
+            'minOrder': int(data.get('minOrder', 0)),
+            'rating': stock.get('rating', 0),
+            'reviews': stock.get('reviews', []),
+            'images': final_images,
+            'discount': float(data.get('discount', 0)),
             'updatedAt': datetime.utcnow(),
         }
 
-        result = stocks.update_one(
+        stocks.update_one(
             {'_id': ObjectId(stock_id), 'user_token': user_id},
             {'$set': update_data}
         )
-
-        if result.matched_count == 0:
-            return jsonify({'message': 'Stock not found or unauthorized'}), 404
 
         updated_stock = stocks.find_one({'_id': ObjectId(stock_id)})
         updated_stock['_id'] = str(updated_stock['_id'])
