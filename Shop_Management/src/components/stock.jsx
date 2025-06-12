@@ -295,11 +295,12 @@ const StockManagement = () => {
     };
 
     const filteredStocks = stocks.filter(stock => {
-        const matchesSearch = stock.name?.toLowerCase().includes(searchItem.toLowerCase())||
-    (stock.supplier?.name || "").toLowerCase().includes(searchItem.toLowerCase());;
+        const matchesSearch = (stock.name || "").toLowerCase().includes(searchItem.toLowerCase()) ||
+                      (stock.supplier || "").toLowerCase().includes(searchItem.toLowerCase());
         const matchesCategory = filterCategory ? stock.category === filterCategory : true;
         return matchesSearch && matchesCategory;
     });
+stocks.forEach(stock => console.log('Supplier for stock:', stock.supplier));
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -405,15 +406,13 @@ const StockManagement = () => {
                     <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                         <div className="flex-1">
                             <input
-                                type="text"
-                                placeholder="Supplier"
-                                value={formData.supplier || ""}
-                                onChange={(e) => {
-                                    const val = e.target.value.trim();
-                                    setFormData({ ...formData, supplier: val.length > 0 ? val : "" });
-                                }}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            type="text"
+                            placeholder="Search by Product or Supplier"
+                            value={searchItem}
+                            onChange={(e) => setSearchItem(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             />
+
                         </div>
                         <div className="md:w-48">
                             <select
