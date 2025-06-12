@@ -233,6 +233,7 @@ def get_all_public_stocks():
 
         stock_and_users=[{
             **stock,
+            'reviewCount':len(stock.get('reviews',[])),
             'user_info':user_dict.get(stock['user_token'],{})
             }
             for stock in all_stocks

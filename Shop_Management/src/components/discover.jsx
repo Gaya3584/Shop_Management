@@ -83,7 +83,7 @@ const fetchRecommendations = async () => {
           sellerType: stock.user_info.sellerType,
           location: stock.user_info.location || 'Unknown',
           rating: stock.rating,
-          reviews: stock.reviews,
+          reviews: stock.reviewCount,
           image: stock.images && stock.images.length > 0
     ? `/image/${stock.images[0]}`
     : null,  
@@ -385,12 +385,12 @@ useEffect(() => {
                     <div className="product-image-container">
                       {item.product.image && (
                         <img
-                        src={product.image ? `http://localhost:5000${product.image}` : '/placeholder.png'}
+                        src={product.image ? `http://localhost:5000${product.image}` : '/placeholder.jpg'}
                         alt={product.name}
                         className="product-image"
                         onError={(e) => {
-                          if (e.target.src !== '/placeholder.png') {
-                            e.target.src = '/placeholder.png';
+                          if (e.target.src !== '/placeholder.jpg') {
+                            e.target.src = '/placeholder.jpg';
                           }
                         }}
                         loading="lazy"
@@ -426,7 +426,7 @@ useEffect(() => {
 
                       <div className="product-stats">
                         <div className="rating">
-                          <span className="rating-stars">⭐</span>
+                          <span className="rating-stars"onClick={()=>navigate(`/dash`)}>⭐</span>
                           <span className="rating-value">{item.product.rating}</span>
                           <span className="rating-count">({item.product.reviews})</span>
                         </div>
@@ -561,10 +561,10 @@ useEffect(() => {
                   <div className="product-image-container">
                     {product.image ? (
                       <img
-                        src={`http://localhost:5000${product.image || '/placeholder.png'}`}
+                        src={`http://localhost:5000${product.image || '/placeholder.jpg'}`}
                         alt={product.name}
                         className="product-image"
-                        onError={(e) => { e.target.src = '/placeholder.png'; }}
+                        onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                       />
                     ) : null}
                     {!product.inStock && (
@@ -597,7 +597,7 @@ useEffect(() => {
 
                     <div className="product-stats">
                       <div className="rating">
-                        <span className="rating-stars">⭐</span>
+                        <span className="rating-stars"onClick={()=>navigate(`/dash`)}>⭐</span>
                         <span className="rating-value">{product.rating}</span>
                         <span className="rating-count">({product.reviews})</span>
                       </div>
@@ -656,7 +656,7 @@ useEffect(() => {
             alt={product.name}
             className="recommendation-image"
             onError={(e) => {
-              e.target.src = "/placeholder.png";
+              e.target.src = "/placeholder.jng";
             }}
           />
           <div className="recommendation-info">
@@ -685,10 +685,10 @@ useEffect(() => {
 <div className="product-image-container">
                     {product.image ? (
                       <img
-                        src={`http://localhost:5000${product.image || '/placeholder.png'}`}
+                        src={`http://localhost:5000${product.image || '/placeholder.jpg'}`}
                         alt={product.name}
                         className="product-image"
-                        onError={(e) => { e.target.src = '/placeholder.png'; }}
+                        onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                       />
                     ) : null}
                     {!product.inStock && (
@@ -721,7 +721,7 @@ useEffect(() => {
 
                     <div className="product-stats">
                       <div className="rating">
-                        <span className="rating-stars">⭐</span>
+                        <span className="rating-stars" onClick={()=>navigate(`/dash`)}>⭐</span>
                         <span className="rating-value">{product.rating}</span>
                         <span className="rating-count">({product.reviews})</span>
                       </div>
@@ -803,7 +803,7 @@ useEffect(() => {
 
                 <div className="product-stats">
                   <div className="rating">
-                    <span className="rating-stars">⭐</span>
+                    <span className="rating-stars"onClick={()=>navigate(`/dash`)}>⭐</span>
                     <span className="rating-value">{selectedProduct.rating}</span>
                     <span className="rating-count">({selectedProduct.reviews})</span>
                   </div>

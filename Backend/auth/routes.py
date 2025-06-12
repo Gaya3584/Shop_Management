@@ -452,23 +452,34 @@ def get_recommendations():
     decoded = decode_token(user_token)
     user_id = decoded if isinstance(decoded, str) else decoded.get("user_id")
 
-    # Sample logic: Recommend 5 random public products (not their own)
     from random import sample
     all_products = list(stocks.find({"user_token": {"$ne": user_id}}))
-    if len(all_products) == 0:
+    if not all_products:
         return jsonify({"recommendations": []})
 
     recommendations = sample(all_products, min(3, len(all_products)))
-    formatted = [
-        {
+
+    # Gather all unique user_tokens from recommendations
+    user_tokens = list({item['user_token'] for item in recommendations})
+    user_docs = users.find({"user_token": {"$in": user_tokens}})
+    user_map = {user['user_token']: user for user in user_docs}
+
+    formatted = []
+    for item in recommendations:
+        user_info = user_map.get(item.get('user_token'), {})
+
+        formatted.append({
             "id": str(item["_id"]),
-            "name": item["name"],
-            "price": item["price"],
-            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.png"
-            
-        }
-        for item in recommendations
-    ]
+            "name": item.get("name"),
+            "price": float(item.get("price", 0)),
+            "quantity": int(item.get("quantity", 0)),
+            "rating": float(item.get("rating", 0)),
+            "reviewCount": len(item.get("reviews", [])),
+            "image": f"/image/{item['images'][0]}" if "images" in item and item["images"] else "/placeholder.jpg",
+            "shopName": item.get("shopName", "Unknown"),
+            "shopType": user_info.get("shopType", "Unknown"),
+            "shopLocation": user_info.get("shopLocation", "")
+        })
 
     return jsonify({"recommendations": formatted})
 
