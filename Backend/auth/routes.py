@@ -11,6 +11,8 @@ import base64
 from flask import session
 from flask_cors import cross_origin
 import random
+from datetime import timedelta
+
 
 
 client = MongoClient(MONGO_URI)
@@ -118,6 +120,7 @@ def verify_email(token):
 @auth_bp.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
+    remember = data.get('remember', False)  # 👈 this sets remember to True or False
     user = users.find_one({'email': data['email']})
 
     if not user:
@@ -128,13 +131,15 @@ def login():
     
     if not verify_password(data['password'], user['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
-    
-    token = generate_token(user['_id'])
+     # Set token expiry based on "remember me"
+    expiry_duration = timedelta(days=7) if remember else timedelta(hours=2)
+    token = generate_token(user['_id'], expiry=expiry_duration)
     response = jsonify({'message': 'Login successful'})
     response.set_cookie(
         'token',
         token,
         httponly=True,
+        max_age=int(expiry_duration.total_seconds()),
         secure=False,  # Set True in production (HTTPS)
         samesite='Lax'
     )

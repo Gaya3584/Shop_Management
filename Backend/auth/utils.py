@@ -10,12 +10,13 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
-def generate_token(user_id):
-    payload={           #payload is the data stored in jwt token
-        'user_id':str(user_id),  #helps identify user in later requests
-        'exp':datetime.now(timezone.utc) + timedelta(days=30) # token expiration time : after 1 day 
+def generate_token(user_id, expiry=timedelta(hours=2)):
+    payload = {
+        'user_id': str(user_id),
+        'exp': datetime.now(timezone.utc) + expiry
     }
-    return jwt.encode(payload,SECRET_KEY,algorithm='HS256')
+    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
     
 def decode_token(token):
     try:
