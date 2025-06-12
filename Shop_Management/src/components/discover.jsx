@@ -75,11 +75,9 @@ const fetchRecommendations = async () => {
           location: stock.user_info.location || 'Unknown',
           rating: stock.rating,
           reviews: stock.reviews,
-          image: stock.image_id
-            ? `/image/${stock.image_id}`
-            : (stock.image && stock.image.length === 24
-              ? `/image/${stock.image}`
-              : (stock.image?.startsWith('/') ? stock.image : `/static/uploads/${stock.image}`)),
+          image: stock.images && stock.images.length > 0
+    ? `/image/${stock.images[0]}`
+    : null,  
           category: stock.category?.toLowerCase() || 'misc',
           quantity: stock.quantity,
           inStock: (stock.quantity -stock.minThreshold)> 0,
