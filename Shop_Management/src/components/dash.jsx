@@ -300,9 +300,8 @@ const handleSendMessage = async () => {
               </div>
             </div>
             {/* Floating Chat Icon */}
-<div className="chat-toggle-btn" onClick={toggleChat}>
-  💬
-</div>
+<div className="chat-toggle-btn pulse-ring" onClick={toggleChat}>💬</div>
+
 
 {/* Chat Box */}
 {chatOpen && (
