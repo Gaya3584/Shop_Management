@@ -36,10 +36,19 @@ const DiscoverPage = () => {
     }
   };
   useEffect(() => {
-  if (!fetchCurrentUser) {
-    navigate('/'); // or your login route
+  if (currentUser === null) {
+    fetchCurrentUser(); // async fetch user
   }
-}, [fetchCurrentUser, navigate]);
+}, [currentUser]);
+
+useEffect(() => {
+  if (currentUser !== null) {
+    fetchProducts();
+    fetchWishlist();
+    fetchRecommendations(); 
+  }
+}, [currentUser]);
+
   const isOwnProduct = (product) => {
   return product.user_token === currentUser;
 };
@@ -376,11 +385,16 @@ useEffect(() => {
                     <div className="product-image-container">
                       {item.product.image && (
                         <img
-                          src={`http://localhost:5000${item.product.image || '/placeholder.png'}`}
-                          alt={item.product.name}
-                          className="product-image"
-                          onError={(e) => { e.target.src = '/placeholder.png'; }}
-                        />
+                        src={product.image ? `http://localhost:5000${product.image}` : '/placeholder.png'}
+                        alt={product.name}
+                        className="product-image"
+                        onError={(e) => {
+                          if (e.target.src !== '/placeholder.png') {
+                            e.target.src = '/placeholder.png';
+                          }
+                        }}
+                        loading="lazy"
+                      />
                       )}
                       {!item.product.inStock && (
                         <div className="out-of-stock-overlay">
