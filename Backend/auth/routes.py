@@ -464,7 +464,7 @@ def get_recommendations():
             "id": str(item["_id"]),
             "name": item["name"],
             "price": item["price"],
-            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.png"
+            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.jpg"
             
         }
         for item in recommendations
