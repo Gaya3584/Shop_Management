@@ -66,7 +66,10 @@ const StockManagement = () => {
                     formData.price.trim() &&
                     formData.category.trim() &&
                     formData.minThreshold.trim()&&
-                    Array.isArray(selectedImages) && selectedImages.length > 0 &&
+                    (
+                        (Array.isArray(selectedImages) && selectedImages.length > 0) || 
+                        editingStock  // ✅ editing mode can skip image selection
+                    ) &&
                     formData.minOrder!=null &&
                     formData.discount!=null
     // API call helper function
