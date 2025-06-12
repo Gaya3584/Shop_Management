@@ -685,14 +685,16 @@ const OrderManagementSystem = () => {
       'Excellent'
     ];
 
-    const handleSubmit = async () => {
-      
+    const handleSubmit = useCallback(async () => {
       if (rating === 0) {
         alert('Please select a rating');
         return;
       }
+      
       setSubmittedRating(rating);
       setIsSubmitting(true);
+      setHoverRating(0); // Clear any hover state
+      
       try {
         await handleRatingSubmit({
           order_id: order.id,
@@ -701,13 +703,8 @@ const OrderManagementSystem = () => {
           review: review.trim() || '',
           shopName: order.shopName
         });
-        console.log("Submitting review:", {
-          order_id: order.id,   // make sure this is correct
-          rating,
-          review
-        });
+        
         setShowThankYou(true);
-        // Auto close after 3 seconds
         setTimeout(() => {
           onClose();
         }, 3000);
@@ -717,21 +714,29 @@ const OrderManagementSystem = () => {
       } finally {
         setIsSubmitting(false);
       }
-    };
+    }, [rating, review, order, handleRatingSubmit, onClose]);
 
-    const handleTruckClick = (value) => {
-      setRating(value);
-    };
+    const handleTruckClick = useCallback((value) => {
+    setRating(value);
+    setHoverRating(0); // Clear hover when clicking
+  }, []);
 
-    const handleTruckHover = (value) => {
+    const handleTruckHover = useCallback((value) => {
+    if (!isSubmitting) { // Don't allow hover during submission
       setHoverRating(value);
-    };
+    }
+  }, [isSubmitting]);
 
-    const handleTruckLeave = () => {
+  const handleTruckLeave = useCallback(() => {
+    if (!isSubmitting) { // Don't clear hover during submission
       setHoverRating(0);
-    };
+    }
+  }, [isSubmitting]);
 
-    const displayRating = hoverRating || rating;
+     const displayRating = useMemo(() => {
+    return hoverRating || rating;
+  }, [hoverRating, rating]);
+
 
     if (showThankYou) {
       return (

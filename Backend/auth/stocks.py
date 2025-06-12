@@ -28,8 +28,13 @@ fs = gridfs.GridFS(db)
 def add_stock():
     try:
         data = request.form
-        image_file = request.files.get('image')
-        image_id = save_uploaded_image_to_gridfs(image_file)
+        image_files = request.files.getlist('images')  # match frontend
+        image_ids = []
+        for image in image_files:
+            if image and image.filename:
+                image_id = save_uploaded_image_to_gridfs(image)
+                image_ids.append(image_id)
+
         user_token = request.cookies.get('token')
         user_id= decode_token(user_token)
         if not user_id:
@@ -50,7 +55,7 @@ def add_stock():
             'minOrder':data.get('minOrder',0),
             'rating':0,
             'reviews':[],
-            'image':image_id,
+            'images': image_ids,
             'discount':data.get('discount',0),
             'addedAt': datetime.utcnow(),
             'updatedAt': datetime.utcnow(),
@@ -228,6 +233,7 @@ def get_all_public_stocks():
 
         stock_and_users=[{
             **stock,
+            'reviewCount':len(stock.get('reviews',[])),
             'user_info':user_dict.get(stock['user_token'],{})
             }
             for stock in all_stocks
