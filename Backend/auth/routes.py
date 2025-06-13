@@ -482,9 +482,9 @@ def get_recommendations():
             "quantity": int(item.get("quantity", 0)),
             "rating": float(item.get("rating", 0)),
             "reviewCount": len(item.get("reviews", [])),
-            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.png"
+            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.png",
             
-       "seller": item.get("shopName", "Unknown"),
+            "seller": item.get("shopName", "Unknown"),
             "sellerType": user_info.get("shopType", "Unknown"),
             "location": user_info.get("shopLocation", "Unknown")
         })

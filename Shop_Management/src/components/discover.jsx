@@ -18,6 +18,7 @@ const DiscoverPage = () => {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [showWishlist, setShowWishlist] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
 
 
   const [wishlistLoading, setWishlistLoading] = useState(false);
@@ -163,7 +164,7 @@ useEffect(() => {
       alert("Cannot buy more than in stock");
       return;
     }
-    setLoading(true); 
+    setPlacingOrder(true);
     setShowBuyModal(false);
     axios.post('http://localhost:5000/api/orders/new', {
       productId: selectedProduct.id,
@@ -185,7 +186,8 @@ useEffect(() => {
       } 
 
     }).finally(() => {
-      setLoading(false); // ✅ Stop loading
+      setPlacingOrder(false);
+ // ✅ Stop loading
     });
   };
 
@@ -523,13 +525,14 @@ useEffect(() => {
         {/* Products Grid */}
         <div className="products-section">
           <div className="products-header">
-           {!showBuyModal && loading ? (
+           {placingOrder ? (
             <h1 className="section-title">Placing Your Order. Wait a moment</h1>
             ) : (
               <h2 className="section-title">
                 {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
               </h2>
             )}
+
             <div className="sort-options">
               <select className="sort-select" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
                 <option value="reviews">Sort by Number of Reviews</option>
