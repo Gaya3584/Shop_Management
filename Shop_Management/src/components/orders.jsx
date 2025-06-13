@@ -272,35 +272,72 @@ const OrderManagementSystem = () => {
 
   // Handle status updates
   const handleStatusUpdate = async (orderId, newStatus) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ status: newStatus })
-      });
+  try {
+    setIsLoading(true);
+    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({ status: newStatus })
+    });
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (response.ok) {
-        console.log(result.message);
-        // Refresh data after status update
-        fetchData();
-        alert(`✅ Order status updated to ${newStatus}`);
-      } else {
-        console.error(result.message);
-        alert(`❌ Error: ${result.message}`);
+    if (response.ok) {
+      console.log(result.message);
+
+      // ✅ Update correct order list based on tab
+      if (activeTab === 'buying') {
+  setBuyingOrders(prev =>
+    prev.map(order =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    )
+  );
+} else if (activeTab === 'selling') {
+  setSellingOrders(prev =>
+    prev.map(order =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    )
+  );
+}if (selectedOrder?.id === orderId) {
+  setSelectedOrder(prev => {
+    const updatedTimeline = prev.timeline.map(stage => {
+      if (stage.stage === 'Accepted') {
+        return { ...stage, completed: ['accepted', 'dispatched', 'delivered'].includes(newStatus) };
       }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert('❌ Failed to update status. Please try again.');
-    } finally {
-      setIsLoading(false);
+      if (stage.stage === 'Dispatched') {
+        return { ...stage, completed: ['dispatched', 'delivered'].includes(newStatus) };
+      }
+      if (stage.stage === 'Delivered') {
+        return { ...stage, completed: newStatus === 'delivered' };
+      }
+      return stage;
+    });
+
+    return {
+      ...prev,
+      status: newStatus,
+      timeline: updatedTimeline
+    };
+  });
+}
+
+
+
+      alert(`✅ Order status updated to ${newStatus}`);
+    } else {
+      console.error(result.message);
+      alert(`❌ Error: ${result.message}`);
     }
-  };
+  } catch (error) {
+    console.error("Error updating status:", error);
+    alert('❌ Failed to update status. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const currentOrders = activeTab === 'buying' ? buyingOrders : sellingOrders;
 

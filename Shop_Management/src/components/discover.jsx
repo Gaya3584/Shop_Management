@@ -455,7 +455,7 @@ useEffect(() => {
                               discount: item.product.discount
                             };
                             setSelectedProduct(productForModal);
-                            setBuyQuantity(1);
+                            setBuyQuantity(product.minOrder||1);
                             setShowBuyModal(true);
                             setShowWishlist(false);
                           }}
@@ -612,7 +612,7 @@ useEffect(() => {
                         disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
                           setSelectedProduct(product);
-                          setBuyQuantity(1);
+                          setBuyQuantity(product.minOrder||'1');
                           setShowBuyModal(true);
                         }}
                       >

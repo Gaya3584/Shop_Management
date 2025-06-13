@@ -103,9 +103,7 @@ body {
 
 .search-box {
   position: relative;
-  background: white;
   border-radius: var(--border-radius);
-  box-shadow: var(--shadow-xl);
   overflow: hidden;
   transition: var(--transition);
 }
