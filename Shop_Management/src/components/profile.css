@@ -684,7 +684,6 @@
   margin: 10px 0;
 }
 @media (prefers-color-scheme: dark) {
-  
   .profile-card1,
   .detail-section,
   .contact-item,
@@ -714,7 +713,7 @@
   textarea,
   select {
     background-color: #2a2a3a;
-    color: #f0f0f0;
+    color: CanvasText;
     border-color: #444;
   }
 

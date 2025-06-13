@@ -459,16 +459,25 @@ def get_recommendations():
         return jsonify({"recommendations": []})
 
     recommendations = sample(all_products, min(3, len(all_products)))
-    formatted = [
-        {
-            "id": str(item["_id"]),
-            "name": item["name"],
-            "price": item["price"],
-            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.png"
-            
-        }
-        for item in recommendations
-    ]
+    user_ids = list({ObjectId(item['user_token']) for item in recommendations})
+    user_docs = users.find({ "_id": { "$in": user_ids } })
+    user_map = {str(user['_id']): user for user in user_docs}
 
+    formatted = []
+    for item in recommendations:
+        user_info = user_map.get(item['user_token'], {})
+
+        formatted.append({
+            "id": str(item["_id"]),
+            "name": item.get("name"),
+            "price": float(item.get("price", 0)),
+            "quantity": int(item.get("quantity", 0)),
+            "rating": float(item.get("rating", 0)),
+            "reviewCount": len(item.get("reviews", [])),
+            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.jpg",
+             "seller": item.get("shopName", "Unknown"),
+            "sellerType": user_info.get("shopType", "Unknown"),
+            "location": user_info.get("shopLocation", "Unknown")
+        })
     return jsonify({"recommendations": formatted})
 
