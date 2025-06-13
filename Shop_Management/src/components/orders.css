@@ -673,6 +673,15 @@ margin-left: 30px;}
   background-color: #2563eb;
 }
 
+.action-btn.action-rate {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.action-btn.action-rate:hover {
+  background-color: #d97706;
+}
+
 .action-btn.action-phone {
   background-color: #10b981;
   color: white;
@@ -1010,6 +1019,15 @@ margin-left: 30px;}
   background-color: #059669;
 }
 
+.rate-btn {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.rate-btn:hover {
+  background-color: #d97706;
+}
+
 /* Utility Actions */
 .utility-actions {
   display: flex;
@@ -1294,4 +1312,630 @@ margin-left: 30px;}
 .stock-btn.disabled {
   background-color: #a7ddb0;
   cursor: not-allowed;
+}
+
+/* Single Truck Rating Modal Styles */
+.single-truck-rating-modal {
+  max-width: 700px;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border: 2px solid #e2e8f0;
+}
+
+.single-truck-rating-modal .modal-title {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.75rem;
+}
+
+.product-info {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-radius: 1rem;
+  border: 1px solid #93c5fd;
+}
+
+.product-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin: 0 0 0.5rem 0;
+}
+
+.shop-name {
+  font-size: 1rem;
+  color: #3730a3;
+  margin: 0;
+  font-weight: 500;
+}
+
+.rating-section {
+  margin-bottom: 2rem;
+}
+
+.rating-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 2rem 0;
+  text-align: center;
+}
+
+.single-truck-rating-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.single-truck-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  background: white;
+  border: 3px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.single-truck-container:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.2);
+}
+
+.truck-body {
+  position: relative;
+  width: 120px;
+  height: 80px;
+  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+  border: 4px solid #cbd5e1;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.truck-cargo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, #fbbf24, #f59e0b, #d97706);
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.cargo-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 4px;
+  height: 100%;
+  align-content: flex-end;
+}
+
+.cargo-item {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 2px;
+  animation: cargoFloat 2s ease-in-out infinite;
+}
+
+.cargo-item:nth-child(even) {
+  animation-delay: 0.5s;
+}
+
+@keyframes cargoFloat {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.truck-cab {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 45px;
+  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+  border: 3px solid #cbd5e1;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.truck-icon {
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+  transition: color 0.3s ease;
+}
+
+.rating-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.truck-wheels {
+  display: flex;
+  gap: 60px;
+  margin-top: -12px;
+}
+
+.wheel {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(145deg, #374151, #1f2937);
+  border-radius: 50%;
+  border: 3px solid #6b7280;
+  animation: wheelSpin 3s linear infinite;
+}
+
+@keyframes wheelSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rating-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.rating-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid #e2e8f0;
+  background: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.rating-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  border-color: #3b82f6;
+  color: #3b82f6;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
+}
+
+.rating-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-color: #1d4ed8;
+  color: white;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+}
+
+.rating-feedback {
+  text-align: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+  border-radius: 1rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  margin-top: 1.5rem;
+}
+
+.rating-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #3b82f6;
+  margin: 0 0 1rem 0;
+}
+
+.rating-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.star {
+  font-size: 1.5rem;
+  color: #e2e8f0;
+  transition: color 0.2s ease;
+}
+
+.star.filled {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+.review-section {
+  margin-bottom: 2rem;
+}
+
+.review-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.review-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.review-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.review-textarea::placeholder {
+  color: #94a3b8;
+}
+
+.character-count {
+  text-align: right;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.cancel-btn {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.submit-btn {
+  flex: 2;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Thank You Modal Styles */
+.thank-you-content {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+}
+
+.thank-you-truck {
+  margin-bottom: 2rem;
+}
+
+.final-truck {
+  transform: scale(1.2);
+  margin: 2rem 0;
+}
+
+.thank-you-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0369a1;
+  margin: 0 0 1rem 0;
+}
+
+.thank-you-message {
+  font-size: 1.125rem;
+  color: #0284c7;
+  margin: 0 0 2rem 0;
+}
+
+.loading-truck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 1rem;
+  border: 2px solid #3b82f6;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  max-width: 200px;
+}
+
+.loading-truck-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #3b82f6;
+  animation: truckBounce 1s ease-in-out infinite;
+}
+
+@keyframes truckBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.loading-rating {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+/* Dark Mode Support for Single Truck Rating Modal */
+@media (prefers-color-scheme: dark) {
+  .single-truck-rating-modal {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border-color: #374151;
+  }
+
+  .single-truck-rating-modal .modal-title {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .product-info {
+    background: linear-gradient(135deg, #374151, #4b5563);
+    border-color: #6b7280;
+  }
+
+  .product-name {
+    color: #60a5fa;
+  }
+
+  .shop-name {
+    color: #93c5fd;
+  }
+
+  .rating-title {
+    color: #f9fafb;
+  }
+
+  .single-truck-container {
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  .single-truck-container:hover {
+    border-color: #60a5fa;
+  }
+
+  .truck-body {
+    background: linear-gradient(145deg, #4b5563, #374151);
+    border-color: #6b7280;
+  }
+
+  .truck-cab {
+    background: linear-gradient(145deg, #4b5563, #374151);
+    border-color: #6b7280;
+  }
+
+  .truck-icon {
+    color: #9ca3af;
+  }
+
+  .rating-btn {
+    background: #374151;
+    border-color: #4b5563;
+    color: #9ca3af;
+  }
+
+  .rating-btn:hover {
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+
+  .rating-btn.active {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  }
+
+  .rating-feedback {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(147, 197, 253, 0.1));
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+
+  .rating-text {
+    color: #60a5fa;
+  }
+
+  .review-label {
+    color: #f9fafb;
+  }
+
+  .review-textarea {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+
+  .review-textarea:focus {
+    border-color: #60a5fa;
+  }
+
+  .review-textarea::placeholder {
+    color: #6b7280;
+  }
+
+  .character-count {
+    color: #9ca3af;
+  }
+
+  .cancel-btn {
+    background: #374151;
+    border-color: #4b5563;
+    color: #9ca3af;
+  }
+
+  .cancel-btn:hover:not(:disabled) {
+    background: #4b5563;
+    border-color: #6b7280;
+  }
+
+  .submit-btn {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+
+  .thank-you-content {
+    background: linear-gradient(135deg, #1f2937, #111827);
+  }
+
+  .thank-you-title {
+    color: #60a5fa;
+  }
+
+  .thank-you-message {
+    color: #93c5fd;
+  }
+
+  .loading-truck {
+    background: #374151;
+    border-color: #60a5fa;
+  }
+
+  .loading-truck-icon {
+    color: #60a5fa;
+  }
+
+  .loading-rating {
+    color: #60a5fa;
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .single-truck-rating-modal {
+    margin: 0.5rem;
+    border-radius: 1rem;
+  }
+
+  .single-truck-container {
+    padding: 1.5rem;
+  }
+
+  .truck-body {
+    width: 100px;
+    height: 65px;
+  }
+
+  .truck-wheels {
+    gap: 45px;
+  }
+
+  .wheel {
+    width: 20px;
+    height: 20px;
+  }
+
+  .rating-controls {
+    gap: 0.5rem;
+  }
+
+  .rating-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .submit-btn {
+    flex: 1;
+  }
+
+  .thank-you-title {
+    font-size: 1.5rem;
+  }
+
+  .final-truck {
+    transform: scale(1);
+  }
 }

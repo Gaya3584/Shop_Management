@@ -69,7 +69,7 @@ def generate_response(message):
             f"⚠️ You have {len(item_list)} low stock item(s):\n" +
             ", ".join(item_list[:5]) + ("..." if len(item_list) > 5 else "")
         )
-    elif "stock" in tokens:
+    elif "stock" in tokens or stocks in tokens:
             return "Check it out on 'Veiw My Stocks' on dashboard page. You can add, update and delete your stocks there."
     else:
         return "🤔Sorry, I'm not sure how to help with that yet, but I'm learning! You can send your doubts through our contact support page😊"

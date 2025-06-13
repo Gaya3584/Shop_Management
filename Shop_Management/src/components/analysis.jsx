@@ -3,6 +3,7 @@ import { useNavigate} from 'react-router-dom';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Filter, Download, Calendar, TrendingUp, DollarSign, Package, Store } from 'lucide-react';
 import './analysis.css';
+
 const WeeklySalesAnalysis = () => {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState('2025-05-19');
@@ -15,6 +16,10 @@ const WeeklySalesAnalysis = () => {
   const [chartType, setChartType] = useState('pie');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sellingOrders,setSellingOrders]=useState([])
+  const [orderCountData, setOrderCountData] = useState([]);
+  const [validOrders, setValidOrders] = useState([]);
+
+
 
   // Helper function to get week start date (Monday)
   const getWeekStart = (date) => {
@@ -65,16 +70,25 @@ const WeeklySalesAnalysis = () => {
   useEffect(()=>{
     fetchSellOrders();
   },[]);
-
-  // const shops=[{id:'all',name:'All Shops'},...Array.from(new Set(sellingOrders.map(order=>order.shopName))).map(shopName=>({id:shopName,name:shopName}))];
  
   const [filteredData, setFilteredData] = useState([]);
 
   // Filter data based on selected criteria
-  useEffect(() => {
-    let filtered = sellingOrders;
-    setFilteredData(filtered);
-  }, [ startDate, endDate, sellingOrders]);
+useEffect(() => {
+  const allOrders = sellingOrders.filter(order => !!order.orderedAt);
+
+  const valid = allOrders.filter(order => {
+    const status = order.status?.toLowerCase();
+    return status !== 'rejected' && status !== 'cancelled';
+  });
+
+  setFilteredData(allOrders);  // used in the table
+  setValidOrders(valid);       // used in charts, revenue, pie
+}, [startDate, endDate, sellingOrders]);
+
+
+
+
 
   const productSummary = filteredData.reduce((acc, item) => {
     const productName = item.product_name;
@@ -98,8 +112,36 @@ const WeeklySalesAnalysis = () => {
 
   const productArray = Object.values(productSummary);
 
+  // Product-wise chart data for the three bar charts
+  const productRevenueData = productArray
+    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+    .slice(0, 10) // Show top 10 products
+    .map(product => ({
+      name: product.name.length > 15 ? product.name.substring(0, 15) + '...' : product.name,
+      fullName: product.name,
+      revenue: product.totalRevenue
+    }));
+
+  const productOrderCountData = productArray
+    .sort((a, b) => b.orderCount - a.orderCount)
+    .slice(0, 10) // Show top 10 products
+    .map(product => ({
+      name: product.name.length > 15 ? product.name.substring(0, 15) + '...' : product.name,
+      fullName: product.name,
+      orderCount: product.orderCount
+    }));
+
+  const productQuantityData = productArray
+    .sort((a, b) => b.totalQuantity - a.totalQuantity)
+    .slice(0, 10) // Show top 10 products
+    .map(product => ({
+      name: product.name.length > 15 ? product.name.substring(0, 15) + '...' : product.name,
+      fullName: product.name,
+      quantity: product.totalQuantity
+    }));
+
   // Weekly bar chart data
-  const barChartData = filteredData.reduce((acc, item) => {
+  const barChartData = validOrders.reduce((acc, item) => {
     const weekStart = getWeekStart(item.orderedAt);
     const weekLabel = formatWeekRange(weekStart);
     
@@ -169,8 +211,8 @@ const WeeklySalesAnalysis = () => {
 
   // Calculate summary statistics
   const summaryStats = {
-    totalRevenue: filteredData.reduce((sum, item) => sum + (item.total_price || 0), 0),
-    totalQuantity: filteredData.reduce((sum, item) => sum + (item.quantity || 0), 0),
+    totalRevenue: validOrders.reduce((sum, item) => sum + (item.total_price || 0), 0),
+    totalQuantity: validOrders.reduce((sum, item) => sum + (item.quantity || 0), 0),
     
     bestSellingProduct: productArray.length > 0 ? 
       productArray.reduce((best, product) => 
@@ -193,10 +235,9 @@ const WeeklySalesAnalysis = () => {
       week.revenue > (best?.revenue || 0) ? week : best, null),
     worstWeek: barChartData.reduce((worst, week) => 
       week.revenue < (worst?.revenue || Infinity) ? week : worst, null),
-  
- 
-};
-const handleTableCSVDownload = () => {
+  };
+
+  const handleTableCSVDownload = () => {
     if (!filteredData?.length) return;
 
     const headers = ['Order ID', 'Customer', 'Shop', 'Order Date', 'Quantity', 'Total Price', 'Status'];
@@ -226,8 +267,7 @@ const handleTableCSVDownload = () => {
     alert('CSV downloaded successfully!');
   };
 
-  const pieChartData = filteredData.reduce((acc, item) => {
-    // Try different possible product name fields or use customer name as fallback
+  const pieChartData = validOrders.reduce((acc, item) => {
     const productName = item.product_name ;
     const existing = acc.find(d => d.name === productName);
     if (existing) {
@@ -242,14 +282,35 @@ const handleTableCSVDownload = () => {
       });
     }
     return acc;
-  }, []).filter(item => item.value > 0); // Filter out items with zero value
-
-  // Debug log
-  console.log('Filtered Data:', filteredData);
-  console.log('Pie Chart Data:', pieChartData);
-  console.log('Weekly Chart Data:', weeklyGrowthData);
+  }, []).filter(item => item.value > 0);
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0', '#ffb347', '#87ceeb'];
+
+  // Custom tooltip for product charts
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="custom-tooltip" style={{ 
+          backgroundColor: 'white', 
+          padding: '10px', 
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <p style={{ margin: 0, fontWeight: 'bold' }}>{data.fullName || label}</p>
+          {payload.map((entry, index) => (
+            <p key={index} style={{ margin: '5px 0', color: entry.color }}>
+              {entry.name === 'revenue' && `Revenue: ₹${entry.value.toLocaleString()}`}
+              {entry.name === 'orderCount' && `Orders: ${entry.value}`}
+              {entry.name === 'quantity' && `Quantity: ${entry.value.toLocaleString()}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Sorting functionality
   const sortData = (column) => {
@@ -322,7 +383,7 @@ const handleTableCSVDownload = () => {
       <div className="sales-analysis">
         <div className="loading-spinner">
           <div className="spinner"></div>
-          <p>Loading sales data...</p>
+          <p></p>
         </div>
       </div>
     );
@@ -462,6 +523,12 @@ const handleTableCSVDownload = () => {
           >
             Weekly Performance
           </button>
+          <button 
+            className={chartType === 'products' ? 'active' : ''}
+            onClick={() => setChartType('products')}
+          >
+            Product Analysis
+          </button>
         </div>
       </div>
 
@@ -491,33 +558,114 @@ const handleTableCSVDownload = () => {
                 </PieChart>
             </ResponsiveContainer>
           </div>
-        ) : (
-          <div className="chart-container">
-            <h3>Weekly Sales Performance</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={weeklyGrowthData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value, name) => [
-                    name === 'revenue' ? `₹${value.toLocaleString()}` : value.toLocaleString(),
-                    name === 'revenue' ? 'Revenue' : name === 'quantity' ? 'Items Sold' : 'Orders'
-                  ]}
-                  labelFormatter={(label, payload) => {
-                    if (payload && payload[0]) {
-                      const data = payload[0].payload;
-                      return `${label} | Revenue Growth: ${data.revenueGrowth}% | Qty Growth: ${data.quantityGrowth}%`;
-                    }
-                    return label;
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="revenue" fill="#8884d8" name="revenue" />
-                <Bar dataKey="quantity" fill="#82ca9d" name="quantity" />
-                <Bar dataKey="orderCount" fill="#ffc658" name="orderCount" />
-              </BarChart>
-            </ResponsiveContainer>
+        ) : chartType === 'bar' ? (
+  <div className="chart-container">
+    <h3>Weekly Sales Performance</h3>
+
+    {/* Revenue */}
+    <div className="single-bar-chart">
+      <h4>Weekly Revenue (₹)</h4>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart data={weeklyGrowthData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+          <YAxis tickFormatter={(val) => `₹${val}`} />
+          <Tooltip formatter={(val) => `₹${val.toLocaleString()}`} />
+          <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+
+    {/* Quantity */}
+    <div className="single-bar-chart">
+      <h4>Items Sold</h4>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart data={weeklyGrowthData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+          <YAxis />
+          <Tooltip formatter={(val) => `${val} items`} />
+          <Bar dataKey="quantity" fill="#82ca9d" name="Quantity" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+
+    {/* Order Count */}
+    <div className="single-bar-chart">
+      <h4>Order Count</h4>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart data={weeklyGrowthData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+          <YAxis />
+          <Tooltip formatter={(val) => `${val} orders`} />
+          <Bar dataKey="orderCount" fill="#ffc658" name="Orders" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+) : (
+          // Product Analysis Charts
+          <div className="product-charts-container">
+            {/* Revenue by Product Chart */}
+            <div className="chart-container">
+              <h3>Top 10 Products by Revenue</h3>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={productRevenueData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    angle={-45} 
+                    textAnchor="end" 
+                    height={80}
+                    fontSize={12}
+                  />
+                  <YAxis tickFormatter={(value) => `₹${value.toLocaleString()}`} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="revenue" fill="#8884d8" name="revenue" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Order Count by Product Chart */}
+            <div className="chart-container">
+              <h3>Top 10 Products by Order Count</h3>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={productOrderCountData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    angle={-45} 
+                    textAnchor="end" 
+                    height={80}
+                    fontSize={12}
+                  />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="orderCount" fill="#82ca9d" name="orderCount" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Quantity by Product Chart */}
+            <div className="chart-container">
+              <h3>Top 10 Products by Quantity Sold</h3>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={productQuantityData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    angle={-45} 
+                    textAnchor="end" 
+                    height={80}
+                    fontSize={12}
+                  />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="quantity" fill="#ffc658" name="quantity" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
       </div>

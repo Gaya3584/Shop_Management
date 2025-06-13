@@ -542,12 +542,21 @@ def update_order_status(order_id):
 
         if not new_status:
             return jsonify({'message': 'Status is required'}), 400
-        
+
         result = db.orders.update_one(
-                {'_id': ObjectId(order_id)},
-                {'$set': {'status': new_status}}
+            {'_id': ObjectId(order_id)},
+            {'$set': {'status': new_status}}
+        )
+
+        order = db.orders.find_one({'_id': ObjectId(order_id)})  # ✅ fixed here
+        product_id = order.get("product_id")
+        quan = int(order.get('quantity', 0))
+
+        if new_status in ['cancelled', 'rejected']:
+            db.stocks.update_one(
+                {'_id': ObjectId(product_id)},
+                {'$inc': {'quantity': quan}}
             )
-            
 
         if result.modified_count == 0:
             return jsonify({'message': 'No order updated'}), 404

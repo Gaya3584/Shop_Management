@@ -44,7 +44,16 @@ const maxOrderable = Math.max(0, quantity - threshold);
   if (!fetchCurrentUser) {
     navigate('/'); // or your login route
   }
-}, [fetchCurrentUser, navigate]);
+}, [currentUser,navigate]);
+
+useEffect(() => {
+  if (currentUser !== null) {
+    fetchProducts();
+    fetchWishlist();
+    fetchRecommendations(); 
+  }
+}, [currentUser]);
+
   const isOwnProduct = (product) => {
   return product.user_token === currentUser;
 };
@@ -159,7 +168,7 @@ useEffect(() => {
       alert("Cannot buy more than in stock");
       return;
     }
-    setLoading(true); 
+    setPlacingOrder(true);
     setShowBuyModal(false);
     axios.post('http://localhost:5000/api/orders/new', {
       productId: selectedProduct.id,
@@ -181,7 +190,8 @@ useEffect(() => {
       } 
 
     }).finally(() => {
-      setLoading(false); // ✅ Stop loading
+      setPlacingOrder(false);
+ // ✅ Stop loading
     });
   };
 
@@ -420,7 +430,7 @@ useEffect(() => {
 
                       <div className="product-stats">
                         <div className="rating">
-                          <span className="rating-stars">⭐</span>
+                          <span className="rating-stars"onClick={()=>navigate(`/dash`)}>⭐</span>
                           <span className="rating-value">{item.product.rating}</span>
                           <span className="rating-count">({item.product.reviews})</span>
                         </div>
@@ -592,7 +602,7 @@ useEffect(() => {
 
                     <div className="product-stats">
                       <div className="rating">
-                        <span className="rating-stars">⭐</span>
+                        <span className="rating-stars"onClick={()=>navigate(`/dash`)}>⭐</span>
                         <span className="rating-value">{product.rating}</span>
                         <span className="rating-count">({product.reviews})</span>
                       </div>
@@ -718,7 +728,7 @@ useEffect(() => {
 
                     <div className="product-stats">
                       <div className="rating">
-                        <span className="rating-stars">⭐</span>
+                        <span className="rating-stars" onClick={()=>navigate(`/dash`)}>⭐</span>
                         <span className="rating-value">{product.rating}</span>
                         <span className="rating-count">({product.reviews})</span>
                       </div>
@@ -733,7 +743,7 @@ useEffect(() => {
                         disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
                           setSelectedProduct(product);
-                          setBuyQuantity(Number(product.minOrder)||1);
+setBuyQuantity(Number(product.minOrder) || 1);
                           setShowBuyModal(true);
                         }}
                       >
@@ -791,6 +801,7 @@ useEffect(() => {
                 <div className="seller-info">
                   <div className="seller-details">
                     <span className="seller-name">{selectedProduct.seller.name}</span>
+                    <span className="seller-name">{selectedProduct.seller.name}</span>
                     <span className={`seller-type name ${selectedProduct.sellerType}`}>
                       {selectedProduct.sellerType === 'retailer' ? '🏪' : '🏭'} {selectedProduct.sellerType}
                     </span>
@@ -800,7 +811,7 @@ useEffect(() => {
 
                 <div className="product-stats">
                   <div className="rating">
-                    <span className="rating-stars">⭐</span>
+                    <span className="rating-stars"onClick={()=>navigate(`/dash`)}>⭐</span>
                     <span className="rating-value">{selectedProduct.rating}</span>
                     <span className="rating-count">({selectedProduct.reviews})</span>
                   </div>
