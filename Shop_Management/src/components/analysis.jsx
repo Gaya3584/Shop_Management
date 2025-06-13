@@ -383,7 +383,7 @@ useEffect(() => {
       <div className="sales-analysis">
         <div className="loading-spinner">
           <div className="spinner"></div>
-          <p>Loading sales data...</p>
+          <p></p>
         </div>
       </div>
     );

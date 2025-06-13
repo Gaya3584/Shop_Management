@@ -454,7 +454,7 @@ useEffect(() => {
                               discount: item.product.discount
                             };
                             setSelectedProduct(productForModal);
-           setBuyQuantity(Number(product.minOrder)||1);
+           setBuyQuantity(Number(item.product.minOrder)||1);
                             setShowBuyModal(true);
                             setShowWishlist(false);
                           }}
@@ -612,7 +612,7 @@ useEffect(() => {
                         disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
                           setSelectedProduct(product);
-              setBuyQuantity(Number(product.minOrder)||1);
+setBuyQuantity(Number(product.minOrder) || 1);
 
                           setShowBuyModal(true);
                         }}
@@ -737,7 +737,7 @@ useEffect(() => {
                         disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
                           setSelectedProduct(product);
-                          setBuyQuantity(Number(product.minOrder)||1);
+setBuyQuantity(Number(product.minOrder) || 1);
                           setShowBuyModal(true);
                         }}
                       >
@@ -794,7 +794,7 @@ useEffect(() => {
 
                 <div className="seller-info">
                   <div className="seller-details">
-                    <span className="seller-name">{selectedProduct.seller}</span>
+                    <span className="seller-name">{selectedProduct.seller.name}</span>
                     <span className={`seller-type name ${selectedProduct.sellerType}`}>
                       {selectedProduct.sellerType === 'retailer' ? '🏪' : '🏭'} {selectedProduct.sellerType}
                     </span>
