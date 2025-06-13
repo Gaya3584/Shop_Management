@@ -64,6 +64,7 @@ h1{
   color: #333;
 }
 
+
 /* inputx and select */
 .signupForm input,
 .signupForm select {
@@ -165,4 +166,26 @@ h1{
 
   }
 }
+/* Hide native eye icon in password fields */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-password-toggle-button {
+  display: none !important;
+  appearance: none !important;
+}
+
+/* Reset browser appearance completely */
+input[type="password"],
+input[type="text"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+
 /**/
+

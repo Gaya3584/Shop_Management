@@ -11,4 +11,5 @@ def init_mail(app):
 from . import routes  # Registers routes
 from . import stocks
 from . import order
-from .import chat
+from . import ratingnreview
+from . import chat

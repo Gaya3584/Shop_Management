@@ -287,11 +287,12 @@ const StockManagement = () => {
     };
 
     const filteredStocks = stocks.filter(stock => {
-        const matchesSearch = stock.name?.toLowerCase().includes(searchItem.toLowerCase())||
-    (stock.supplier?.name || "").toLowerCase().includes(searchItem.toLowerCase());;
+        const matchesSearch = (stock.name || "").toLowerCase().includes(searchItem.toLowerCase()) ||
+                      (stock.supplier || "").toLowerCase().includes(searchItem.toLowerCase());
         const matchesCategory = filterCategory ? stock.category === filterCategory : true;
         return matchesSearch && matchesCategory;
     });
+stocks.forEach(stock => console.log('Supplier for stock:', stock.supplier));
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -374,9 +375,18 @@ className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-
                         <div className="bg-gradient-to-r from-orange-400 to-red-500 rounded-xl p-4 text-white">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-orange-100 text-sm">Low Stock</p>
+                                    <p className="text-orange-100 text-sm" >Low Stock</p>
 <p className="text-2xl font-bold">{stats.lowStockItems ?? 0}</p>
                                 </div>
+                                {stats.lowStockItems && (<button
+                            onClick={() => navigate(`/disc`)}
+                            disabled={loading}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                        >
+                            {/* Add button content here */}
+                            Low Stock!Go to Discover
+                        </button>)}
+                        
                                 <AlertTriangle className="w-8 h-8 text-orange-200" />
                             </div>
                         </div>
@@ -389,14 +399,12 @@ className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-
                         <div className="flex-1">
                             <input
                                 type="text"
-                                placeholder="Supplier"
-                                value={formData.supplier || ""}
-                                onChange={(e) => {
-                                    const val = e.target.value.trim();
-                                    setFormData({ ...formData, supplier: val.length > 0 ? val : "" });
-                                }}
+                            placeholder="Search by Product or Supplier"
+                            value={searchItem}
+                            onChange={(e) => setSearchItem(e.target.value)}
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             />
+
                         </div>
                         <div className="md:w-48">
                             <select
@@ -425,6 +433,7 @@ className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-
                                 <input 
                                 type="file"
                                 accept="image/*" 
+                                multiple
                                 onChange={handleImageChange} 
                                 />
                             </label>

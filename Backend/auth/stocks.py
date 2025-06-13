@@ -49,8 +49,8 @@ def add_stock():
             'minThreshold': int(data.get('minThreshold', 0)),
             'minOrder':data.get('minOrder',0),
             'rating':0,
-            'reviews':0,
-            'image':image_id,
+            'reviews':[],
+            'images': image_id,
             'discount':data.get('discount',0),
             'addedAt': datetime.utcnow(),
             'updatedAt': datetime.utcnow(),
@@ -125,13 +125,13 @@ def update_stock(stock_id):
             'category': data.get('category', ''),
             'quantity': int(data['quantity']),
             'price': float(data['price']),
-            'supplier':data.get('supplier',""),
+            'supplier': data.get('supplier', ""),
             'minThreshold': int(data.get('minThreshold', 0)),
-            'minOrder':data.get('minOrder',0),
-            'rating':0,
-            'reviews':0,
-            'image':image_id,
-            'discount':data.get('discount',0),
+            'minOrder': int(data.get('minOrder', 0)),
+            'rating': stock.get('rating', 0),
+            'reviews': stock.get('reviews', []),
+            'images': image_id,
+            'discount': float(data.get('discount', 0)),
             'updatedAt': datetime.utcnow(),
         }
 
@@ -218,6 +218,7 @@ def get_all_public_stocks():
 
         stock_and_users=[{
             **stock,
+            'reviewCount':len(stock.get('reviews',[])),
             'user_info':user_dict.get(stock['user_token'],{})
             }
             for stock in all_stocks
