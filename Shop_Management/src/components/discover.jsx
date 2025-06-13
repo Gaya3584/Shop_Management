@@ -527,11 +527,11 @@ useEffect(() => {
           <div className="products-header">
            {placingOrder ? (
             <h1 className="section-title">Placing Your Order. Wait a moment</h1>
-            ) : (
-              <h2 className="section-title">
-                {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
-              </h2>
-            )}
+          ) : (
+            <h2 className="section-title">
+              {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
+            </h2>
+          )}
 
             <div className="sort-options">
               <select className="sort-select" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
