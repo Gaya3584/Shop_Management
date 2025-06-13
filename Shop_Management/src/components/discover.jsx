@@ -14,15 +14,11 @@ const DiscoverPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sortOption, setSortOption] = useState('reviews');
-  const [modalSource, setModalSource] = useState(null); // 'wishlist' or 'grid'
   const [products, setProducts] = useState([]);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [showWishlist, setShowWishlist] = useState(false);
-  const minOrder = Number(selectedProduct?.minOrder || 1);
-const quantity = Number(selectedProduct?.quantity || 0);
-const threshold = Number(selectedProduct?.threshold || 0);
-const maxOrderable = Math.max(0, quantity - threshold);
+  const [placingOrder, setPlacingOrder] = useState(false);
 
 
   const [wishlistLoading, setWishlistLoading] = useState(false);
@@ -420,12 +416,11 @@ useEffect(() => {
                       <div className="seller-info">
                         <div className="seller-details">
                           <span className="seller-name">{item.product.seller?.name || 'Unknown'}</span>
-<span className={`seller-type name ${item.product.seller?.type || 'Unknown'}`}>
-  {item.product.seller?.type === 'Retail' ? '🏪' : '🏭'} {item.product.seller?.type || 'Unknown'}
-</span>
+                          <span className={`seller-type name ${item.product.seller?.type || 'Unknown'}`}>
+                            {item.product.seller?.type === 'Retail' ? '🏪' : '🏭'} {item.product.seller?.type || 'Unknown'}
+                          </span>
                           </div>
-                         <div className="seller-location">📍 {item.product.seller?.location || 'Unknown'}</div>
-                 
+                          <div className="seller-location">📍 {item.product.seller?.location || 'Unknown'}</div>                 
                       </div>
 
                       <div className="product-stats">
@@ -458,9 +453,8 @@ useEffect(() => {
                               image: item.product.image,
                               discount: item.product.discount
                             };
-                            setModalSource('wishlist');
                             setSelectedProduct(productForModal);
-                            setBuyQuantity(Number(item.product.minOrder)||1);
+           setBuyQuantity(Number(item.product.minOrder)||1);
                             setShowBuyModal(true);
                             setShowWishlist(false);
                           }}
@@ -526,13 +520,14 @@ useEffect(() => {
         {/* Products Grid */}
         <div className="products-section">
           <div className="products-header">
-           {!showBuyModal && loading ? (
-            <h1 className="section-title">Wait a moment...</h1>
-            ) : (
-              <h2 className="section-title">
-                {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
-              </h2>
-            )}
+           {placingOrder ? (
+            <h1 className="section-title">Placing Your Order. Wait a moment</h1>
+          ) : (
+            <h2 className="section-title">
+              {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
+            </h2>
+          )}
+
             <div className="sort-options">
               <select className="sort-select" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
                 <option value="reviews">Sort by Number of Reviews</option>
@@ -616,10 +611,9 @@ useEffect(() => {
                         className="inquire-btn"
                         disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
-                          setModalSource('grid');
                           setSelectedProduct(product);
-                          const minOrder = Number(product.minOrder);
-                          setBuyQuantity(isNaN(minOrder) ? 1 : minOrder);
+setBuyQuantity(Number(product.minOrder) || 1);
+
                           setShowBuyModal(true);
                         }}
                       >
@@ -629,16 +623,18 @@ useEffect(() => {
                         ? 'Your Product'
                         : 'Buy Now'}
                       </button>
-                      {!isOwnProduct(product) &&(
-                      <button
-                        className="wishlist-btn"
-                        onClick={() => toggleWishlist(product)}
-                        title={isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                      >
+
+                      {!isOwnProduct(product) && (
+    <button
+      className="wishlist-btn"
+      onClick={() => toggleWishlist(product)}
+      title={isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+    >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product.id) ? 'red' : 'none'} stroke="currentColor" strokeWidth="2">
                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                         </svg>
-                      </button>)}
+                      </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -754,11 +750,13 @@ setBuyQuantity(Number(product.minOrder) || 1);
                         : 'Buy Now'}
                       </button>
 
-                     {!isOwnProduct(produtc) &&( <button
-                        className="wishlist-btn"
-                        onClick={() => toggleWishlist(product)}
-                        title={isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                      >
+                      {!isOwnProduct(product) && (
+  <button
+    className="wishlist-btn"
+    onClick={() => toggleWishlist(product)}
+    title={isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+  >
+
                         <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product.id) ? 'red' : 'none'} stroke="currentColor" strokeWidth="2">
                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                         </svg>
@@ -772,7 +770,7 @@ setBuyQuantity(Number(product.minOrder) || 1);
           )}
         </div>
       </div>
-          
+
       {/* Buy Modal */}
       {showBuyModal && selectedProduct && (() => {
         const maxOrderable = Math.max(0, selectedProduct.quantity - selectedProduct.threshold);
@@ -801,7 +799,6 @@ setBuyQuantity(Number(product.minOrder) || 1);
                 <div className="seller-info">
                   <div className="seller-details">
                     <span className="seller-name">{selectedProduct.seller.name}</span>
-                    <span className="seller-name">{selectedProduct.seller.name}</span>
                     <span className={`seller-type name ${selectedProduct.sellerType}`}>
                       {selectedProduct.sellerType === 'retailer' ? '🏪' : '🏭'} {selectedProduct.sellerType}
                     </span>
@@ -820,13 +817,13 @@ setBuyQuantity(Number(product.minOrder) || 1);
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', margin: '1rem 0' }}>
                   <button
-                      className='wishlist-btn'
-                      onClick={() => setBuyQuantity(prev => Math.max(minOrder, prev - 1))}
-                      disabled={buyQuantity <= minOrder}
-                      title={buyQuantity <= minOrder ? 'Minimum order limit reached' : 'Decrease quantity'}
-                    >
-                      -
-                    </button>
+                     onClick={() => setBuyQuantity(Math.max(selectedProduct.minOrder, buyQuantity - 1))}
+                    className="wishlist-btn"
+                    disabled={buyQuantity <= selectedProduct.minOrder}
+                    title={buyQuantity <= selectedProduct.minOrder ? 'Minimum order limit reached' : 'Decrease quantity'}
+                  >
+                    -
+                  </button>
                   <div style={{ fontSize: '1.2rem', fontWeight: '600' }}>{buyQuantity}</div>
                   <button
                     onClick={() => setBuyQuantity(prev => (prev < maxOrderable ? prev + 1 : prev))}
