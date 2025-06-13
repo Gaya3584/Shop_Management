@@ -19,7 +19,7 @@ const SplashScreen = ({ onFinish }) => {
       
       {/* Main Content */}
       <div className="content-wrapper">
-        <h1 className="app-title">Welcome t Shopsy</h1>
+        <h1 className="app-title">Welcome to Shopsy</h1>
         <p className="app-subtitle">Manage your stocks effeciently!</p>
         
         {/* Animation Container */}

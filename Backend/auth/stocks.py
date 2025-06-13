@@ -50,7 +50,8 @@ def add_stock():
             'minOrder':data.get('minOrder',0),
             'rating':0,
             'reviews':[],
-            'images': image_id,
+
+            'image':image_id,
             'discount':data.get('discount',0),
             'addedAt': datetime.utcnow(),
             'updatedAt': datetime.utcnow(),

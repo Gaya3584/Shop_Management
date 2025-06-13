@@ -110,18 +110,18 @@ useEffect(() => {
 
 }, []);
 
-  const toggleWishlist = (product) => {
-    setWishlist((prevWishlist) => {
-      const exists = prevWishlist.find((item) => item.stock_id === product.id);
-      if (exists) {
-        removeFromWishlist(product.id);
-        return prevWishlist.filter((item) => item.stock_id !== product.id);
-      } else {
-        addToWishlist(product.id);
-        return [...prevWishlist, { stock_id: product.id, product: product }];
-      }
-    });
-  };
+  const toggleWishlist = async (product) => {
+  const exists = wishlist.find((item) => item.stock_id === product.id);
+  if (exists) {
+    await removeFromWishlist(product.id);
+  } else {
+    await addToWishlist(product.id);
+  }
+
+  // ✅ Always fetch the latest wishlist after toggling
+  fetchWishlist();
+};
+
 
   const categories = [
     { id: 'all', name: 'All Categories', icon: '🛍️' },
@@ -324,7 +324,7 @@ useEffect(() => {
             maxWidth: '800px', 
             maxHeight: '80vh', 
             overflow: 'auto',
-            backgroundColor: 'white',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             borderRadius: '12px',
             padding: '20px'
           }}>
@@ -359,8 +359,8 @@ useEffect(() => {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
                 gap: '20px' 
               }}>
-                {wishlist.map(item => (
-                  <div key={item.wishlist_id} className="product-card" style={{ position: 'relative' }}>
+                {wishlist.map((item,index) => (
+                  <div key={item.wishlist_id|| item.stock_id || index} className="product-card" style={{ position: 'relative' }}>
                     <button
                       onClick={() => {
                         removeFromWishlist(item.stock_id);
@@ -389,6 +389,7 @@ useEffect(() => {
                     <div className="product-image-container">
                       {item.product.image && (
                         <img
+<<<<<<< HEAD
                         src={product.image ? `http://localhost:5000${product.image}` : '/placeholder.jpg'}
                         alt={product.name}
                         className="product-image"
@@ -399,6 +400,13 @@ useEffect(() => {
                         }}
                         loading="lazy"
                       />
+=======
+                          src={`http://localhost:5000${item.product.image || '/placeholder.jpg'}`}
+                          alt={item.product.name}
+                          className="product-image"
+                          onError={(e) => { e.target.src = '/placeholder.jpg'; }}
+                        />
+>>>>>>> newBranchFromPost
                       )}
                       {!item.product.inStock && (
                         <div className="out-of-stock-overlay">
@@ -420,12 +428,12 @@ useEffect(() => {
 
                       <div className="seller-info">
                         <div className="seller-details">
-                          <span className="seller-name">{item.product.seller.name}</span>
-                          <span className={`seller-type name ${item.product.seller.type}`}>
-                            {item.product.seller.type === 'Retail' ? '🏪' : '🏭'} {item.product.seller.type}
+                          <span className="seller-name">{item.product.seller?.name || 'Unknown'}</span>
+                          <span className={`seller-type name ${item.product.seller?.type || 'Unknown'}`}>
+                            {item.product.seller?.type === 'Retail' ? '🏪' : '🏭'} {item.product.seller?.type || 'Unknown'}
                           </span>
-                        </div>
-                        <div className="seller-location">📍 {item.product.seller.location}</div>
+                          </div>
+                          <div className="seller-location">📍 {item.product.seller?.location || 'Unknown'}</div>                 
                       </div>
 
                       <div className="product-stats">
@@ -450,16 +458,16 @@ useEffect(() => {
                               price: item.product.price,
                               quantity: item.product.quantity,
                               threshold: item.product.minThreshold,
-                              seller: item.product.seller.name,
-                              sellerType: item.product.seller.type,
-                              location: item.product.seller.location,
+                              seller: item.product.seller,
+                              sellerType: item.product.sellerType,
+                              location: item.product.location,
                               rating: item.product.rating,
                               reviews: item.product.reviews,
                               image: item.product.image,
                               discount: item.product.discount
                             };
                             setSelectedProduct(productForModal);
-                            setBuyQuantity(product.minOrder||1);
+           setBuyQuantity(Number(product.minOrder)||1);
                             setShowBuyModal(true);
                             setShowWishlist(false);
                           }}
@@ -617,7 +625,8 @@ useEffect(() => {
                         disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
                           setSelectedProduct(product);
-                          setBuyQuantity(product.minOrder||'1');
+              setBuyQuantity(Number(product.minOrder)||1);
+
                           setShowBuyModal(true);
                         }}
                       >
@@ -741,7 +750,7 @@ useEffect(() => {
                         disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
                           setSelectedProduct(product);
-                          setBuyQuantity(1);
+                          setBuyQuantity(Number(product.minOrder)||1);
                           setShowBuyModal(true);
                         }}
                       >
@@ -817,8 +826,10 @@ useEffect(() => {
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', margin: '1rem 0' }}>
                   <button
-                    onClick={() => setBuyQuantity(Math.max(1, buyQuantity - 1))}
+                     onClick={() => setBuyQuantity(Math.max(selectedProduct.minOrder, buyQuantity - 1))}
                     className="wishlist-btn"
+                    disabled={buyQuantity <= selectedProduct.minOrder}
+                    title={buyQuantity <= selectedProduct.minOrder ? 'Minimum order limit reached' : 'Decrease quantity'}
                   >
                     -
                   </button>

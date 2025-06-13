@@ -25,6 +25,8 @@ def add_review():
         "order_id": ObjectId(order_id),
         "rating": rating,
         "review": review,
+
+        'isEditing':False,
         "createdAt": datetime.utcnow()
     })
     order=orders.find_one({'_id': ObjectId(order_id)})
@@ -39,5 +41,6 @@ def add_review():
             }
         }
     )
+
 
     return jsonify({"message": "Review submitted successfully"}), 200

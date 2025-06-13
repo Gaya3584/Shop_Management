@@ -467,9 +467,10 @@ def get_recommendations():
 
 
     # Gather all unique user_tokens from recommendations
-    user_tokens = list({item['user_token'] for item in recommendations})
-    user_docs = users.find({"user_token": {"$in": user_tokens}})
-    user_map = {user['user_token']: user for user in user_docs}
+
+    user_ids = list({ObjectId(item['user_token']) for item in recommendations})
+    user_docs = users.find({ "_id": { "$in": user_ids } })
+    user_map = {str(user['_id']): user for user in user_docs}
 
     formatted = []
     for item in recommendations:
@@ -482,12 +483,10 @@ def get_recommendations():
             "quantity": int(item.get("quantity", 0)),
             "rating": float(item.get("rating", 0)),
             "reviewCount": len(item.get("reviews", [])),
-            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.png",
-            
-            "seller": item.get("shopName", "Unknown"),
+            "image": f"/image/{item['image']}" if "image" in item else "/placeholder.jpg",
+             "seller": item.get("shopName", "Unknown"),
             "sellerType": user_info.get("shopType", "Unknown"),
             "location": user_info.get("shopLocation", "Unknown")
         })
-
     return jsonify({"recommendations": formatted})
 

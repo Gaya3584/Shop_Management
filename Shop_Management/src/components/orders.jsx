@@ -447,19 +447,23 @@ const OrderManagementSystem = () => {
             <Eye className="action-icon" />
           </button>
           {/* Rate Product button for delivered buying orders */}
-          {activeTab === 'buying' && order.status === 'delivered' && !order.hasReview && (
-            <button 
-              className="action-btn action-rate"
-              onClick={(e) => {
-                e.stopPropagation();
-                setOrderToRate(order);
-                setShowRatingModal(true);
-              }}
-              title="Rate this product"
-            >
+          {activeTab === 'buying' && order.status === 'delivered' && (
+          <button 
+            className="action-btn action-rate"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOrderToRate(order);
+              setShowRatingModal(true);
+            }}
+            title={order.hasReview ? "Edit your review" : "Rate this product"}
+          >
+            {order.hasReview ? (
+              <Edit className="action-icon" />
+            ) : (
               <Star className="action-icon" />
-            </button>
-          )}
+            )}
+          </button>
+        )}
         </div>
       </div>
 
@@ -651,20 +655,23 @@ const OrderManagementSystem = () => {
             )}
 
             {/* Rate Product button in modal */}
-            {activeTab === 'buying' && order.status === 'delivered' && !order.hasReview && (
-              <div className="modal-actions">
+            {activeTab === 'buying' && order.status === 'delivered' && (
                 <button 
-                  onClick={() => {
+                  className="action-btn action-rate"
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setOrderToRate(order);
                     setShowRatingModal(true);
                   }}
-                  className="action-button rate-btn"
+                  title={order.hasReview ? "Edit your review" : "Rate this product"}
                 >
-                  <Star className="action-icon" />
-                  Rate this Product
+                  {order.hasReview ? (
+                    <Edit className="action-icon" />
+                  ) : (
+                    <Star className="action-icon" />
+                  )}
                 </button>
-              </div>
-            )}
+              )}
 
             {activeTab === 'selling' && order.status === 'accepted' && (
               <div className="modal-actions">
