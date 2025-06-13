@@ -74,7 +74,7 @@ const WeeklySalesAnalysis = () => {
   const [filteredData, setFilteredData] = useState([]);
 
   // Filter data based on selected criteria
-  useEffect(() => {
+useEffect(() => {
   const allOrders = sellingOrders.filter(order => !!order.orderedAt);
 
   const valid = allOrders.filter(order => {
@@ -236,8 +236,8 @@ const WeeklySalesAnalysis = () => {
     worstWeek: barChartData.reduce((worst, week) => 
       week.revenue < (worst?.revenue || Infinity) ? week : worst, null),
   };
- 
-const handleTableCSVDownload = () => {
+
+  const handleTableCSVDownload = () => {
     if (!filteredData?.length) return;
 
     const headers = ['Order ID', 'Customer', 'Shop', 'Order Date', 'Quantity', 'Total Price', 'Status'];
@@ -559,8 +559,8 @@ const handleTableCSVDownload = () => {
             </ResponsiveContainer>
           </div>
         ) : chartType === 'bar' ? (
-          <div className="chart-container">
-            <h3>Weekly Sales Performance</h3>
+  <div className="chart-container">
+    <h3>Weekly Sales Performance</h3>
 
     {/* Revenue */}
     <div className="single-bar-chart">
@@ -594,10 +594,10 @@ const handleTableCSVDownload = () => {
     <div className="single-bar-chart">
       <h4>Order Count</h4>
       <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={weeklyGrowthData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                <YAxis />
+        <BarChart data={weeklyGrowthData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+          <YAxis />
           <Tooltip formatter={(val) => `${val} orders`} />
           <Bar dataKey="orderCount" fill="#ffc658" name="Orders" />
         </BarChart>
@@ -622,7 +622,7 @@ const handleTableCSVDownload = () => {
                   />
                   <YAxis tickFormatter={(value) => `₹${value.toLocaleString()}`} />
                   <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="revenue" fill="#8884d8" name="revenue" />
+                  <Bar dataKey="revenue" fill="#8884d8" name="revenue" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -663,8 +663,8 @@ const handleTableCSVDownload = () => {
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="quantity" fill="#ffc658" name="quantity" />
-              </BarChart>
-            </ResponsiveContainer>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}

@@ -273,21 +273,21 @@ const OrderManagementSystem = () => {
 
   // Handle status updates
   const handleStatusUpdate = async (orderId, newStatus) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ status: newStatus })
-      });
+  try {
+    setIsLoading(true);
+    const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({ status: newStatus })
+    });
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (response.ok) {
-        console.log(result.message);
+    if (response.ok) {
+      console.log(result.message);
 
       // ✅ Update correct order list based on tab
       if (activeTab === 'buying') {
@@ -327,18 +327,18 @@ const OrderManagementSystem = () => {
 
 
 
-        alert(`✅ Order status updated to ${newStatus}`);
-      } else {
-        console.error(result.message);
-        alert(`❌ Error: ${result.message}`);
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert('❌ Failed to update status. Please try again.');
-    } finally {
-      setIsLoading(false);
+      alert(`✅ Order status updated to ${newStatus}`);
+    } else {
+      console.error(result.message);
+      alert(`❌ Error: ${result.message}`);
     }
-  };
+  } catch (error) {
+    console.error("Error updating status:", error);
+    alert('❌ Failed to update status. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const currentOrders = activeTab === 'buying' ? buyingOrders : sellingOrders;
 

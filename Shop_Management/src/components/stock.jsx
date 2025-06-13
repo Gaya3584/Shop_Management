@@ -51,16 +51,16 @@ const StockManagement = () => {
 
             // Revoke previous URL to avoid memory leaks
             if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
+            URL.revokeObjectURL(previewUrl);
             }
             const objectUrl = URL.createObjectURL(file);
             setPreviewUrl(objectUrl);
             setFormData({ ...formData, image: objectUrl }); 
         }
     }
+
         
     
-
     const isFormValid = formData.name.trim() &&
                     formData.quantity.trim() &&
                     formData.price.trim() &&
@@ -241,7 +241,7 @@ const StockManagement = () => {
 
             if (selectedImages.length > 0 && selectedImages[0] instanceof File) {
                 formDataToSend.append('image', selectedImages[0]);
-            }
+                }
 
             await apiCall(`http://localhost:5000/api/stocks/${editingStock._id}`, {
                 method: 'PUT',
@@ -340,13 +340,13 @@ stocks.forEach(stock => console.log('Supplier for stock:', stock.supplier));
                             <span className="font-semibold">Add Stock</span>
                         </button>
                         <button
-    onClick={() => navigate(`/dash`)} // ← Added closing ) and }
-    disabled={loading}
-className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
->
-    {/* Add button content here */}
-    Go to Dashboard
-</button>
+                            onClick={() => navigate(`/dash`)} // ← Added closing ) and }
+                            disabled={loading}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                        >
+                            {/* Add button content here */}
+                            Go to Dashboard
+                        </button>
                         
                     </div>
 
@@ -398,11 +398,11 @@ className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-
                     <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                         <div className="flex-1">
                             <input
-                                type="text"
+                            type="text"
                             placeholder="Search by Product or Supplier"
                             value={searchItem}
                             onChange={(e) => setSearchItem(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             />
 
                         </div>
