@@ -113,8 +113,15 @@ def get_stock_stats():
 def update_stock(stock_id):
     try:
         data = request.form
+        stock = stocks.find_one({'_id': ObjectId(stock_id), 'user_token': user_id})
+        if not stock:
+            return jsonify({'message': 'Stock not found or unauthorized'}), 404
+
         image_file = request.files.get('image')
-        image_id = save_uploaded_image_to_gridfs(image_file)
+        image_id = stock.get('image')  # keep old image if not uploading new
+        if image_file:
+            image_id = save_uploaded_image_to_gridfs(image_file)
+
         user_token = request.cookies.get('token')
         user_id = decode_token(user_token)
         if not user_id:
@@ -123,17 +130,17 @@ def update_stock(stock_id):
 
         update_data = {
             'name': data['name'],
-            'category': data.get('category', ''),
-            'quantity': int(data['quantity']),
-            'price': float(data['price']),
-            'supplier': data.get('supplier', ""),
-            'minThreshold': int(data.get('minThreshold', 0)),
-            'minOrder': int(data.get('minOrder', 0)),
-            'rating': stock.get('rating', 0),
-            'reviews': stock.get('reviews', []),
-            'images': image_id,
-            'discount': float(data.get('discount', 0)),
-            'updatedAt': datetime.utcnow(),
+    'category': data.get('category', ''),
+    'quantity': int(data['quantity']),
+    'price': float(data['price']),
+    'supplier': data.get('supplier', ""),
+    'minThreshold': int(data.get('minThreshold', 0)),
+    'minOrder': int(data.get('minOrder', 0)),
+    'rating': stock.get('rating', 0),
+    'reviews': stock.get('reviews', []),
+    'image': image_id,
+    'discount': float(data.get('discount', 0)),
+    'updatedAt': datetime.utcnow(),
         }
 
         result = stocks.update_one(
