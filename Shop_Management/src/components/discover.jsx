@@ -389,24 +389,11 @@ useEffect(() => {
                     <div className="product-image-container">
                       {item.product.image && (
                         <img
-<<<<<<< HEAD
-                        src={product.image ? `http://localhost:5000${product.image}` : '/placeholder.jpg'}
-                        alt={product.name}
-                        className="product-image"
-                        onError={(e) => {
-                          if (e.target.src !== '/placeholder.jpg') {
-                            e.target.src = '/placeholder.jpg';
-                          }
-                        }}
-                        loading="lazy"
-                      />
-=======
                           src={`http://localhost:5000${item.product.image || '/placeholder.jpg'}`}
                           alt={item.product.name}
                           className="product-image"
                           onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                         />
->>>>>>> newBranchFromPost
                       )}
                       {!item.product.inStock && (
                         <div className="out-of-stock-overlay">
