@@ -93,35 +93,54 @@ const OrderManagementSystem = () => {
       },
     ],
   });
+  const handleOpenReview = async (order) => {
+        const existing = await fetchExistingReview(order.id);
+        const enrichedOrder = { ...order, existingRating: existing };
+        setOrderToRate(enrichedOrder);
+        setShowRatingModal(true);
+      };
+  const fetchExistingReview = async (orderId) => {
+  try {
+    const response = await fetch(`http://localhost:5000/api/reviews/${orderId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    if (!response.ok) return null;
+    return await response.json();  // expected: { rating, review }
+  } catch (err) {
+    console.error("Error fetching existing review:", err);
+    return null;
+  }
+};
 
-  // Handle rating submission
-  const handleRatingSubmit = async (ratingData) => {
-    try {
-      const response = await fetch('http://localhost:5000/api/reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(ratingData)
-      });
 
-      const result = await response.json();
+const handleRatingSubmit = async (ratingData) => {
+  try {
+    const response = await fetch('http://localhost:5000/api/reviews', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(ratingData)
+    });
 
-      if (response.ok) {
-        console.log('Review submitted successfully:', result);
-        alert('✅ Thank you for your review!');
-        // Refresh orders to update review status
-        fetchData();
-      } else {
-        console.error('Error submitting review:', result.message);
-        alert(`❌ Error: ${result.message}`);
-      }
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      throw error;
+    const result = await response.json();
+
+    if (response.ok) {
+      console.log('Review submitted successfully:', result);
+      alert('✅ Thank you for your review!');
+      fetchData(); // Refresh orders
+    } else {
+      console.error('Error submitting review:', result.message);
+      alert(`❌ Error: ${result.message}`);
     }
-  };
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    alert('❌ Failed to submit review. Please try again.');
+  }
+};
+
 
   // Handle adding to stock
   const handleAddToStock = async (order) => {
@@ -447,12 +466,11 @@ const OrderManagementSystem = () => {
           </button>
           {/* Rate Product button for delivered buying orders */}
           {activeTab === 'buying' && order.status === 'delivered' && (
-          <button 
+         <button
             className="action-btn action-rate"
             onClick={(e) => {
               e.stopPropagation();
-              setOrderToRate(order);
-              setShowRatingModal(true);
+              handleOpenReview(order); // instead of setOrderToRate(...)
             }}
             title={order.hasReview ? "Edit your review" : "Rate this product"}
           >
@@ -491,7 +509,8 @@ const OrderManagementSystem = () => {
   );
 
   // Order Modal Component
-  const OrderModal = ({ order, onClose, handleStatusUpdate }) => {
+    const OrderModal = ({ order, onClose, handleStatusUpdate }) => {
+      
     if (!order) return null;
     
     const handlePrint = () => {
@@ -510,6 +529,7 @@ const OrderManagementSystem = () => {
       document.title = originalTitle;
       window.location.reload();
     };
+   
 
     return (
       <div className="modal-overlay">
@@ -659,8 +679,7 @@ const OrderManagementSystem = () => {
                   className="action-btn action-rate"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setOrderToRate(order);
-                    setShowRatingModal(true);
+                   handleOpenReview(order);
                   }}
                   title={order.hasReview ? "Edit your review" : "Rate this product"}
                 >
@@ -847,6 +866,7 @@ const OrderManagementSystem = () => {
       {showRatingModal && orderToRate && (
         <RatingModal
           order={orderToRate}
+          existingRating={orderToRate.existingRating || null}
           onClose={() => {
             setShowRatingModal(false);
             setOrderToRate(null);
@@ -854,6 +874,7 @@ const OrderManagementSystem = () => {
           onSubmit={handleRatingSubmit}
         />
       )}
+
 
       {/* Stock Prompt Modal */}
       {showStockPrompt && (

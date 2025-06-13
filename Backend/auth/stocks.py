@@ -346,6 +346,7 @@ def check_wishlist_status(stock_id):
 
     except Exception as e:
         return jsonify({'message': 'Error checking wishlist status', 'error': str(e)}), 500
+    
 @auth_bp.route('/api/wishlist/show', methods=['GET'])
 def show_wishlist():
     try:
@@ -387,7 +388,7 @@ def show_wishlist():
                         'minThreshold': stock.get('minThreshold', 0),
                         'discount': stock.get('discount', 0),
                         'rating': stock.get('rating', 0),
-                        'reviews': stock.get('reviews', 0),
+                        'reviews': len(stock.get('reviews', 0)),
                         'image': f"/image/{stock['image']}" if stock.get('image') else None,
                         'inStock': stock['quantity'] > 0,
                         'seller': {

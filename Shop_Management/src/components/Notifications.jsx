@@ -515,7 +515,13 @@ const Notifications = () => {
                       onMouseOut={(e) => {
                         e.currentTarget.style.transform = 'translateY(0)';
                         e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      }} onClick={()=>{ 
+                        if (groupKey.startsWith('stock')) {
+                            navigate('/stocks');
+                          } else {
+                            navigate('/orders');
+                          }
+                        }}
                     >
                       {note.readOrNot && (
                         <div style={{

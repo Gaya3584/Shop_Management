@@ -14,10 +14,15 @@ const DiscoverPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sortOption, setSortOption] = useState('reviews');
+  const [modalSource, setModalSource] = useState(null); // 'wishlist' or 'grid'
   const [products, setProducts] = useState([]);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [showWishlist, setShowWishlist] = useState(false);
+  const minOrder = Number(selectedProduct?.minOrder || 1);
+const quantity = Number(selectedProduct?.quantity || 0);
+const threshold = Number(selectedProduct?.threshold || 0);
+const maxOrderable = Math.max(0, quantity - threshold);
 
 
   const [wishlistLoading, setWishlistLoading] = useState(false);
@@ -405,11 +410,12 @@ useEffect(() => {
                       <div className="seller-info">
                         <div className="seller-details">
                           <span className="seller-name">{item.product.seller?.name || 'Unknown'}</span>
-                          <span className={`seller-type name ${item.product.seller?.type || 'Unknown'}`}>
-                            {item.product.seller?.type === 'Retail' ? '🏪' : '🏭'} {item.product.seller?.type || 'Unknown'}
-                          </span>
+<span className={`seller-type name ${item.product.seller?.type || 'Unknown'}`}>
+  {item.product.seller?.type === 'Retail' ? '🏪' : '🏭'} {item.product.seller?.type || 'Unknown'}
+</span>
                           </div>
-                          <div className="seller-location">📍 {item.product.seller?.location || 'Unknown'}</div>                 
+                         <div className="seller-location">📍 {item.product.seller?.location || 'Unknown'}</div>
+                 
                       </div>
 
                       <div className="product-stats">
@@ -442,8 +448,9 @@ useEffect(() => {
                               image: item.product.image,
                               discount: item.product.discount
                             };
+                            setModalSource('wishlist');
                             setSelectedProduct(productForModal);
-                            setBuyQuantity(Number(product.minOrder)||1);
+                            setBuyQuantity(Number(item.product.minOrder)||1);
                             setShowBuyModal(true);
                             setShowWishlist(false);
                           }}
@@ -510,7 +517,7 @@ useEffect(() => {
         <div className="products-section">
           <div className="products-header">
            {!showBuyModal && loading ? (
-            <h1 className="section-title">Placing Your Order. Wait a moment</h1>
+            <h1 className="section-title">Wait a moment...</h1>
             ) : (
               <h2 className="section-title">
                 {loading ? 'Loading products...' : `${filteredProducts.length} Products Found`}
@@ -599,8 +606,10 @@ useEffect(() => {
                         className="inquire-btn"
                         disabled={!product.inStock || isOwnProduct(product)}
                         onClick={() => {
+                          setModalSource('grid');
                           setSelectedProduct(product);
-                          setBuyQuantity(Number(product.minOrder)||1);
+                          const minOrder = Number(product.minOrder);
+                          setBuyQuantity(isNaN(minOrder) ? 1 : minOrder);
                           setShowBuyModal(true);
                         }}
                       >
@@ -753,7 +762,7 @@ useEffect(() => {
           )}
         </div>
       </div>
-
+          
       {/* Buy Modal */}
       {showBuyModal && selectedProduct && (() => {
         const maxOrderable = Math.max(0, selectedProduct.quantity - selectedProduct.threshold);
@@ -781,7 +790,7 @@ useEffect(() => {
 
                 <div className="seller-info">
                   <div className="seller-details">
-                    <span className="seller-name">{selectedProduct.seller}</span>
+                    <span className="seller-name">{selectedProduct.seller.name}</span>
                     <span className={`seller-type name ${selectedProduct.sellerType}`}>
                       {selectedProduct.sellerType === 'retailer' ? '🏪' : '🏭'} {selectedProduct.sellerType}
                     </span>
@@ -800,13 +809,13 @@ useEffect(() => {
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', margin: '1rem 0' }}>
                   <button
-                     onClick={() => setBuyQuantity(Math.max(selectedProduct.minOrder, buyQuantity - 1))}
-                    className="wishlist-btn"
-                    disabled={buyQuantity <= selectedProduct.minOrder}
-                    title={buyQuantity <= selectedProduct.minOrder ? 'Minimum order limit reached' : 'Decrease quantity'}
-                  >
-                    -
-                  </button>
+                      className='wishlist-btn'
+                      onClick={() => setBuyQuantity(prev => Math.max(minOrder, prev - 1))}
+                      disabled={buyQuantity <= minOrder}
+                      title={buyQuantity <= minOrder ? 'Minimum order limit reached' : 'Decrease quantity'}
+                    >
+                      -
+                    </button>
                   <div style={{ fontSize: '1.2rem', fontWeight: '600' }}>{buyQuantity}</div>
                   <button
                     onClick={() => setBuyQuantity(prev => (prev < maxOrderable ? prev + 1 : prev))}
