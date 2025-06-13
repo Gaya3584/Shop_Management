@@ -287,22 +287,58 @@ const OrderManagementSystem = () => {
       const result = await response.json();
 
       if (response.ok) {
-        console.log(result.message);
-        // Refresh data after status update
-        fetchData();
-        alert(`✅ Order status updated to ${newStatus}`);
-      } else {
-        console.error(result.message);
-        alert(`❌ Error: ${result.message}`);
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert('❌ Failed to update status. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      console.log(result.message);
 
+      // ✅ Update correct order list based on tab
+      if (activeTab === 'buying') {
+  setBuyingOrders(prev =>
+    prev.map(order =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    )
+  );
+} else if (activeTab === 'selling') {
+  setSellingOrders(prev =>
+    prev.map(order =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    )
+  );
+}if (selectedOrder?.id === orderId) {
+  setSelectedOrder(prev => {
+    const updatedTimeline = prev.timeline.map(stage => {
+      if (stage.stage === 'Accepted') {
+        return { ...stage, completed: ['accepted', 'dispatched', 'delivered'].includes(newStatus) };
+      }
+      if (stage.stage === 'Dispatched') {
+        return { ...stage, completed: ['dispatched', 'delivered'].includes(newStatus) };
+      }
+      if (stage.stage === 'Delivered') {
+        return { ...stage, completed: newStatus === 'delivered' };
+      }
+      return stage;
+    });
+
+    return {
+      ...prev,
+      status: newStatus,
+      timeline: updatedTimeline
+    };
+  });
+}
+
+
+
+      alert(`✅ Order status updated to ${newStatus}`);
+    } else {
+      console.error(result.message);
+      alert(`❌ Error: ${result.message}`);
+    }
+  } catch (error) {
+    console.error("Error updating status:", error);
+    alert('❌ Failed to update status. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
   const currentOrders = activeTab === 'buying' ? buyingOrders : sellingOrders;
 
   // Filter and search logic
@@ -410,19 +446,23 @@ const OrderManagementSystem = () => {
             <Eye className="action-icon" />
           </button>
           {/* Rate Product button for delivered buying orders */}
-          {activeTab === 'buying' && order.status === 'delivered' && !order.hasReview && (
-            <button 
-              className="action-btn action-rate"
-              onClick={(e) => {
-                e.stopPropagation();
-                setOrderToRate(order);
-                setShowRatingModal(true);
-              }}
-              title="Rate this product"
-            >
+          {activeTab === 'buying' && order.status === 'delivered' && (
+          <button 
+            className="action-btn action-rate"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOrderToRate(order);
+              setShowRatingModal(true);
+            }}
+            title={order.hasReview ? "Edit your review" : "Rate this product"}
+          >
+            {order.hasReview ? (
+              <Edit className="action-icon" />
+            ) : (
               <Star className="action-icon" />
-            </button>
-          )}
+            )}
+          </button>
+        )}
         </div>
       </div>
 
@@ -614,20 +654,23 @@ const OrderManagementSystem = () => {
             )}
 
             {/* Rate Product button in modal */}
-            {activeTab === 'buying' && order.status === 'delivered' && !order.hasReview && (
-              <div className="modal-actions">
+            {activeTab === 'buying' && order.status === 'delivered' && (
                 <button 
-                  onClick={() => {
+                  className="action-btn action-rate"
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setOrderToRate(order);
                     setShowRatingModal(true);
                   }}
-                  className="action-button rate-btn"
+                  title={order.hasReview ? "Edit your review" : "Rate this product"}
                 >
-                  <Star className="action-icon" />
-                  Rate this Product
+                  {order.hasReview ? (
+                    <Edit className="action-icon" />
+                  ) : (
+                    <Star className="action-icon" />
+                  )}
                 </button>
-              </div>
-            )}
+              )}
 
             {activeTab === 'selling' && order.status === 'accepted' && (
               <div className="modal-actions">

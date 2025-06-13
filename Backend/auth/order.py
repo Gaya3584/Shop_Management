@@ -73,7 +73,7 @@ def place_order():
             'status': 'placed',
             'orderedAt': datetime.utcnow(),
             'shopName': product.get('shopName', 'Unknown'),
-            'customerName': customer.get('ownerName', 'Unknown'),
+            'customerName': customer.get('shopName', 'Unknown'),
             'emailNotifications':False,
             'localNotifications':False,
             'addedToStock': False  # New field to track stock addition

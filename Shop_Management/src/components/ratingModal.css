@@ -14,7 +14,7 @@
 }
 
 .rating-modal-container {
-  background: white;
+  background: linear-gradient(135deg, #31428d 0%, #4f336b 100%);
   border-radius: 24px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   max-width: 600px;
@@ -26,7 +26,6 @@
 
 .rating-modal-header {
   padding: 32px 32px 0 32px;
-  border-bottom: 1px solid #f1f5f9;
 }
 
 .rating-modal-title-section {
@@ -41,14 +40,14 @@
   font-weight: 700;
   color: #1e293b;
   margin: 0;
-  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  background: #1e293b;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .rating-modal-close-btn {
-  background: #f8fafc;
+  background: linear-gradient(135deg, #31428d 0%, #4f336b 100%);
   border: none;
   border-radius: 12px;
   width: 44px;
@@ -79,15 +78,16 @@
   text-align: center;
   margin-bottom: 40px;
   padding: 24px;
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  position: relative;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(6, 182, 212, 0.05));
+  border: 1px solid rgba(139, 92, 246, 0.1);
 }
 
 .product-name {
   font-size: 24px;
   font-weight: 600;
-  color: #1e293b;
+  color: #8b5cf6;
   margin: 0 0 8px 0;
 }
 
@@ -96,6 +96,25 @@
   color: #64748b;
   margin: 0;
   font-weight: 500;
+}
+
+.edit-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 20px;
+  color: #8b5cf6;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.edit-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .rating-form {
@@ -115,145 +134,571 @@
   margin: 0 0 32px 0;
 }
 
-.cup-rating-container {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.cup-container {
+.shop-rating-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 12px;
-  border-radius: 16px;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+
+.modern-shop {
   position: relative;
+  width: 400px;
+  height: 280px;
+  margin: 20px 0;
+  perspective: 1000px;
 }
 
-.cup-container:hover {
-  transform: translateY(-4px);
-  background: rgba(139, 92, 246, 0.05);
-}
-
-.cup-container.active {
-  transform: translateY(-4px);
-  background: rgba(139, 92, 246, 0.1);
-}
-
-.cup-wrapper {
-  position: relative;
-  margin-bottom: 12px;
-}
-
-.cup {
-  width: 60px;
-  height: 70px;
-  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
-  border: 3px solid #cbd5e1;
-  border-radius: 8px 8px 12px 12px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.cup-container.active .cup {
-  border-color: #8b5cf6;
-  box-shadow: 0 8px 25px -5px rgba(139, 92, 246, 0.3);
-}
-
-.cup-fill {
+/* Shop Foundation */
+.shop-foundation {
   position: absolute;
   bottom: 0;
   left: 0;
-  right: 0;
-  background: linear-gradient(180deg, #fbbf24, #f59e0b, #d97706);
-  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 0 0 8px 8px;
-  opacity: 0.9;
-}
-
-.cup-container.active .cup-fill {
-  background: linear-gradient(180deg, #8b5cf6, #7c3aed, #6d28d9);
-  opacity: 1;
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-}
-
-.cup-handle {
-  position: absolute;
-  right: -8px;
-  top: 15px;
-  width: 12px;
+  width: 100%;
   height: 20px;
-  border: 3px solid #cbd5e1;
-  border-left: none;
-  border-radius: 0 8px 8px 0;
-  transition: border-color 0.3s ease;
+  background: linear-gradient(145deg, #4a5568, #2d3748);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.cup-container.active .cup-handle {
-  border-color: #8b5cf6;
-}
-
-.cup-steam {
+/* Shop Walls */
+.shop-walls {
   position: absolute;
-  top: -15px;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(145deg, #f7fafc, #edf2f7);
+  border-radius: 8px 8px 0 0;
+  box-shadow: 
+    0 -2px 20px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+}
+
+.wall-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 4px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 8px,
+      rgba(0, 0, 0, 0.01) 8px,
+      rgba(0, 0, 0, 0.01) 16px
+    );
+}
+
+/* Shop Windows */
+.shop-window {
+  position: absolute;
+  bottom: 60px;
+  width: 120px;
+  height: 100px;
+}
+
+.left-window {
+  left: 30px;
+}
+
+.right-window {
+  right: 30px;
+}
+
+.window-frame {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #2d3748, #1a202c);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.window-glass {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #e6fffa, #b2f5ea);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.glass-reflection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: skewX(-15deg);
+  animation: glassShine 3s ease-in-out infinite;
+}
+
+@keyframes glassShine {
+  0%, 100% { opacity: 0.3; transform: skewX(-15deg) translateX(-20px); }
+  50% { opacity: 0.6; transform: skewX(-15deg) translateX(140px); }
+}
+
+.window-display {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #fef5e7, #fed7aa);
+}
+
+/* Product Items */
+.product-item {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  animation: productAppear 0.8s ease-out forwards;
+  opacity: 0;
+  transform: translateY(-30px) scale(0.6);
+}
+
+.product-box {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #f59e0b, #d97706);
+  border-radius: 4px;
+  box-shadow: 
+    0 4px 8px rgba(245, 158, 11, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+.product-shine {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+  animation: productGlow 2s ease-in-out infinite;
+}
+
+@keyframes productAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.6) rotate(-15deg);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-5px) scale(1.1) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes productGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Shop Door */
+.shop-door {
+  position: absolute;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  gap: 3px;
+  width: 80px;
+  height: 140px;
+}
+
+.door-frame {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #2d3748, #1a202c);
+  border-radius: 8px 8px 0 0;
+  padding: 6px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.door-panel {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #92400e, #78350f);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.door-handle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #fbbf24, #f59e0b);
+  border-radius: 50%;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.door-glass {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 40px;
+  background: linear-gradient(145deg, #e6fffa, #b2f5ea);
+  border-radius: 4px;
+  border: 2px solid #2d3748;
+  overflow: hidden;
+}
+
+.door-reflection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+}
+
+/* Shop Sign */
+.shop-sign {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.sign-board {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.sign-text {
+  color: #f8fafc;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+.sign-glow {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: linear-gradient(45deg, #8b5cf6, #06b6d4);
+  border-radius: 12px;
+  z-index: -1;
+  opacity: 0.6;
+  filter: blur(8px);
+}
+
+/* Lighting Effects */
+.shop-lighting {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ambient-light {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 100px;
+  background: radial-gradient(ellipse, rgba(251, 191, 36, 0.1), transparent 70%);
+  border-radius: 50%;
+  animation: ambientPulse 3s ease-in-out infinite;
+}
+
+.warm-glow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  background: radial-gradient(ellipse at bottom, rgba(251, 191, 36, 0.15), transparent 60%);
+  animation: warmGlow 4s ease-in-out infinite;
+}
+
+.success-aura {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 450px;
+  height: 350px;
+  background: radial-gradient(ellipse, rgba(139, 92, 246, 0.2), transparent 70%);
+  border-radius: 50%;
+  animation: successPulse 2s ease-in-out infinite;
+}
+
+@keyframes ambientPulse {
+  0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(0.9); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+}
+
+@keyframes warmGlow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+@keyframes successPulse {
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(0.8); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+}
+
+/* Street and Customers */
+.street-area {
+  position: absolute;
+  bottom: -40px;
+  left: 0;
+  width: 100%;
+  height: 60px;
+}
+
+.sidewalk {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background: linear-gradient(145deg, #a0aec0, #718096);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.street-lighting {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background: linear-gradient(to bottom, transparent, rgba(251, 191, 36, 0.1));
+}
+
+.customer-area {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  width: 100%;
+  height: 30px;
+}
+
+.customer-figure {
+  position: absolute;
+  width: 20px;
+  height: 30px;
+  animation: customerWalk 1s ease-out forwards;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transform: translateX(-50px);
 }
 
-.cup-container.active .cup-steam {
-  opacity: 1;
+.customer-head {
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #fbbf24, #f59e0b);
+  border-radius: 50%;
+  margin: 0 auto 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.steam-line {
-  width: 2px;
-  height: 12px;
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.6), transparent);
-  border-radius: 1px;
-  animation: steam 2s ease-in-out infinite;
+.customer-body {
+  width: 12px;
+  height: 18px;
+  background: linear-gradient(145deg, #3b82f6, #2563eb);
+  border-radius: 6px 6px 2px 2px;
+  margin: 0 auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.steam-1 {
+.customer-shadow {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+@keyframes customerWalk {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-25px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Premium Effects */
+.premium-effects {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  width: 100%;
+  height: 120%;
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, #fbbf24, #f59e0b);
+  border-radius: 50%;
+  animation: sparkleFloat 3s ease-in-out infinite;
+}
+
+.sparkle-1 {
+  top: 20%;
+  left: 20%;
   animation-delay: 0s;
 }
 
-.steam-2 {
-  animation-delay: 0.3s;
+.sparkle-2 {
+  top: 30%;
+  right: 25%;
+  animation-delay: 1s;
 }
 
-.steam-3 {
-  animation-delay: 0.6s;
+.sparkle-3 {
+  top: 50%;
+  left: 15%;
+  animation-delay: 2s;
 }
 
-@keyframes steam {
+.success-rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    rgba(139, 92, 246, 0.1),
+    transparent,
+    rgba(6, 182, 212, 0.1),
+    transparent
+  );
+  border-radius: 50%;
+  animation: raysRotate 8s linear infinite;
+}
+
+@keyframes sparkleFloat {
   0%, 100% {
-    transform: translateY(0) scale(1);
     opacity: 0;
+    transform: translateY(0) scale(0.8);
   }
   50% {
-    transform: translateY(-8px) scale(1.1);
-    opacity: 0.6;
+    opacity: 1;
+    transform: translateY(-20px) scale(1.2);
   }
 }
 
-.cup-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #64748b;
-  transition: color 0.3s ease;
+@keyframes raysRotate {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-.cup-container.active .cup-label {
-  color: #8b5cf6;
+/* Rating Buttons */
+.rating-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rating-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 60px;
+}
+
+.rating-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.rating-btn.active {
+  background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+  border-color: #7c3aed;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+}
+
+.rating-number {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rating-star {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.rating-btn.active .rating-star {
+  opacity: 1;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 .rating-feedback {
@@ -295,7 +740,7 @@
 }
 
 .review-label {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: #1e293b;
 }
@@ -310,13 +755,13 @@
   font-family: inherit;
   resize: vertical;
   transition: all 0.2s ease;
-  background: #fafafa;
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
 }
 
 .review-textarea:focus {
   outline: none;
   border-color: #8b5cf6;
-  background: white;
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
@@ -339,7 +784,7 @@
 .cancel-btn {
   flex: 1;
   padding: 16px 24px;
-  background: #f8fafc;
+  background: #c3c4c5;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 16px;
@@ -421,13 +866,37 @@
     padding: 24px;
   }
 
-  .cup-rating-container {
-    gap: 12px;
+  .modern-shop {
+    width: 320px;
+    height: 220px;
   }
 
-  .cup {
-    width: 50px;
-    height: 60px;
+  .shop-window {
+    width: 90px;
+    height: 80px;
+    bottom: 50px;
+  }
+
+  .left-window {
+    left: 20px;
+  }
+
+  .right-window {
+    right: 20px;
+  }
+
+  .shop-door {
+    width: 60px;
+    height: 110px;
+  }
+
+  .rating-buttons {
+    gap: 8px;
+  }
+
+  .rating-btn {
+    min-width: 50px;
+    padding: 10px 12px;
   }
 
   .rating-modal-actions {

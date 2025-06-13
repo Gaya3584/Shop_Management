@@ -601,6 +601,15 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+.wishlist-btn:disabled {
+  background: var(--text-muted);
+  border-color: var(--border-color);
+  color: white;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+
 /* No Results Section */
 .no-results {
   text-align: center;
@@ -1141,6 +1150,7 @@ body {
   margin-bottom: 16px;
   text-align: center;
   background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: fadeIn 0.6s ease-in;
