@@ -517,7 +517,7 @@ const Notifications = () => {
                         e.currentTarget.style.boxShadow = 'none';
                       }} onClick={()=>{ 
                         if (groupKey.startsWith('stock')) {
-                            navigate('/stocks');
+                            navigate('/stock');
                           } else {
                             navigate('/orders');
                           }
